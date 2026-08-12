@@ -559,6 +559,52 @@ export const houseFormats = pgTable("house_formats", {
   updatedAt: updatedAt(),
 });
 
+/**
+ * The hook library, lifted from the prototype. Real work, so it lives in a
+ * table where it can be edited, not in an array that needs a deploy to change.
+ */
+export const hooks = pgTable(
+  "hooks",
+  {
+    id: id(),
+    /** The code it had in the prototype, e.g. "SF01", so old work stays findable. */
+    code: text("code").notNull().unique(),
+    /** "short", "linkedin", "blog". Wider than one channel on purpose. */
+    family: text("family").notNull(),
+    pillar: pillarEnum("pillar").notNull(),
+    text: text("text").notNull(),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index("hooks_family_pillar_idx").on(t.family, t.pillar)],
+);
+
+/** Per-pillar starting material: the headline, the payoff, the on-screen examples. */
+export const pillarDefaults = pgTable("pillar_defaults", {
+  id: id(),
+  pillar: pillarEnum("pillar").notNull().unique(),
+  headline: text("headline").notNull(),
+  subhead: text("subhead").notNull(),
+  halfword: text("halfword").notNull(),
+  example1: text("example_1").notNull(),
+  example2: text("example_2").notNull(),
+  payoff: text("payoff").notNull(),
+  updatedAt: updatedAt(),
+});
+
+/** Approved call-to-action lines, per family. */
+export const ctaLines = pgTable(
+  "cta_lines",
+  {
+    id: id(),
+    family: text("family").notNull(),
+    text: text("text").notNull(),
+    isActive: boolean("is_active").notNull().default(true),
+  },
+  (t) => [uniqueIndex("cta_lines_uq").on(t.family, t.text)],
+);
+
 /** The one approved concept a campaign's channel variants are derived from. */
 export const masterContent = pgTable("master_content", {
   id: id(),
@@ -998,6 +1044,11 @@ export type CampaignBrief = typeof campaignBriefs.$inferSelect;
 export type ChannelVariant = typeof channelVariants.$inferSelect;
 export type ContentVersion = typeof contentVersions.$inferSelect;
 export type Asset = typeof assets.$inferSelect;
+export type Hook = typeof hooks.$inferSelect;
+export type PillarDefault = typeof pillarDefaults.$inferSelect;
+export type HouseFormat = typeof houseFormats.$inferSelect;
+export type NewChannelVariant = typeof channelVariants.$inferInsert;
+export type NewContentVersion = typeof contentVersions.$inferInsert;
 export type Role = (typeof roleEnum.enumValues)[number];
 export type CampaignStatus = (typeof campaignStatusEnum.enumValues)[number];
 export type VariantStatus = (typeof variantStatusEnum.enumValues)[number];

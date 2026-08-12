@@ -8,18 +8,60 @@
  */
 
 import { randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { eq } from "drizzle-orm";
 
 import { getDb } from "../src/db";
 import {
   audiences,
+  ctaLines,
+  hooks,
+  houseFormats,
+  pillarDefaults,
   productClaims,
   productTruth,
   sources,
   users,
   type NewProductClaim,
+  type Pillar,
 } from "../src/db/schema";
+import { HOUSE_FORMATS } from "../src/db/seed/house-formats";
 import { hashPassword } from "../src/lib/auth/password";
+
+/** The prototype's own content, extracted verbatim. See scripts/extract-legacy.ts. */
+interface PrototypeContent {
+  LIB?: [string, string, string, string][];
+  VID_DEF?: Record<
+    string,
+    { h1: string; h2: string; hw: string; i1: string; i2: string; pay: string }
+  >;
+  CTAS_SHORT?: string[];
+  CTAS_LI?: string[];
+}
+
+const PILLAR_BY_CODE: Record<string, Pillar> = {
+  P1: "P1_ONE_PLACE",
+  P2: "P2_INSTANT_RECALL",
+  P3: "P3_YOUR_STUFF_STAYS_YOURS",
+  P4: "P4_FREE_WHERE_LOCAL",
+};
+
+function readPrototypeContent(): PrototypeContent {
+  try {
+    return JSON.parse(
+      readFileSync(
+        join(process.cwd(), "src", "db", "legacy-content", "prototype-content.json"),
+        "utf8",
+      ),
+    ) as PrototypeContent;
+  } catch {
+    console.log(
+      "No extracted prototype content found. Run: npx tsx scripts/extract-legacy.ts",
+    );
+    return {};
+  }
+}
 
 const VERIFIED_AT = new Date("2026-08-12T00:00:00Z");
 const NEXT_REVIEW = new Date("2026-09-12T00:00:00Z");
@@ -276,6 +318,70 @@ async function main() {
     `Product Truth ${truth.version} seeded with ${claims.length} claims. ` +
       `${claims.filter((c) => c.status === "UNVERIFIED").length} are unverified on purpose and will block any asset that relies on them.`,
   );
+
+  // ---- house formats --------------------------------------------------------
+  await db
+    .insert(houseFormats)
+    .values(
+      HOUSE_FORMATS.map((f) => ({
+        slug: f.slug,
+        name: f.name,
+        intent: f.intent,
+        channels: f.channels,
+        aspectRatios: f.aspectRatios,
+        hookGuidance: f.hookGuidance,
+        evidenceNeeded: f.evidenceNeeded,
+        shotList: f.shotList,
+        subtitleRule: f.subtitleRule,
+        audioRule: f.audioRule,
+        thumbnailRule: f.thumbnailRule,
+        ctaRule: f.ctaRule,
+        a11yRule: f.a11yRule,
+      })),
+    )
+    .onConflictDoNothing();
+  console.log(`${HOUSE_FORMATS.length} house formats seeded.`);
+
+  // ---- content carried over from the prototype -------------------------------
+  const content = readPrototypeContent();
+
+  if (content.LIB?.length) {
+    const rows = content.LIB.filter(([, , pillar]) => PILLAR_BY_CODE[pillar]).map(
+      ([code, family, pillar, text]) => ({
+        code,
+        family,
+        pillar: PILLAR_BY_CODE[pillar],
+        text,
+      }),
+    );
+    await db.insert(hooks).values(rows).onConflictDoNothing();
+    console.log(`${rows.length} hooks carried over from the prototype.`);
+  }
+
+  if (content.VID_DEF) {
+    const rows = Object.entries(content.VID_DEF)
+      .filter(([code]) => PILLAR_BY_CODE[code])
+      .map(([code, v]) => ({
+        pillar: PILLAR_BY_CODE[code],
+        headline: v.h1,
+        subhead: v.h2,
+        halfword: v.hw,
+        example1: v.i1,
+        example2: v.i2,
+        payoff: v.pay,
+      }));
+    await db.insert(pillarDefaults).values(rows).onConflictDoNothing();
+    console.log(`${rows.length} pillar defaults carried over.`);
+  }
+
+  const ctas = [
+    ...(content.CTAS_SHORT ?? []).map((text) => ({ family: "short", text })),
+    ...(content.CTAS_LI ?? []).map((text) => ({ family: "linkedin", text })),
+  ];
+  if (ctas.length) {
+    await db.insert(ctaLines).values(ctas).onConflictDoNothing();
+    console.log(`${ctas.length} call-to-action lines carried over.`);
+  }
 
   process.exit(0);
 }

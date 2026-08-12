@@ -6,6 +6,7 @@ import {
   nextAvailableCode,
   slugify,
   utmSourceFor,
+  variantCodeFor,
 } from "./codes";
 
 describe("slugify", () => {
@@ -77,6 +78,24 @@ describe("nextAvailableCode", () => {
         "one-place-2608-3",
       ]),
     ).toBe("one-place-2608-4");
+  });
+});
+
+describe("variantCodeFor", () => {
+  it("reads at a glance in a report", () => {
+    expect(variantCodeFor("LINKEDIN", 0)).toBe("li-a");
+    expect(variantCodeFor("TIKTOK", 1)).toBe("tt-b");
+    expect(variantCodeFor("BLOG", 0)).toBe("blog-a");
+  });
+
+  it("keeps going past the alphabet without repeating", () => {
+    const codes = Array.from({ length: 30 }, (_, i) => variantCodeFor("X", i));
+    expect(new Set(codes).size).toBe(30);
+  });
+
+  it("is safe in a URL, because it becomes utm_content", () => {
+    const code = variantCodeFor("INSTAGRAM_REELS", 3);
+    expect(code).toBe(encodeURIComponent(code));
   });
 });
 

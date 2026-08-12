@@ -11,7 +11,9 @@ import {
   LEGAL_TRANSITIONS,
   evaluateTransition,
 } from "@/lib/campaign/state-machine";
+import { loadVariants } from "@/lib/content/queries";
 import { Transitions, type TransitionOption } from "./transitions";
+import { Variants } from "./variants";
 
 export const dynamic = "force-dynamic";
 
@@ -55,12 +57,15 @@ export default async function CampaignPage({
     },
   );
 
-  const history = await getDb()
-    .select()
-    .from(campaignTransitions)
-    .where(eq(campaignTransitions.campaignId, campaign.id))
-    .orderBy(desc(campaignTransitions.createdAt))
-    .limit(20);
+  const [history, variants] = await Promise.all([
+    getDb()
+      .select()
+      .from(campaignTransitions)
+      .where(eq(campaignTransitions.campaignId, campaign.id))
+      .orderBy(desc(campaignTransitions.createdAt))
+      .limit(20),
+    loadVariants(campaign.id),
+  ]);
 
   return (
     <>
@@ -91,7 +96,14 @@ export default async function CampaignPage({
         </Link>
       </Card>
 
-      <section className="mt-8" aria-labelledby="transitions-heading">
+      <section className="mt-10" aria-labelledby="variants-heading">
+        <h2 id="variants-heading" className="mb-3 text-lg font-semibold">
+          Channel variants
+        </h2>
+        <Variants slug={slug} variants={variants} />
+      </section>
+
+      <section className="mt-10" aria-labelledby="transitions-heading">
         <h2 id="transitions-heading" className="mb-3 text-lg font-semibold">
           Where this can go
         </h2>

@@ -79,6 +79,33 @@ export function utmMediumFor(channel: Channel): string {
   return MEDIUM[channel] ?? "social";
 }
 
+/** Short, stable prefixes so a variant code reads at a glance in a report. */
+const CHANNEL_PREFIX: Record<Channel, string> = {
+  TIKTOK: "tt",
+  INSTAGRAM_REELS: "ig",
+  YOUTUBE_SHORTS: "yts",
+  YOUTUBE_LONG: "yt",
+  LINKEDIN: "li",
+  X: "x",
+  THREADS: "th",
+  FACEBOOK: "fb",
+  BLOG: "blog",
+  EMAIL: "mail",
+  REDDIT: "rd",
+  PRODUCT_HUNT: "ph",
+  HACKER_NEWS: "hn",
+};
+
+/** e.g. ("LINKEDIN", 0) becomes "li-a". Unique within one campaign. */
+export function variantCodeFor(channel: Channel, index: number): string {
+  const letters = "abcdefghijklmnopqrstuvwxyz";
+  const suffix =
+    index < letters.length
+      ? letters[index]
+      : `${letters[index % letters.length]}${Math.floor(index / letters.length) + 1}`;
+  return `${CHANNEL_PREFIX[channel]}-${suffix}`;
+}
+
 export interface TaggedUrlInput {
   /** e.g. "https://voxclip.it". Comes from the environment, never hard-coded. */
   siteUrl: string;

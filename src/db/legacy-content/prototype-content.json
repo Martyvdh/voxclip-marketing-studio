@@ -1,0 +1,739 @@
+{
+  "LIB": [
+    [
+      "SF01",
+      "short",
+      "P1",
+      "“You copy this. And this. And this. Where is it now?”"
+    ],
+    [
+      "SF02",
+      "short",
+      "P3",
+      "“This dictation app does not send your voice away.”"
+    ],
+    [
+      "SF03",
+      "short",
+      "P2",
+      "“From thought to pasted in two keys.”"
+    ],
+    [
+      "SF05",
+      "short",
+      "P1",
+      "“10 tabs open to find what you just copied?”"
+    ],
+    [
+      "SF07",
+      "short",
+      "P1",
+      "“What's in your stash?”"
+    ],
+    [
+      "SF09",
+      "short",
+      "P1",
+      "“Copy and voice in the same search bar. Yes, really.”"
+    ],
+    [
+      "SF13",
+      "short",
+      "P3",
+      "“What happens when you hit 'clear'.”"
+    ],
+    [
+      "SF16",
+      "short",
+      "P4",
+      "“Why VoxClip can be free.”"
+    ],
+    [
+      "SF18",
+      "short",
+      "P3",
+      "“Free dictation that keeps your voice local. It exists.”"
+    ],
+    [
+      "SF25",
+      "short",
+      "P1",
+      "“That calm feeling of knowing nothing's lost.”"
+    ],
+    [
+      "SF27",
+      "short",
+      "P3",
+      "“VoxClip vs the built-in clipboard (Win+V).”"
+    ],
+    [
+      "SF30",
+      "short",
+      "P4",
+      "“Everything VoxClip does for free, in 15 seconds.”"
+    ],
+    [
+      "LI01",
+      "linkedin",
+      "P1",
+      "We copy and talk all day. Why does that live in two separate apps?"
+    ],
+    [
+      "LI02",
+      "linkedin",
+      "P3",
+      "Your clipboard is the most underrated privacy risk at work."
+    ],
+    [
+      "LI03",
+      "linkedin",
+      "P4",
+      "We made one simple rule: if it runs on your machine, it's free."
+    ],
+    [
+      "LI04",
+      "linkedin",
+      "P2",
+      "3 small habits that save me 20 minutes of typing a day."
+    ],
+    [
+      "LI06",
+      "linkedin",
+      "P3",
+      "The hype around voice AI misses one thing: where does your voice go?"
+    ],
+    [
+      "LI08",
+      "linkedin",
+      "P1",
+      "Here's what my Timeline looks like after a work week."
+    ],
+    [
+      "vs Maccy",
+      "blog",
+      "P1",
+      "VoxClip vs Maccy: which clipboard manager fits you?"
+    ],
+    [
+      "vs Paste",
+      "blog",
+      "P1",
+      "VoxClip vs Paste: clipboard manager comparison (Mac)"
+    ],
+    [
+      "vs Raycast",
+      "blog",
+      "P1",
+      "VoxClip vs Raycast: just clipboard, or all-in-one?"
+    ],
+    [
+      "vs Wispr Flow",
+      "blog",
+      "P3",
+      "VoxClip vs Wispr Flow: local dictation vs cloud"
+    ],
+    [
+      "vs superwhisper",
+      "blog",
+      "P3",
+      "VoxClip vs superwhisper: which local dictation app?"
+    ],
+    [
+      "vs Apple Dictation",
+      "blog",
+      "P2",
+      "VoxClip vs Apple Dictation: is the built-in enough?"
+    ],
+    [
+      "Local dictation confidential work",
+      "blog",
+      "P3",
+      "Local dictation for confidential work (Mac & Windows)"
+    ],
+    [
+      "Private clipboard manager",
+      "blog",
+      "P3",
+      "A private clipboard manager: why local is better"
+    ],
+    [
+      "What is a merged Timeline",
+      "blog",
+      "P1",
+      "What is a merged Timeline (and why you want one)"
+    ],
+    [
+      "Catch your idea",
+      "blog",
+      "P1",
+      "Lost your idea before you wrote it down? Here's the fix"
+    ]
+  ],
+  "BLOGS": [
+    [
+      "vs Maccy",
+      "P1",
+      "VoxClip vs Maccy: which clipboard manager fits you?",
+      "voxclip vs maccy",
+      "mees"
+    ],
+    [
+      "vs Paste",
+      "P1",
+      "VoxClip vs Paste: clipboard manager comparison (Mac)",
+      "voxclip vs paste",
+      "mees"
+    ],
+    [
+      "vs Raycast",
+      "P1",
+      "VoxClip vs Raycast: just clipboard, or all-in-one?",
+      "voxclip vs raycast",
+      "mees"
+    ],
+    [
+      "vs Wispr Flow",
+      "P3",
+      "VoxClip vs Wispr Flow: local dictation vs cloud",
+      "voxclip vs wispr flow",
+      "sanne"
+    ],
+    [
+      "vs superwhisper",
+      "P3",
+      "VoxClip vs superwhisper: which local dictation app?",
+      "voxclip vs superwhisper",
+      "sanne"
+    ],
+    [
+      "vs Apple Dictation",
+      "P2",
+      "VoxClip vs Apple Dictation: is the built-in enough?",
+      "voxclip vs apple dictation",
+      "mees"
+    ],
+    [
+      "Local dictation confidential work",
+      "P3",
+      "Local dictation for confidential work (Mac & Windows)",
+      "local dictation privacy",
+      "sanne"
+    ],
+    [
+      "Private clipboard manager",
+      "P3",
+      "A private clipboard manager: why local is better",
+      "private clipboard manager",
+      "sanne"
+    ],
+    [
+      "What is a merged Timeline",
+      "P1",
+      "What is a merged Timeline (and why you want one)",
+      "merged timeline clipboard dictation",
+      "mees"
+    ],
+    [
+      "Catch your idea",
+      "P1",
+      "Lost your idea before you wrote it down? Here's the fix",
+      "catch your idea dictation",
+      "mees"
+    ]
+  ],
+  "VID_DEF": {
+    "P1": {
+      "h1": "Everything you copy.",
+      "h2": "Everything you say.",
+      "hw": "one place.",
+      "i1": "invoice@voxclip.it",
+      "i2": "Call the notary — 3:00 PM",
+      "pay": "One Timeline. Local."
+    },
+    "P2": {
+      "h1": "Thought to pasted",
+      "h2": "in two keys.",
+      "hw": "That fast.",
+      "i1": "tracking #A1B2C3",
+      "i2": "Send the deck to Alex",
+      "pay": "Instant recall."
+    },
+    "P3": {
+      "h1": "Your voice never",
+      "h2": "leaves your device.",
+      "hw": "Ever.",
+      "i1": "client-brief.pdf",
+      "i2": "Draft the reply to Sarah",
+      "pay": "Local. Private. Yours."
+    },
+    "P4": {
+      "h1": "Almost everything",
+      "h2": "is free.",
+      "hw": "Really.",
+      "i1": "standard reply text",
+      "i2": "Note: call the bank",
+      "pay": "Free where it's local."
+    }
+  },
+  "CTAS_SHORT": [
+    "Want to try it? Link in bio.",
+    "Try it free. Link in bio.",
+    "Take a look. Link in bio.",
+    "What's in your stash? Tag us."
+  ],
+  "CTAS_LI": [
+    "Sound familiar? I'd love to hear how you handle this.",
+    "How do you do this — cloud or local?",
+    "What would you add?",
+    "Feel free to reply, I'm reading along."
+  ],
+  "VIDEO_IDEAS": [
+    {
+      "t": "Copy three things — paste the exact right one",
+      "s": "Screen-recording: copy 3 different things fast, then hit the hotkey and pick the exact one you need.",
+      "c": "Stop losing what you just copied.",
+      "tag": "demo"
+    },
+    {
+      "t": "Say it, don't type it",
+      "s": "Demo: dictate a note by voice; it lands in the Timeline instantly.",
+      "c": "Talk. It's saved.",
+      "tag": "demo"
+    },
+    {
+      "t": "One search — everything you copied AND said",
+      "s": "Demo: type one search; both clipboard items and dictations show up together.",
+      "c": "One place for all of it.",
+      "tag": "demo"
+    },
+    {
+      "t": "Two keystrokes to paste",
+      "s": "Demo: press the hotkey → Quick-picker opens → pick → pasted where the cursor is.",
+      "c": "Recall in two keys.",
+      "tag": "demo"
+    },
+    {
+      "t": "Paste the address you copied this morning",
+      "s": "Demo: search an old copied address, paste it into a form.",
+      "c": "It's all still here.",
+      "tag": "demo"
+    },
+    {
+      "t": "Your clipboard has a memory now",
+      "s": "Demo: scroll back through your clipboard history in the Timeline.",
+      "c": "Everything you copy, kept.",
+      "tag": "demo"
+    },
+    {
+      "t": "Snippets with variables",
+      "s": "Demo: type a short trigger; it expands into full text with {{date}} filled in.",
+      "c": "Reusable text, instantly.",
+      "tag": "demo"
+    },
+    {
+      "t": "Nothing leaves your device",
+      "s": "Demo: show the local badge / lock; explain data stays on-device.",
+      "c": "Local-first. Yours.",
+      "tag": "demo"
+    },
+    {
+      "t": "From two apps to one",
+      "s": "Split screen: a clipboard app + a dictation app, then merge into VoxClip's one Timeline.",
+      "c": "One tool instead of two.",
+      "tag": "demo"
+    },
+    {
+      "t": "The 'where did I copy that?' problem",
+      "s": "Demo: hunting through 8 tabs vs one VoxClip search.",
+      "c": "Stop hunting. Start finding.",
+      "tag": "hook"
+    },
+    {
+      "t": "Dictate a message hands-free",
+      "s": "Demo: hands full — dictate, then paste into a chat.",
+      "c": "Hands full? Just talk.",
+      "tag": "demo"
+    },
+    {
+      "t": "Copy an image, find it later",
+      "s": "Demo: copy an image, recall it from the Timeline minutes later.",
+      "c": "Text, images, files — all in one.",
+      "tag": "demo"
+    },
+    {
+      "t": "Clear your history in one click",
+      "s": "Demo: one-click clear of the Timeline.",
+      "c": "Your call, always.",
+      "tag": "demo"
+    },
+    {
+      "t": "Exclude an app from history",
+      "s": "Demo: add an app to the exclusion list so nothing is captured there.",
+      "c": "Private stays private.",
+      "tag": "demo"
+    },
+    {
+      "t": "Paste as plain text",
+      "s": "Demo: paste copied rich text as clean plain text.",
+      "c": "Clean paste, every time.",
+      "tag": "demo"
+    },
+    {
+      "t": "Turn a rough voice note into a prompt",
+      "s": "Demo (Plus): dictate messy thoughts; Enhance turns it into a structured, paste-ready prompt.",
+      "c": "Enhance: rough to ready.",
+      "tag": "plus"
+    },
+    {
+      "t": "Ask your history out loud",
+      "s": "Demo (Plus): ask a question by voice; VoxClip answers from your own Timeline.",
+      "c": "Talk to your stash.",
+      "tag": "plus"
+    },
+    {
+      "t": "Same Timeline on Mac and Windows",
+      "s": "Demo (Plus): copy on a Mac, paste on a Windows machine seconds later.",
+      "c": "Everywhere you work.",
+      "tag": "plus"
+    },
+    {
+      "t": "Free where it's local",
+      "s": "Show the free features side by side; state the freemium line.",
+      "c": "If it runs on your machine, it's free.",
+      "tag": "feature"
+    },
+    {
+      "t": "A whole day of copying, one Timeline",
+      "s": "Timelapse: items filling the Timeline across a workday.",
+      "c": "Your whole day, one place.",
+      "tag": "demo"
+    },
+    {
+      "t": "Recall a tracking number instantly",
+      "s": "Demo: search a tracking number you copied, paste it.",
+      "c": "Find it in a second.",
+      "tag": "demo"
+    },
+    {
+      "t": "The meeting link you copied is gone? Not anymore.",
+      "s": "Demo: re-find a Zoom/Meet link from history.",
+      "c": "Never re-copy again.",
+      "tag": "hook"
+    },
+    {
+      "t": "Voice dictation that stays on your device",
+      "s": "Demo: waveform while dictating + a lock icon; audio never leaves.",
+      "c": "Your voice never leaves.",
+      "tag": "demo"
+    },
+    {
+      "t": "Before VoxClip vs after",
+      "s": "Split: chaotic sticky-notes/tabs vs one calm searchable Timeline.",
+      "c": "Calm, not chaos.",
+      "tag": "hook"
+    },
+    {
+      "t": "Templates for replies you send daily",
+      "s": "Demo: pick a template, fill the variables, paste.",
+      "c": "Send it in seconds.",
+      "tag": "demo"
+    },
+    {
+      "t": "Copy from your browser, paste in your doc",
+      "s": "Demo: copy in Chrome, recall and paste in a document.",
+      "c": "Copy anywhere, paste anywhere.",
+      "tag": "demo"
+    },
+    {
+      "t": "The Quick-picker in action",
+      "s": "Demo: open the Quick-picker overlay and pick an item.",
+      "c": "Two keys to everything.",
+      "tag": "demo"
+    },
+    {
+      "t": "Search by meaning, not exact words",
+      "s": "Demo: search a rough phrase; the right item surfaces by meaning.",
+      "c": "Find it by what you meant.",
+      "tag": "demo"
+    },
+    {
+      "t": "Set your own hotkey",
+      "s": "Demo: change the recall hotkey in settings.",
+      "c": "Your keys, your way.",
+      "tag": "demo"
+    },
+    {
+      "t": "Everything you copy or say, one keystroke away",
+      "s": "Montage demo: copy, dictate, search, recall — quick cuts.",
+      "c": "One keystroke away.",
+      "tag": "hook"
+    },
+    {
+      "t": "POV: you paste the wrong thing again",
+      "s": "Demo: paste the wrong clip → open VoxClip → paste the right one.",
+      "c": "Paste the right one.",
+      "tag": "hook"
+    },
+    {
+      "t": "Install in under a minute (free)",
+      "s": "Demo: download + open on Mac/Windows. Be honest about the unsigned-installer warning (unverified, not harmful).",
+      "c": "Free on Mac & Windows.",
+      "tag": "demo"
+    }
+  ],
+  "RS_PERSONAS": [
+    {
+      "n": "Sanne — de zelfstandige (omzet)",
+      "d": "Privacy-bewuste zelfstandige prof (consultant, coach/therapeut, advocaat, freelance schrijver). Mac, solo. Leeft in tekst + vertrouwelijke info. Kanaal: LinkedIn. Overtuigt: ‘alles op één plek’ + ‘je stem verlaat je toestel nooit’ + eerlijke pricing."
+    },
+    {
+      "n": "Mees — de maker (bereik)",
+      "d": "Freelance schrijver / contentmaker / student, mogelijk ADHD. Ideeën die verdampen; typen voelt traag. Kanaal: TikTok/Reels/IG. Overtuigt: ‘vang je idee voordat het weg is’ + spreek je eerste versie in + het is gratis."
+    }
+  ],
+  "RS_COMPETS": [
+    {
+      "n": "Raycast",
+      "cat": "Clipboard + launcher",
+      "price": "Gratis → ~$10/mnd Pro",
+      "sterk": "Platform met AI + sync; sterke community-content (“What’s in My Raycast”); $30M funding.",
+      "zwak": "Overweldigend voor niet-technische mensen; clipboard is 1 van vele features; dictation geen kernverhaal.",
+      "kans": "Jij: één kalm verhaal voor de niet-technische kenniswerker; kopieer de UGC-mechaniek (“wat zit er in jouw stash?”).",
+      "links": [
+        [
+          "Site",
+          "https://raycast.com"
+        ],
+        [
+          "Pricing",
+          "https://raycast.com/pricing"
+        ],
+        [
+          "Reddit",
+          "https://www.reddit.com/search/?q=raycast"
+        ]
+      ]
+    },
+    {
+      "n": "Paste",
+      "cat": "Clipboard manager",
+      "price": "~$2-3/mnd of via Setapp",
+      "sterk": "Mooiste design, iCloud-sync, sterke reviews.",
+      "zwak": "Duur voor “alleen clipboard”; terugkerende sync-klachten.",
+      "kans": "Jij: merged Timeline + stem; eerlijke E2E-sync waar je open over bent.",
+      "links": [
+        [
+          "Site",
+          "https://pasteapp.io"
+        ],
+        [
+          "Pricing",
+          "https://pasteapp.io/pricing"
+        ],
+        [
+          "Reviews",
+          "https://alternativeto.net/software/paste-for-mac/"
+        ]
+      ]
+    },
+    {
+      "n": "Maccy",
+      "cat": "Clipboard (gratis)",
+      "price": "Gratis / $9.99 App Store",
+      "sterk": "Reddit-favoriet; “de snelste gratis optie”; open-source.",
+      "zwak": "Mac-only; geen stem, geen sync, geen zoeken-op-betekenis, geen iPhone.",
+      "kans": "“Gratis én je stem erbij, in dezelfde Timeline.” Maak een ‘vs Maccy’-pagina.",
+      "links": [
+        [
+          "Site",
+          "https://maccy.app"
+        ],
+        [
+          "GitHub",
+          "https://github.com/p0deje/Maccy"
+        ]
+      ]
+    },
+    {
+      "n": "Wispr Flow",
+      "cat": "AI-dictation",
+      "price": "Gratis → $12-15/mnd",
+      "sterk": "Categoriekoning; ~$315M funding; snelheid; Command Mode.",
+      "zwak": "Cloud-only, stuurt scherm-context weg (privacy); Trustpilot ~2.7; duurste; gratis snel op.",
+      "kans": "Jouw scherpste wig: “je stem verlaat je toestel nooit — op elk plan.”",
+      "links": [
+        [
+          "Site",
+          "https://wisprflow.ai"
+        ],
+        [
+          "Reviews",
+          "https://www.trustpilot.com/review/wisprflow.ai"
+        ],
+        [
+          "Reddit",
+          "https://www.reddit.com/search/?q=wispr%20flow"
+        ]
+      ]
+    },
+    {
+      "n": "superwhisper",
+      "cat": "Lokale dictation",
+      "price": "Gratis → $8.49/mnd of $249 lifetime",
+      "sterk": "Privacy/lokaal-favoriet; model-flexibiliteit; lifetime-optie bindt kostenbewusten.",
+      "zwak": "Alleen dictation; geen clipboard/Timeline.",
+      "kans": "Verkoop nooit puur op privacy tegen superwhisper — verkoop de merged Timeline.",
+      "links": [
+        [
+          "Site",
+          "https://superwhisper.com"
+        ],
+        [
+          "Reddit",
+          "https://www.reddit.com/search/?q=superwhisper"
+        ]
+      ]
+    },
+    {
+      "n": "Aqua Voice",
+      "cat": "AI-dictation",
+      "price": "Betaald (trial)",
+      "sterk": "5.0 op Product Hunt; snel; buzz zonder Wispr-budget.",
+      "zwak": "Volledig cloud; geen offline; geen iOS/Linux.",
+      "kans": "Lokaal = jouw kracht; PH-launch met “talk to your stash” + één quotable claim.",
+      "links": [
+        [
+          "Product Hunt",
+          "https://www.producthunt.com/products/aqua"
+        ]
+      ]
+    },
+    {
+      "n": "Ingebouwd (Apple / Win+V)",
+      "cat": "Referentie",
+      "price": "Gratis",
+      "sterk": "Al aanwezig, geen installatie.",
+      "zwak": "Apple Dictation + klembord staan los; Win+V: 25 items, 4MB-cap, geen betekenis-zoeken.",
+      "kans": "“Waarom niet de ingebouwde?” → één doorzoekbare Timeline mét je copies én stem.",
+      "links": []
+    }
+  ],
+  "RS_MONITOR": [
+    [
+      "r/macapps (Reddit)",
+      "https://www.reddit.com/r/macapps/"
+    ],
+    [
+      "r/productivity (Reddit)",
+      "https://www.reddit.com/r/productivity/"
+    ],
+    [
+      "Product Hunt — productivity",
+      "https://www.producthunt.com/topics/productivity"
+    ],
+    [
+      "G2 — clipboard managers",
+      "https://www.g2.com/categories/other-productivity-software"
+    ],
+    [
+      "Hacker News — zoek “dictation”",
+      "https://hn.algolia.com/?q=dictation"
+    ],
+    [
+      "Google Trends — clipboard manager",
+      "https://trends.google.com/trends/explore?q=clipboard%20manager"
+    ]
+  ],
+  "LAUNCH_CH": [
+    {
+      "n": "Product Hunt",
+      "why": "De klassieke launchdag voor nieuwe tools. Kies di–do, ga live om 00:01 PST, blijf de hele dag reageren.",
+      "tip": "Geen bot-upvotes — dat straft PH af. Echte mensen, echte reacties.",
+      "blocks": [
+        [
+          "Tagline (max ~60 tekens)",
+          "Your clipboard and your voice, one keystroke away."
+        ],
+        [
+          "Beschrijving",
+          "VoxClip keeps everything you copy and everything you say in one searchable Timeline — and pastes it back by hotkey or by voice. Local-first: everything free runs on your device. Free for Mac and Windows."
+        ],
+        [
+          "Maker’s eerste comment",
+          "Hi PH! I built VoxClip because copying something and saying something are the same habit — it crossed your mind or your screen and you'll need it again in a minute. So VoxClip puts your clipboard history and your dictation in one searchable Timeline, and pastes it back with a hotkey or your voice.\n\nHonest bit: everything free runs entirely on your device — nothing leaves it unless you turn on a paid cloud feature, and the app tells you before anything is sent. The installer isn't code-signed yet, so you'll see an \"unknown developer\" warning — that means unverified, not harmful (signing is on the roadmap).\n\nWould love your honest feedback. What would make this a daily habit for you?"
+        ]
+      ]
+    },
+    {
+      "n": "Hacker News — Show HN",
+      "why": "Technisch, eerlijk publiek. Werkt als je open bent over hoe het werkt en wat nog niet af is.",
+      "tip": "Titel begint met \"Show HN:\". Geen marketingtaal — recht door zee.",
+      "blocks": [
+        [
+          "Titel",
+          "Show HN: VoxClip – clipboard history + dictation in one searchable timeline"
+        ],
+        [
+          "Tekst",
+          "VoxClip is a free Mac/Windows app that merges clipboard history and voice dictation into one searchable Timeline, and pastes results back by hotkey or voice.\n\nWhy: copying and dictating are the same \"I'll need this again\" habit, but they normally live in two apps. One Timeline, one search, one hotkey.\n\nLocal-first: everything free runs on-device; dictation audio never leaves the machine. Optional paid cloud features (sync, ask-your-history) are clearly opt-in. The installer isn't code-signed yet (unsigned = unverified, not harmful); signing is planned.\n\nHappy to answer anything about the approach and trade-offs."
+        ]
+      ]
+    },
+    {
+      "n": "Reddit",
+      "why": "Waarde-eerst posten in relevante subs. Nooit puur promoten — lees de regels, reageer eerst elders in de sub.",
+      "tip": "Subs om te overwegen: r/productivity, r/macapps, r/windowsapps, r/SideProject, r/privacy. Elke sub heeft eigen zelfpromo-regels.",
+      "blocks": [
+        [
+          "Post-titel",
+          "I merged my clipboard history and voice dictation into one searchable timeline — free for Mac & Windows"
+        ],
+        [
+          "Post-tekst",
+          "I kept bouncing between a clipboard manager and a dictation app, and realized they're the same habit: something I'll need again in a minute. So I built VoxClip — everything you copy and everything you dictate lands in one searchable Timeline, and you paste it back with a hotkey or your voice.\n\nIt's local-first: everything free runs on your device, nothing leaves it unless you turn on a paid cloud feature. Free on Mac and Windows.\n\nNot trying to spam — genuinely curious what clipboard/dictation setup you use now and what annoys you about it. Happy to answer anything."
+        ]
+      ]
+    },
+    {
+      "n": "Directories",
+      "why": "Gratis, blijvende vindbaarheid + backlinks. Doe dit de week na de launch.",
+      "tip": "Denk aan: AlternativeTo, SaaSHub, Uneed, Toolfinder en \"alternatives\"-lijsten.",
+      "blocks": [
+        [
+          "Korte listing-tekst",
+          "VoxClip — clipboard history + voice dictation in one searchable Timeline. Recall anything by hotkey or voice. Local-first and free for Mac & Windows; optional paid cloud sync."
+        ],
+        [
+          "Als \"alternatief voor\"",
+          "A calmer alternative to running a clipboard manager (Paste, Maccy) and a dictation app (Wispr Flow, superwhisper) separately — VoxClip does both in one local-first Timeline."
+        ]
+      ]
+    },
+    {
+      "n": "Uitreik naar creators & pers",
+      "why": "Micro-creators (productiviteit, Mac, privacy) leveren gerichte, betaalbare aandacht.",
+      "tip": "Kort, persoonlijk, geen bijlage. Bied een gratis blik + een duidelijk verhaal.",
+      "blocks": [
+        [
+          "DM aan een creator",
+          "Hi [naam] — I love your stuff on [onderwerp]. I made VoxClip: it keeps everything you copy and everything you dictate in one searchable timeline, and pastes it back with a hotkey or your voice. Local-first and free on Mac & Windows. If it's useful to you I'd be honored if you tried it — no strings. Want a 30-sec demo?"
+        ],
+        [
+          "E-mail aan een blogger/journalist",
+          "Subject: VoxClip — clipboard history + dictation in one place (free, local-first)\n\nHi [naam],\n\nVoxClip is a free Mac/Windows app that merges clipboard history and voice dictation into one searchable Timeline — recall anything by hotkey or voice. It's local-first: everything free runs on the device, cloud features are opt-in and clearly flagged.\n\nThe angle your readers might like: one calm tool instead of a separate clipboard manager and dictation app. Happy to send screenshots, a demo video, or answer anything.\n\nThanks for your time,\n[Marty / Arend] — VoxClip"
+        ]
+      ]
+    },
+    {
+      "n": "Je eigen kanalen",
+      "why": "Gebruik de studio: maak voor launchdag een demo-video per platform.",
+      "tip": "Één claim per post, kalme toon. Link in bio + een tracking-link (Tracking-links-tab).",
+      "blocks": [
+        [
+          "Korte launch-post",
+          "Today VoxClip goes live. Everything you copy and everything you say, in one searchable place — pasted back with a hotkey or your voice. Free on Mac & Windows. Link in bio."
+        ]
+      ]
+    }
+  ]
+}
