@@ -14,27 +14,31 @@ function Describe({
   hint?: string;
   error?: string;
 }) {
-  return (
-    <>
-      {hint ? (
-        <p id={`${id}-hint`} className="mt-1 text-xs text-ink-muted">
-          {hint}
-        </p>
-      ) : null}
-      {error ? (
-        <p id={`${id}-error`} role="alert" className="mt-1 text-xs text-alert">
-          {error}
-        </p>
-      ) : null}
-    </>
-  );
+  // The error replaces the hint rather than stacking under it. Two lines saying
+  // nearly the same thing reads like a bug and makes the real problem harder to
+  // find.
+  if (error) {
+    return (
+      <p id={`${id}-error`} role="alert" className="mt-1 text-xs text-alert">
+        {error}
+      </p>
+    );
+  }
+
+  if (hint) {
+    return (
+      <p id={`${id}-hint`} className="mt-1 text-xs text-ink-muted">
+        {hint}
+      </p>
+    );
+  }
+
+  return null;
 }
 
 function describedBy(id: string, hint?: string, error?: string) {
-  const ids = [hint ? `${id}-hint` : null, error ? `${id}-error` : null].filter(
-    Boolean,
-  );
-  return ids.length > 0 ? ids.join(" ") : undefined;
+  if (error) return `${id}-error`;
+  return hint ? `${id}-hint` : undefined;
 }
 
 export function Field({
