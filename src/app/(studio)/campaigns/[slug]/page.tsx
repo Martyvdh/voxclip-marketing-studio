@@ -101,6 +101,12 @@ export default async function CampaignPage({
           >
             Make a video
           </Link>
+          <Link
+            href={`/campaigns/${slug}/edit`}
+            className="text-sm font-medium text-teal-deep hover:underline"
+          >
+            Edit or archive
+          </Link>
         </div>
       </Card>
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Card, EmptyState, StatusBadge } from "@/components/brand";
 import { requireUser } from "@/lib/auth";
-import { loadCampaignBoard } from "@/lib/campaign/queries";
+import { loadArchivedCampaigns, loadCampaignBoard } from "@/lib/campaign/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,10 @@ const PILLAR_LABEL: Record<string, string> = {
 
 export default async function CampaignsPage() {
   await requireUser();
-  const board = await loadCampaignBoard();
+  const [board, archived] = await Promise.all([
+    loadCampaignBoard(),
+    loadArchivedCampaigns(),
+  ]);
 
   return (
     <>
@@ -85,6 +88,32 @@ export default async function CampaignsPage() {
           </div>
         )}
       </div>
+
+      {archived.length > 0 ? (
+        <section className="mt-10" aria-labelledby="archived-heading">
+          <h2 id="archived-heading" className="mb-3 text-lg font-semibold">
+            Archived
+          </h2>
+          <p className="mb-3 max-w-2xl text-sm text-ink-muted">
+            Off the board, still recorded. Open one to bring it back.
+          </p>
+          <ul className="space-y-2">
+            {archived.map((c) => (
+              <li key={c.id}>
+                <Link
+                  href={`/campaigns/${c.slug}`}
+                  className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-line bg-paper px-4 py-2.5 text-sm hover:border-ink"
+                >
+                  <span>{c.title}</span>
+                  <span className="font-[family-name:var(--font-mono)] text-xs text-ink-faint">
+                    archived {c.archivedAt?.toISOString().slice(0, 10)}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <Card className="mt-8">
         <h2 className="font-[family-name:var(--font-display)] text-base font-semibold">

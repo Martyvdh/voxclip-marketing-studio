@@ -114,6 +114,132 @@ export async function createCampaign(
 }
 
 // ---------------------------------------------------------------------------
+// Edit
+// ---------------------------------------------------------------------------
+
+/**
+ * Changes what a campaign is about.
+ *
+ * The slug and the campaign code are not editable, on purpose. The code is in
+ * every link already posted; changing it would orphan the results of anything
+ * published so far. A campaign that needs a different code is a different
+ * campaign.
+ */
+export async function updateCampaign(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  let user;
+  try {
+    user = await requireCapability("campaign:edit");
+  } catch (error) {
+    if (error instanceof NotAuthorisedError) return { message: error.message };
+    throw error;
+  }
+
+  const slug = String(formData.get("slug") ?? "");
+  const row = await loadCampaignBySlug(slug);
+  if (!row) return { message: "That campaign no longer exists." };
+
+  const parsed = newCampaignSchema.safeParse(
+    readForm(formData, ["title", "pillar", "objective", "audienceId", "signalId"]),
+  );
+  if (!parsed.success) return { errors: firstErrors(parsed.error) };
+
+  const db = getDb();
+  await db
+    .update(campaigns)
+    .set({
+      title: parsed.data.title,
+      pillar: parsed.data.pillar,
+      objective: parsed.data.objective,
+      audienceId: parsed.data.audienceId ?? null,
+      updatedAt: new Date(),
+    })
+    .where(eq(campaigns.id, row.campaign.id));
+
+  await db.insert(auditEvents).values({
+    action: "CAMPAIGN_TRANSITIONED",
+    actorId: user.id,
+    subjectType: "Campaign",
+    subjectId: row.campaign.id,
+    campaignId: row.campaign.id,
+    summary: `${user.name} edited "${row.campaign.title}".`,
+    detail:
+      row.campaign.title === parsed.data.title
+        ? null
+        : { titleWas: row.campaign.title, titleIs: parsed.data.title },
+  });
+
+  revalidatePath(`/campaigns/${slug}`);
+  revalidatePath("/campaigns");
+  revalidatePath("/");
+  return { ok: true };
+}
+
+/**
+ * Archiving, not deleting.
+ *
+ * A campaign carries its own history: who approved what, what went out, and
+ * what it brought in. Deleting the row would take that with it, including the
+ * record of anything already published. Archived campaigns leave the board and
+ * can be brought back.
+ */
+export async function archiveCampaign(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  let user;
+  try {
+    user = await requireCapability("campaign:edit");
+  } catch (error) {
+    if (error instanceof NotAuthorisedError) return { message: error.message };
+    throw error;
+  }
+
+  const slug = String(formData.get("slug") ?? "");
+  const restore = String(formData.get("restore") ?? "") === "true";
+
+  const db = getDb();
+  const [campaign] = await db
+    .select()
+    .from(campaigns)
+    .where(eq(campaigns.slug, slug))
+    .limit(1);
+
+  if (!campaign) return { message: "That campaign no longer exists." };
+
+  await db
+    .update(campaigns)
+    .set({
+      archivedAt: restore ? null : new Date(),
+      status: restore ? campaign.status : "ARCHIVED",
+      updatedAt: new Date(),
+    })
+    .where(eq(campaigns.id, campaign.id));
+
+  await db.insert(auditEvents).values({
+    action: restore ? "CAMPAIGN_TRANSITIONED" : "CAMPAIGN_ARCHIVED",
+    actorId: user.id,
+    subjectType: "Campaign",
+    subjectId: campaign.id,
+    campaignId: campaign.id,
+    summary: restore
+      ? `${user.name} brought "${campaign.title}" back from the archive.`
+      : `${user.name} archived "${campaign.title}".`,
+  });
+
+  revalidatePath("/campaigns");
+  revalidatePath("/");
+
+  if (restore) {
+    revalidatePath(`/campaigns/${slug}`);
+    return { ok: true };
+  }
+  redirect("/campaigns");
+}
+
+// ---------------------------------------------------------------------------
 // Brief
 // ---------------------------------------------------------------------------
 

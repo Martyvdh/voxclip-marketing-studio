@@ -7,7 +7,7 @@
  * before.
  */
 
-import { desc, isNull } from "drizzle-orm";
+import { desc, isNotNull, isNull } from "drizzle-orm";
 
 import { getDb } from "@/db";
 import {
@@ -47,7 +47,9 @@ export interface CampaignBoardRow {
   action: NextAction;
 }
 
-export async function loadCampaignBoard(): Promise<CampaignBoardRow[]> {
+export async function loadCampaignBoard(
+  includeArchived = false,
+): Promise<CampaignBoardRow[]> {
   const db = getDb();
 
   const [
@@ -58,11 +60,13 @@ export async function loadCampaignBoard(): Promise<CampaignBoardRow[]> {
     runRows,
     attemptRows,
   ] = await Promise.all([
-    db
-      .select()
-      .from(campaigns)
-      .where(isNull(campaigns.archivedAt))
-      .orderBy(desc(campaigns.updatedAt)),
+    includeArchived
+      ? db.select().from(campaigns).orderBy(desc(campaigns.updatedAt))
+      : db
+          .select()
+          .from(campaigns)
+          .where(isNull(campaigns.archivedAt))
+          .orderBy(desc(campaigns.updatedAt)),
     db.select().from(campaignBriefs),
     db.select().from(channelVariants).where(isNull(channelVariants.archivedAt)),
     db.select().from(approvals),
@@ -130,6 +134,15 @@ export async function loadCampaignBoard(): Promise<CampaignBoardRow[]> {
 export async function loadCampaignBySlug(
   slug: string,
 ): Promise<CampaignBoardRow | null> {
-  const board = await loadCampaignBoard();
+  const board = await loadCampaignBoard(true);
   return board.find((row) => row.campaign.slug === slug) ?? null;
+}
+
+/** The archive. Campaigns that left the board but kept their history. */
+export async function loadArchivedCampaigns(): Promise<Campaign[]> {
+  return getDb()
+    .select()
+    .from(campaigns)
+    .where(isNotNull(campaigns.archivedAt))
+    .orderBy(desc(campaigns.archivedAt));
 }
