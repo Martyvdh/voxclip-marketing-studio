@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 
+import Link from "next/link";
+
 import { Card, FormMessage } from "@/components/brand-client";
 import { SubmitButton } from "@/components/form";
 import type { FormState } from "@/lib/campaign/actions";
@@ -126,6 +128,15 @@ export function Variants({
                     {v.hashtags.join(" ")}
                   </p>
                 ) : null}
+
+                <p className="mt-3">
+                  <Link
+                    href={`/campaigns/${slug}/handoff/${v.code}`}
+                    className="text-sm font-medium text-teal-deep hover:underline"
+                  >
+                    Open the handoff for {v.channel.replace(/_/g, " ")}
+                  </Link>
+                </p>
 
                 {v.ctaUrl ? (
                   <p className="mt-3 text-xs">

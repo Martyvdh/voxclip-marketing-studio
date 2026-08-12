@@ -70,7 +70,10 @@ export default async function ChannelsPage() {
             ? "There are no channel connections yet. Every adapter is a fake that records the payload and posts nothing."
             : `${connections.length} connection(s) exist and ${connections.filter((c) => c.isFake).length} of them are fakes.`}{" "}
           Real publishing needs official API access, a feature flag, and an
-          operator confirming the exact payload.
+          operator confirming the exact payload. Until then every channel has a
+          handoff package: open a campaign, pick a variant, and everything is laid
+          out ready to paste, with the link tagged and a place to record where you
+          posted it.
         </p>
       </div>
 
