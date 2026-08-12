@@ -214,6 +214,47 @@ then this stays a known limitation rather than a finished decision.
 
 ---
 
+## D-011 — The four moderate npm advisories stay, and here is why
+
+**Date:** 2026-08-12 · **Status:** accepted, with a review trigger
+
+`npm audit` reports four moderate advisories. All four are the same finding
+([GHSA-67mh-4wv8-2f99](https://github.com/advisories/GHSA-67mh-4wv8-2f99)) reaching us through one
+chain: `drizzle-kit` depends on `@esbuild-kit/esm-loader`, which depends on `@esbuild-kit/core-utils`,
+which pins an old `esbuild`.
+
+The advisory is that **esbuild's development server** accepts requests from any website and returns
+the response. We never start that server. `drizzle-kit` uses esbuild only to transpile
+`src/db/schema.ts` when generating a migration, on a developer machine or in CI.
+
+**Decision:** do not run `npm audit fix --force`. It would downgrade `drizzle-kit` from 0.31.10 to
+0.18.1, which is years of migrations behind and would break the schema tooling. Trading working,
+reviewed migration output for a green audit line on an unreachable dev server is a bad trade.
+
+**Review trigger:** re-check on every `drizzle-kit` upgrade. The moment a release drops the
+`@esbuild-kit` chain, take it and delete this entry.
+
+**Not accepted:** any advisory that touches code paths we actually run, anything in a runtime
+dependency, and anything above moderate. Those get fixed, not documented.
+
+---
+
+## D-012 — npm install scripts are approved individually
+
+**Date:** 2026-08-12 · **Status:** accepted
+
+npm 11 no longer runs a dependency's `postinstall` script without approval. Five packages ask for
+one: `esbuild` (three copies), `fsevents`, and `unrs-resolver`. All are build-time tools that
+unpack a platform-specific binary.
+
+**Decision:** approve them by name with `npm approve-scripts <package>` rather than blanket
+approving everything pending. The blanket flag also approves whatever gets added by a future
+transitive dependency, which is precisely the supply-chain risk the gate exists to catch.
+
+**Cost:** a manual step whenever a new build tool enters the tree. That is the point.
+
+---
+
 ## D-010 — The board aggregates in TypeScript, not in SQL
 
 **Date:** 2026-08-12 · **Status:** accepted
