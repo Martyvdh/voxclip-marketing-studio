@@ -15,6 +15,13 @@
       "when": 1786542418781,
       "tag": "0001_hooks_and_formats",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786545159135,
+      "tag": "0002_video_projects",
+      "breakpoints": true
     }
   ]
 }

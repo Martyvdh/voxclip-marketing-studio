@@ -9,6 +9,7 @@ import { VideoEditor } from "@/components/video/editor";
 import { requireUser } from "@/lib/auth";
 import { loadCampaignBySlug } from "@/lib/campaign/queries";
 import { normaliseDashes } from "@/lib/content/draft";
+import { listVideoProjects } from "@/lib/video/actions";
 import type { StarterSource } from "@/lib/video/starters";
 
 export const dynamic = "force-dynamic";
@@ -78,6 +79,8 @@ export default async function VideoPage({
     subhead: normaliseDashes(defaults.subhead),
   };
 
+  const saved = await listVideoProjects(row.campaign.id);
+
   return (
     <>
       <Link
@@ -95,7 +98,7 @@ export default async function VideoPage({
       </p>
 
       <div className="mt-8">
-        <VideoEditor source={source} />
+        <VideoEditor source={source} slug={slug} saved={saved} />
       </div>
 
       <Card className="mt-8">

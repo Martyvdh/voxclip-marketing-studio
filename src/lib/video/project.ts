@@ -9,6 +9,7 @@
  */
 
 import type { AnimationId } from "./animations";
+import type { ElementTone } from "./elements";
 import type { RatioKey } from "./timeline";
 
 export const MIN_CLIP_SECONDS = 0.5;
@@ -28,6 +29,22 @@ export interface ClipMedia {
   dim: number;
 }
 
+/** A graphic dropped onto a clip. Position is relative, so it survives a
+ *  change of shape: 0.5 is the middle whether the video is vertical or wide. */
+export interface ClipElement {
+  id: string;
+  kind: string;
+  /** 0 to 1 across the canvas. */
+  x: number;
+  y: number;
+  /** 0.4 to 3. */
+  scale: number;
+  tone: ElementTone;
+  text: string;
+  /** 0 to 0.9. How far into the clip it appears. */
+  delay: number;
+}
+
 export interface Clip {
   id: string;
   text: string;
@@ -38,6 +55,7 @@ export interface Clip {
   size: ClipSize;
   theme: ClipTheme;
   media?: ClipMedia;
+  elements: ClipElement[];
   /** Shown in the editor, never drawn. Used for shot notes. */
   note?: string;
 }
@@ -65,6 +83,7 @@ export function newClip(over: Partial<Clip> = {}): Clip {
     size: over.size ?? "m",
     theme: over.theme ?? "paper",
     media: over.media,
+    elements: over.elements ?? [],
     note: over.note,
   };
 }
@@ -131,6 +150,64 @@ export function updateClip(p: Project, id: string, patch: Partial<Clip>): Projec
 export function setClipSeconds(p: Project, id: string, seconds: number): Project {
   return updateClip(p, id, { seconds: clampSeconds(seconds) });
 }
+
+export function addElement(
+  p: Project,
+  clipId: string,
+  element: Omit<ClipElement, "id">,
+): Project {
+  return {
+    ...p,
+    clips: p.clips.map((c) =>
+      c.id === clipId
+        ? { ...c, elements: [...c.elements, { ...element, id: nextId() }] }
+        : c,
+    ),
+  };
+}
+
+export function updateElement(
+  p: Project,
+  clipId: string,
+  elementId: string,
+  patch: Partial<ClipElement>,
+): Project {
+  return {
+    ...p,
+    clips: p.clips.map((c) =>
+      c.id === clipId
+        ? {
+            ...c,
+            elements: c.elements.map((e) =>
+              e.id === elementId
+                ? {
+                    ...e,
+                    ...patch,
+                    x: clamp01(patch.x ?? e.x),
+                    y: clamp01(patch.y ?? e.y),
+                    delay: Math.min(0.9, clamp01(patch.delay ?? e.delay)),
+                    scale: Math.min(3, Math.max(0.4, patch.scale ?? e.scale)),
+                  }
+                : e,
+            ),
+          }
+        : c,
+    ),
+  };
+}
+
+export function removeElement(p: Project, clipId: string, elementId: string): Project {
+  return {
+    ...p,
+    clips: p.clips.map((c) =>
+      c.id === clipId
+        ? { ...c, elements: c.elements.filter((e) => e.id !== elementId) }
+        : c,
+    ),
+  };
+}
+
+const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
 
 export function totalSeconds(p: Project): number {
   return Math.round(p.clips.reduce((sum, c) => sum + c.seconds, 0) * 10) / 10;
@@ -214,6 +291,7 @@ export function splitClip(p: Project, ms: number): Project {
       size: clip.size,
       theme: clip.theme,
       media: clip.media,
+      elements: clip.elements,
       note: clip.note,
     })),
   };

@@ -10,15 +10,19 @@
  */
 
 import { transformAt } from "./animations";
+import { elementByKind, toneColours } from "./elements";
+import {
+  CANVAS_DARK,
+  INK,
+  MUTED_ON_DARK,
+  MUTED_ON_LIGHT,
+  PAPER,
+  SIGNAL_TEAL,
+} from "./render-colours";
 import type { ClipAt } from "./project";
 import { RATIOS, easeInOut, safeArea, type RatioKey } from "./timeline";
 
-export const INK = "#1C2230";
-export const PAPER = "#F7F7F5";
-export const CANVAS_DARK = "#14181F";
-export const SIGNAL_TEAL = "#12B3A6";
-export const MUTED_ON_DARK = "#8D94A3";
-export const MUTED_ON_LIGHT = "#5A6274";
+export * from "./render-colours";
 
 /** Anything that can be painted as a clip background. */
 export type MediaSource = CanvasImageSource & {
@@ -279,9 +283,48 @@ export function renderFrame(ctx: CanvasRenderingContext2D, input: RenderInput): 
     Math.max(4, height * 0.005),
   );
 
+  drawElements(ctx, clip, width, height, onDark);
+
   if (input.showMark) {
     drawMark(ctx, safe.left, safe.top - height * 0.06, height * 0.035, onDark);
   }
 
   ctx.restore();
+}
+
+/**
+ * Elements sit on top of the text and take their own entrance from their delay.
+ * Each draws inside a 100 by 100 box, so one element looks the same on a
+ * vertical video as on a wide one.
+ */
+function drawElements(
+  ctx: CanvasRenderingContext2D,
+  clip: ClipAt,
+  width: number,
+  height: number,
+  onDark: boolean,
+) {
+  for (const element of clip.elements ?? []) {
+    const def = elementByKind(element.kind);
+    if (!def) continue;
+
+    const span = Math.max(0.05, 1 - element.delay);
+    const t = Math.min(1, Math.max(0, (clip.progress - element.delay) / span));
+    if (t <= 0) continue;
+
+    const box = height * 0.18 * element.scale;
+    const { colour, contrast } = toneColours(element.tone, onDark);
+
+    ctx.save();
+    ctx.translate(element.x * width - box / 2, element.y * height - box / 2);
+    ctx.scale(box / 100, box / 100);
+    def.draw({
+      ctx,
+      t,
+      colour,
+      contrast,
+      text: element.text || def.defaultText || "",
+    });
+    ctx.restore();
+  }
 }

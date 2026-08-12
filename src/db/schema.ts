@@ -622,6 +622,42 @@ export const masterContent = pgTable("master_content", {
   updatedAt: updatedAt(),
 });
 
+/**
+ * A saved edit.
+ *
+ * The clips, their text, animations, elements, and timings are stored as JSON.
+ * Uploaded footage is not: it lives as a browser object URL until the asset
+ * library lands, so reopening a saved video asks for the file again. Better to
+ * say that than to pretend the video is complete.
+ */
+export const videoProjects = pgTable(
+  "video_projects",
+  {
+    id: id(),
+    campaignId: text("campaign_id")
+      .notNull()
+      .references(() => campaigns.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    ratio: text("ratio").notNull(),
+    showMark: boolean("show_mark").notNull().default(true),
+    /** The clip list. Shape is src/lib/video/project.ts Clip[]. */
+    clips: jsonb("clips").notNull(),
+    totalSeconds: doublePrecision("total_seconds").notNull(),
+    /** How many clips expect footage that is not stored with the project. */
+    pendingMediaCount: integer("pending_media_count").notNull().default(0),
+    createdById: text("created_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("video_projects_campaign_idx").on(t.campaignId, t.updatedAt),
+    uniqueIndex("video_projects_name_uq").on(t.campaignId, t.name),
+  ],
+);
+
 export const channelVariants = pgTable(
   "channel_variants",
   {

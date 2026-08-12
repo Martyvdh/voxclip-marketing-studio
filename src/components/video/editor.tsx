@@ -3,10 +3,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ANIMATIONS } from "@/lib/video/animations";
+import { ELEMENTS, ELEMENT_GROUPS, elementByKind } from "@/lib/video/elements";
+import {
+  deleteVideoProject,
+  loadVideoProject,
+  saveVideoProject,
+  type SavedVideo,
+} from "@/lib/video/actions";
 import { renderFrame, type MediaSource } from "@/lib/video/render";
 import {
   addClip,
+  addElement,
   clipAt,
+  removeElement,
+  updateElement,
   duplicateClip,
   moveClip,
   newClip,
@@ -19,17 +29,25 @@ import {
   type Project,
 } from "@/lib/video/project";
 import { RATIOS, type RatioKey } from "@/lib/video/timeline";
-import { STARTERS, type StarterSource } from "@/lib/video/starters";
+import { ALL_STARTERS, type StarterSource } from "@/lib/video/starters";
 
 const FPS = 30;
 
-export function VideoEditor({ source }: { source: StarterSource }) {
+export function VideoEditor({
+  source,
+  slug,
+  saved,
+}: {
+  source: StarterSource;
+  slug: string;
+  saved: SavedVideo[];
+}) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const startedAtRef = useRef(0);
   const mediaRef = useRef(new Map<string, MediaSource>());
 
-  const [project, setProject] = useState<Project>(() => STARTERS[0].build(source));
+  const [project, setProject] = useState<Project>(() => ALL_STARTERS[0].build(source));
   const [history, setHistory] = useState<Project[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [ms, setMs] = useState(0);
@@ -37,6 +55,11 @@ export function VideoEditor({ source }: { source: StarterSource }) {
   const [recording, setRecording] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [selectedElementId, setSelectedElementId] = useState<string>("");
+  const [saveName, setSaveName] = useState("");
+  const [openId, setOpenId] = useState<string>("");
+  const [saveStatus, setSaveStatus] = useState<string | null>(null);
+  const [paletteGroup, setPaletteGroup] = useState<string>(ELEMENT_GROUPS[0]);
 
   const timeline = useMemo(() => timelineOf(project), [project]);
   const totalMs = Math.round(totalSeconds(project) * 1000);
@@ -236,6 +259,35 @@ export function VideoEditor({ source }: { source: StarterSource }) {
     setStatus("Downloaded as webm. Every platform in the list accepts it.");
   }
 
+  async function save() {
+    const data = new FormData();
+    data.set("slug", slug);
+    data.set("name", saveName.trim() || `Video ${saved.length + 1}`);
+    data.set("project", JSON.stringify(project));
+    if (openId) data.set("id", openId);
+
+    const result = await saveVideoProject({}, data);
+    setSaveStatus(
+      result.ok
+        ? "Saved. Footage is not stored yet, so reopening asks for the files again."
+        : (result.message ?? Object.values(result.errors ?? {})[0] ?? "Could not save."),
+    );
+  }
+
+  async function open(id: string) {
+    const loaded = await loadVideoProject(id);
+    if (!loaded) {
+      setSaveStatus("That video is gone.");
+      return;
+    }
+    edit(() => loaded);
+    setOpenId(id);
+    setSaveName(saved.find((v) => v.id === id)?.name ?? "");
+    setMs(0);
+    setPlaying(false);
+    setSaveStatus("Opened. Attach any footage again before rendering.");
+  }
+
   const { width, height } = RATIOS[project.ratio];
   const previewMax = project.ratio === "9:16" ? 300 : project.ratio === "1:1" ? 380 : 520;
 
@@ -309,7 +361,7 @@ export function VideoEditor({ source }: { source: StarterSource }) {
           <div>
             <span className="block text-sm font-medium">Start from</span>
             <div className="mt-1 grid gap-1.5">
-              {STARTERS.map((s) => (
+              {ALL_STARTERS.map((s) => (
                 <button
                   key={s.slug}
                   type="button"
@@ -358,6 +410,75 @@ export function VideoEditor({ source }: { source: StarterSource }) {
             There is no colour picker. Teal is one element per frame and the
             renderer places it. That is the whole colour system.
           </p>
+
+          <div className="border-t border-line pt-4">
+            <label htmlFor="save-name" className="block text-sm font-medium">
+              Save this video
+            </label>
+            <input
+              id="save-name"
+              value={saveName}
+              onChange={(e) => setSaveName(e.target.value)}
+              placeholder="Week 34, one place"
+              className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+            />
+            <button
+              type="button"
+              onClick={save}
+              className="mt-2 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium"
+            >
+              {openId ? "Save changes" : "Save"}
+            </button>
+            {saveStatus ? (
+              <p role="status" className="mt-2 text-xs text-ink-muted">
+                {saveStatus}
+              </p>
+            ) : null}
+
+            {saved.length > 0 ? (
+              <div className="mt-3">
+                <p className="text-xs font-medium text-ink-muted">Saved videos</p>
+                <ul className="mt-1 space-y-1">
+                  {saved.map((v) => (
+                    <li
+                      key={v.id}
+                      className="flex items-center justify-between gap-2 rounded-lg border border-line px-2 py-1.5"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => open(v.id)}
+                        className="min-w-0 flex-1 text-left"
+                      >
+                        <span className="block truncate text-xs font-medium">
+                          {v.name}
+                        </span>
+                        <span className="block font-[family-name:var(--font-mono)] text-[10px] text-ink-muted">
+                          {v.clipCount} clips · {v.totalSeconds}s · {v.ratio}
+                          {v.pendingMediaCount > 0
+                            ? ` · ${v.pendingMediaCount} need footage`
+                            : ""}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const data = new FormData();
+                          data.set("id", v.id);
+                          data.set("slug", slug);
+                          await deleteVideoProject({}, data);
+                          setSaveStatus(`Removed ${v.name}. Refresh to update the list.`);
+                        }}
+                        className="shrink-0 text-xs text-ink-faint hover:text-alert"
+                        aria-label={`Remove ${v.name}`}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
 
           <div className="border-t border-line pt-4">
             <button
@@ -699,6 +820,170 @@ export function VideoEditor({ source }: { source: StarterSource }) {
                 ) : null}
               </div>
             </div>
+          </div>
+
+          <div className="mt-6 border-t border-line pt-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h4 className="text-sm font-medium">Elements on this clip</h4>
+              <div className="flex flex-wrap gap-1">
+                {ELEMENT_GROUPS.map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    aria-pressed={paletteGroup === g}
+                    onClick={() => setPaletteGroup(g)}
+                    className={`rounded-full border px-2.5 py-1 text-xs ${
+                      paletteGroup === g
+                        ? "border-ink bg-ink text-white"
+                        : "border-line bg-surface text-ink-muted"
+                    }`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {ELEMENTS.filter((e) => e.group === paletteGroup).map((e) => (
+                <button
+                  key={e.kind}
+                  type="button"
+                  onClick={() =>
+                    edit((p) =>
+                      addElement(p, selected.id, {
+                        kind: e.kind,
+                        x: 0.5,
+                        y: 0.72,
+                        scale: 1,
+                        tone: selected.theme === "paper" ? "ink" : "paper",
+                        text: e.defaultText ?? "",
+                        delay: 0.15,
+                      }),
+                    )
+                  }
+                  className="rounded-lg border border-line bg-paper px-2.5 py-1.5 text-xs hover:border-ink"
+                >
+                  {e.name}
+                </button>
+              ))}
+            </div>
+
+            {selected.elements.length === 0 ? (
+              <p className="mt-3 text-xs text-ink-muted">
+                Nothing on this clip yet. Elements sit on top of the text and take
+                their own entrance from their delay.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {selected.elements.map((element) => {
+                  const def = elementByKind(element.kind);
+                  const isOpen = selectedElementId === element.id;
+                  return (
+                    <li key={element.id} className="rounded-lg border border-line p-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedElementId(isOpen ? "" : element.id)
+                          }
+                          className="text-left text-xs font-medium"
+                        >
+                          {def?.name ?? element.kind}
+                          <span className="ml-2 font-[family-name:var(--font-mono)] text-[10px] text-ink-muted">
+                            {element.tone}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            edit((p) => removeElement(p, selected.id, element.id))
+                          }
+                          className="text-xs text-ink-faint hover:text-alert"
+                        >
+                          Remove
+                        </button>
+                      </div>
+
+                      {isOpen ? (
+                        <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                          {def?.hasText ? (
+                            <label className="text-xs">
+                              Text
+                              <input
+                                value={element.text}
+                                onChange={(ev) =>
+                                  edit((p) =>
+                                    updateElement(p, selected.id, element.id, {
+                                      text: ev.target.value,
+                                    }),
+                                  )
+                                }
+                                className="mt-1 w-full rounded border border-line px-2 py-1 text-xs"
+                              />
+                            </label>
+                          ) : null}
+
+                          <label className="text-xs">
+                            Tone
+                            <select
+                              value={element.tone}
+                              onChange={(ev) =>
+                                edit((p) =>
+                                  updateElement(p, selected.id, element.id, {
+                                    tone: ev.target.value as "ink" | "paper" | "teal",
+                                  }),
+                                )
+                              }
+                              className="mt-1 w-full rounded border border-line px-2 py-1 text-xs"
+                            >
+                              <option value="ink">Ink</option>
+                              <option value="paper">Paper</option>
+                              <option value="teal">Teal</option>
+                            </select>
+                          </label>
+
+                          {(
+                            [
+                              ["Across", "x", 0, 1, 0.01],
+                              ["Down", "y", 0, 1, 0.01],
+                              ["Size", "scale", 0.4, 3, 0.05],
+                              ["Delay", "delay", 0, 0.9, 0.05],
+                            ] as const
+                          ).map(([label, key, min, max, step]) => (
+                            <label key={key} className="text-xs">
+                              {label}: {Number(element[key]).toFixed(2)}
+                              <input
+                                type="range"
+                                min={min}
+                                max={max}
+                                step={step}
+                                value={element[key]}
+                                onChange={(ev) =>
+                                  edit((p) =>
+                                    updateElement(p, selected.id, element.id, {
+                                      [key]: Number(ev.target.value),
+                                    }),
+                                  )
+                                }
+                                className="mt-1 w-full"
+                              />
+                            </label>
+                          ))}
+                        </div>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            {selected.elements.filter((e) => e.tone === "teal").length > 1 ? (
+              <p className="mt-3 rounded-lg bg-amber-wash px-3 py-2 text-xs text-amber">
+                More than one teal element on this clip. Teal is the signal, and a
+                frame with two signals has none. Not blocked, in case you mean it.
+              </p>
+            ) : null}
           </div>
 
           {selected.note ? (

@@ -158,3 +158,176 @@ export const STARTERS: Starter[] = [
     build: () => project("9:16", [newClip({ text: "Your first line", seconds: 3 })]),
   },
 ];
+
+/**
+ * Demo starting points.
+ *
+ * Built from the video ideas already in the prototype, with the elements placed
+ * and the footage slots marked. Each one shows one thing VoxClip does. None of
+ * them draws the interface: where the app should be seen, there is a note
+ * telling you what to record.
+ */
+const el = (
+  kind: string,
+  x: number,
+  y: number,
+  over: Partial<{ scale: number; tone: "ink" | "paper" | "teal"; text: string; delay: number }> = {},
+) => ({
+  id: `${kind}-${Math.round(x * 100)}-${Math.round(y * 100)}`,
+  kind,
+  x,
+  y,
+  scale: over.scale ?? 1,
+  tone: over.tone ?? ("ink" as const),
+  text: over.text ?? "",
+  delay: over.delay ?? 0.15,
+});
+
+export const DEMO_STARTERS: Starter[] = [
+  {
+    slug: "demo-copy-three",
+    name: "Demo: copy three, paste the right one",
+    intent: "The core loss and the core relief. Needs one recording.",
+    build: (s) =>
+      project("9:16", [
+        newClip({
+          text: "You copied three things.",
+          secondary: "Which one was the address?",
+          animation: "stack",
+          seconds: 3,
+          theme: "ink",
+          elements: [el("step-1", 0.22, 0.7, { tone: "paper" }), el("step-2", 0.5, 0.7, { tone: "paper", delay: 0.3 }), el("step-3", 0.78, 0.7, { tone: "paper", delay: 0.45 })],
+        }),
+        newClip({
+          text: "Search. Pick. Paste.",
+          animation: "wipe-up",
+          seconds: 5,
+          note: "Record: open the Timeline, search, paste into a document. One take.",
+          elements: [el("chips-copied", 0.5, 0.82, { tone: "paper", delay: 0.2 })],
+        }),
+        newClip({
+          text: s.payoff,
+          animation: "letter-fade",
+          seconds: 2.5,
+          elements: [el("rule-thick", 0.5, 0.68, { tone: "teal", delay: 0.2 })],
+        }),
+        newClip({ text: s.ctaLabel, secondary: "voxclip.it", animation: "hold", seconds: 2, note: CTA_NOTE }),
+      ]),
+  },
+  {
+    slug: "demo-say-it",
+    name: "Demo: say it, do not type it",
+    intent: "Dictation landing in the same Timeline. Needs one recording.",
+    build: (s) =>
+      project("9:16", [
+        newClip({
+          text: "Stop typing the note.",
+          animation: "fade-rise",
+          seconds: 2.5,
+          elements: [el("waveform", 0.5, 0.74, { tone: "ink", delay: 0.1 })],
+        }),
+        newClip({
+          text: "Say it instead.",
+          animation: "typeline",
+          seconds: 4.5,
+          note: "Record: dictate one sentence and watch the words appear.",
+          elements: [el("caret", 0.62, 0.55, { tone: "paper", delay: 0.05 })],
+        }),
+        newClip({
+          text: "Your voice never leaves your device.",
+          animation: "letter-fade",
+          seconds: 3.5,
+          theme: "ink",
+          elements: [el("tick", 0.5, 0.72, { tone: "teal", delay: 0.25 })],
+        }),
+        newClip({ text: s.ctaLabel, secondary: "voxclip.it", animation: "hold", seconds: 2, note: CTA_NOTE }),
+      ]),
+  },
+  {
+    slug: "demo-search-meaning",
+    name: "Demo: search by meaning",
+    intent: "You do not have to remember the words. Free, on the device.",
+    build: (s) =>
+      project("9:16", [
+        newClip({
+          text: "You forgot the exact words.",
+          animation: "stack",
+          seconds: 3,
+          elements: [el("quote-open", 0.16, 0.32, { tone: "ink" })],
+        }),
+        newClip({
+          text: "Search what you meant.",
+          animation: "wipe-up",
+          seconds: 4.5,
+          note: "Record: type a rough description and watch the right clip come up.",
+          elements: [el("circle-highlight", 0.5, 0.5, { tone: "teal", delay: 0.35 })],
+        }),
+        newClip({
+          text: "Free, and it runs on your machine.",
+          animation: "fade-rise",
+          seconds: 3,
+          elements: [el("badge-free", 0.5, 0.72, { delay: 0.2 })],
+        }),
+        newClip({ text: s.ctaLabel, secondary: "voxclip.it", animation: "hold", seconds: 2, note: CTA_NOTE }),
+      ]),
+  },
+  {
+    slug: "demo-free-vs-plus",
+    name: "Demo: free where it is local",
+    intent: "The honest split, in the approved words.",
+    build: (s) =>
+      project("9:16", [
+        newClip({
+          text: "If it runs on your machine,",
+          secondary: "it is free.",
+          animation: "stack",
+          seconds: 3.5,
+          elements: [el("badge-free", 0.78, 0.28, { tone: "teal" })],
+        }),
+        newClip({
+          text: "If it needs our servers,",
+          secondary: "it is paid.",
+          animation: "stack",
+          seconds: 3.5,
+          theme: "ink",
+          elements: [el("badge-plus", 0.78, 0.28, { tone: "paper" })],
+        }),
+        newClip({
+          text: "No trick, no countdown, no locked history.",
+          animation: "letter-fade",
+          seconds: 3,
+          elements: [el("rule-thin", 0.5, 0.68, { tone: "teal", delay: 0.3 })],
+        }),
+        newClip({ text: s.ctaLabel, secondary: "voxclip.it", animation: "hold", seconds: 2, note: CTA_NOTE }),
+      ]),
+  },
+  {
+    slug: "demo-before-after",
+    name: "Demo: before and after",
+    intent: "The same task, twice. Needs two recordings.",
+    build: (s) =>
+      project("9:16", [
+        newClip({ text: "The task", secondary: s.problem, animation: "fade-rise", seconds: 2.5, size: "s" }),
+        newClip({
+          text: "Before",
+          animation: "hold",
+          seconds: 5,
+          theme: "ink",
+          note: "Record the honest old way. Do not fumble it on purpose.",
+          elements: [el("lower-third", 0.5, 0.86, { tone: "paper", text: "Before", delay: 0 })],
+        }),
+        newClip({
+          text: "After",
+          animation: "hold",
+          seconds: 4,
+          theme: "ink",
+          note: "Record the same task in VoxClip.",
+          elements: [el("lower-third", 0.5, 0.86, { tone: "teal", text: "After", delay: 0 })],
+        }),
+        newClip({ text: s.desiredOutcome, animation: "letter-fade", seconds: 3 }),
+        newClip({ text: s.ctaLabel, secondary: "voxclip.it", animation: "hold", seconds: 2, note: CTA_NOTE }),
+      ]),
+  },
+];
+
+export const ALL_STARTERS: Starter[] = [...STARTERS, ...DEMO_STARTERS];
