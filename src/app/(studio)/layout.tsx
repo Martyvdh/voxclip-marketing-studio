@@ -11,6 +11,7 @@ const NAV = [
   { href: "/campaigns", label: "Campaigns" },
   { href: "/truth", label: "Product Truth" },
   { href: "/channels", label: "Channels" },
+  { href: "/users", label: "Team" },
 ];
 
 export default async function StudioLayout({
