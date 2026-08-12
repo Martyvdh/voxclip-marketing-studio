@@ -5,25 +5,27 @@ import { getEnv } from "@/lib/env";
 import * as schema from "./schema";
 
 /**
- * One connection pool per process. Next.js hot reload would otherwise open a new
- * pool on every edit until the database refuses connections.
+ * One connection pool per process, created on first use.
+ *
+ * Lazy on purpose: importing this module must not require a database, or a
+ * production build would need live credentials just to compile.
  */
 const globalForDb = globalThis as unknown as {
   __voxclipSql?: ReturnType<typeof postgres>;
+  __voxclipDb?: ReturnType<typeof drizzle<typeof schema>>;
 };
 
-function client() {
-  if (!globalForDb.__voxclipSql) {
-    globalForDb.__voxclipSql = postgres(getEnv().DATABASE_URL, {
+export function getDb() {
+  if (!globalForDb.__voxclipDb) {
+    globalForDb.__voxclipSql ??= postgres(getEnv().DATABASE_URL, {
       max: 10,
       idle_timeout: 20,
-      prepare: false, // safe with connection poolers such as Neon's
+      prepare: false, // safe behind a connection pooler such as Neon's
     });
+    globalForDb.__voxclipDb = drizzle(globalForDb.__voxclipSql, { schema });
   }
-  return globalForDb.__voxclipSql;
+  return globalForDb.__voxclipDb;
 }
 
-export const db = drizzle(client(), { schema });
-
-export type Db = typeof db;
-export * as tables from "./schema";
+export type Db = ReturnType<typeof getDb>;
+export * from "./schema";

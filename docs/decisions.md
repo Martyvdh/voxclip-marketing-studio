@@ -38,6 +38,24 @@ discipline.
 
 ---
 
+## D-002a — Drizzle instead of Prisma (supersedes the ORM half of D-002)
+
+**Date:** 2026-08-12 · **Status:** accepted
+
+Prisma 7 downloads a Rust schema engine from `binaries.prisma.sh` for every CLI
+command, including `prisma --version`. That download was blocked in the build environment,
+so the schema could not be validated, the client could not be generated, and neither the type
+check nor the build could run. A toolchain that cannot be verified is not a toolchain.
+
+**Decision:** use Drizzle ORM with `drizzle-kit`. Pure TypeScript, no binary download, migrations
+are plain readable SQL in `drizzle/`, and the whole check suite runs offline.
+
+**Cost:** Drizzle's query API is closer to SQL and less forgiving than Prisma's. Relations are
+written out rather than inferred. In exchange the generated SQL is visible and reviewable, which
+suits a schema this size.
+
+---
+
 ## D-003 — Hosting: Vercel + Neon Postgres
 
 **Date:** 2026-08-12 · **Status:** accepted
@@ -127,3 +145,36 @@ consent, data minimisation, retention, disclosure, and opt-out.
 
 **Cost:** we cannot yet attribute installs, activation, or conversion to a campaign. The honest
 gap is visible in the dashboard rather than hidden behind a zero.
+
+---
+
+## D-009 — Fonts load from Google Fonts for now
+
+**Date:** 2026-08-12 · **Status:** accepted, with a named follow-up
+
+`next/font/google` fetches font files at build time. That fetch was blocked in the build
+environment, so the production build could not be verified at all.
+
+**Decision:** load Space Grotesk, Inter, and IBM Plex Mono through a stylesheet link for now.
+
+**Cost:** one third-party request per visitor and a small layout-shift risk that `display=swap`
+mostly covers. For an internal tool behind a login this is acceptable.
+
+**Follow-up:** put the `.woff2` files in `public/fonts/` and switch to `next/font/local`. That
+self-hosts them, removes the third-party request, and keeps the build offline-verifiable. Until
+then this stays a known limitation rather than a finished decision.
+
+---
+
+## D-010 — The board aggregates in TypeScript, not in SQL
+
+**Date:** 2026-08-12 · **Status:** accepted
+
+`loadCampaignBoard` reads six small tables and joins them in memory rather than issuing one
+query with several subqueries.
+
+**Why:** at this team's volume the difference is invisible, and the readiness rules stay readable
+and type checked instead of hiding in SQL.
+
+**Cost:** it scales with total rows, not with rows shown. Revisit when the campaign table passes
+a few thousand rows, not before.

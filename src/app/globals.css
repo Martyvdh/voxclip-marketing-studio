@@ -1,26 +1,82 @@
 @import "tailwindcss";
 
+/**
+ * VoxClip brand tokens. See docs/brand.md.
+ *
+ * The 60/30/10 system with a hard teal ceiling: Ink does the work, Paper is the
+ * canvas, Signal Teal is one small element per view. Teal is never a background
+ * wash and never small text; teal text uses Teal Deep, which passes AA.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ink: #1c2230;
+  --ink-muted: #5a6274;
+  --ink-faint: #8d94a3;
+  --paper: #f7f7f5;
+  --surface: #ffffff;
+  --line: #e3e3df;
+  --signal-teal: #12b3a6;
+  --teal-deep: #0b7a6e;
+  --teal-wash: #eaf7f5;
+  --alert-red: #e5484d;
+  --alert-wash: #fdeced;
+  --amber: #a86400;
+  --amber-wash: #fdf3e3;
+
+  --font-space-grotesk: "Space Grotesk", system-ui, sans-serif;
+  --font-inter: "Inter", system-ui, sans-serif;
+  --font-plex-mono: "IBM Plex Mono", ui-monospace, monospace;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-signal: var(--signal-teal);
+  --color-teal-deep: var(--teal-deep);
+  --color-teal-wash: var(--teal-wash);
+  --color-alert: var(--alert-red);
+  --color-alert-wash: var(--alert-wash);
+  --color-amber: var(--amber);
+  --color-amber-wash: var(--amber-wash);
+  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-plex-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background: var(--paper);
+  color: var(--ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+/* Focus stays visible everywhere. Keyboard operators are first-class here. */
+:focus-visible {
+  outline: 2px solid var(--teal-deep);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

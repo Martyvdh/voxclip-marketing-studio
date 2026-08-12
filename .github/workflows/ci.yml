@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # No production secret is available to this job, by design.
+    # Nothing here may publish a post, send an email, or touch production data.
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/voxclip_studio_test
+      SESSION_SECRET: ci-only-session-secret-that-is-long-enough-000000
+      APP_URL: http://localhost:3000
+      PUBLIC_SITE_URL: https://voxclip.it
+      ENABLE_REAL_PUBLISHING: "false"
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: voxclip_studio_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Unit and domain tests
+        run: npm run test
+
+      - name: Migrations apply to an empty database
+        run: npm run db:migrate
+
+      - name: Seed runs without error
+        run: npm run db:seed
+
+      - name: Production build
+        run: npm run build
+
+      - name: Check for secrets in the diff
+        run: |
+          if git grep -nE '(SESSION_SECRET|DATABASE_URL)\s*=\s*["'\''][^"'\''$]{8,}' -- ':!*.example' ':!.github/*'; then
+            echo "A secret looks hard-coded. Move it to the environment."
+            exit 1
+          fi
