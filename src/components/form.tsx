@@ -85,6 +85,8 @@ export function TextArea({
   error,
   defaultValue,
   rows = 3,
+  placeholder,
+  example,
 }: {
   id: string;
   label: string;
@@ -92,6 +94,9 @@ export function TextArea({
   error?: string;
   defaultValue?: string;
   rows?: number;
+  placeholder?: string;
+  /** A filled-in example. Shows what good looks like, which a hint cannot. */
+  example?: string;
 }) {
   return (
     <div>
@@ -103,11 +108,17 @@ export function TextArea({
         name={id}
         rows={rows}
         defaultValue={defaultValue}
+        placeholder={placeholder}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy(id, hint, error)}
         className={inputClass}
       />
       <Describe id={id} hint={hint} error={error} />
+      {example ? (
+        <p className="mt-1 text-xs text-ink-faint">
+          For example: <span className="italic">{example}</span>
+        </p>
+      ) : null}
     </div>
   );
 }

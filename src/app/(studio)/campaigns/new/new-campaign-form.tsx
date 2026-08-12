@@ -43,10 +43,12 @@ export function NewCampaignForm({
 
       <TextArea
         id="objective"
-        label="Objective"
+        label="What should be different afterwards"
         rows={3}
-        hint="What changes if this works. Not more views, but what a person does differently afterwards."
+        hint="One sentence about a person, not a number. If you cannot tell in six weeks whether it happened, it is not an objective yet."
         error={state.errors?.objective}
+        placeholder="Someone who..."
+        example="Solo pros who already copy a lot try recall with the hotkey in their first week."
       />
 
       <Select

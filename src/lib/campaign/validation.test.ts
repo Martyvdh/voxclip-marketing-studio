@@ -45,7 +45,7 @@ describe("newCampaignSchema", () => {
       ...validCampaign,
       objective: "more views",
     }).objective;
-    expect(message).toMatch(/what changes|objective/i);
+    expect(message).toMatch(/differently|objective/i);
   });
 
   it("refuses a pillar that is not one of the four", () => {

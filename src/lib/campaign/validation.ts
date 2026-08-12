@@ -22,7 +22,7 @@ export const newCampaignSchema = z.object({
     .trim()
     .min(
       20,
-      "Write what changes if this works. Not 'more views', but what a person does differently afterwards.",
+      "Write one sentence about what a person does or understands differently afterwards. A number is a result, not an objective.",
     ),
   audienceId: z.string().trim().min(1).optional(),
   signalId: z.string().trim().min(1).optional(),
