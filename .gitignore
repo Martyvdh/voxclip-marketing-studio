@@ -54,3 +54,6 @@ coverage/
 test-results/
 playwright-report/
 artifacts/screenshots/
+
+# the deployed prototype, kept as reference for the port
+!legacy/index.html
