@@ -49,12 +49,15 @@ export default async function StudioLayout({
           </nav>
 
           <div className="ml-auto flex items-center gap-3">
-            <span className="text-xs text-ink-muted">
+            <Link
+              href="/account"
+              className="text-xs text-ink-muted hover:text-ink hover:underline"
+            >
               {user.name}
               <span className="ml-1.5 rounded border border-line px-1.5 py-0.5 font-[family-name:var(--font-mono)] text-[10px] uppercase">
                 {user.role}
               </span>
-            </span>
+            </Link>
             <form action={signOut}>
               <button
                 type="submit"
