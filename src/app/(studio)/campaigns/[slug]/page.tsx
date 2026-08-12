@@ -1,12 +1,35 @@
 import Link from "next/link";
+import { desc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
+import { getDb } from "@/db";
+import { campaignTransitions } from "@/db/schema";
 import { Card, StatusBadge } from "@/components/brand";
 import { requireUser } from "@/lib/auth";
 import { loadCampaignBySlug } from "@/lib/campaign/queries";
-import { LEGAL_TRANSITIONS, evaluateTransition } from "@/lib/campaign/state-machine";
+import {
+  LEGAL_TRANSITIONS,
+  evaluateTransition,
+} from "@/lib/campaign/state-machine";
+import { Transitions, type TransitionOption } from "./transitions";
 
 export const dynamic = "force-dynamic";
+
+const STATUS_LABEL: Record<string, string> = {
+  IDEA: "Idea",
+  BRIEF: "Brief",
+  DRAFT: "Draft",
+  NEEDS_ASSET: "Needs asset",
+  IN_REVIEW: "In review",
+  APPROVED: "Approved",
+  SCHEDULED: "Scheduled",
+  PUBLISHING: "Publishing",
+  PUBLISHED: "Published",
+  REJECTED: "Rejected",
+  FAILED: "Failed",
+  CANCELLED: "Cancelled",
+  ARCHIVED: "Archived",
+};
 
 export default async function CampaignPage({
   params,
@@ -19,7 +42,25 @@ export default async function CampaignPage({
   if (!row) notFound();
 
   const { campaign, readiness, action } = row;
-  const targets = LEGAL_TRANSITIONS[campaign.status];
+
+  const options: TransitionOption[] = LEGAL_TRANSITIONS[campaign.status].map(
+    (target) => {
+      const verdict = evaluateTransition(campaign.status, target, readiness);
+      return {
+        target,
+        label: STATUS_LABEL[target] ?? target,
+        allowed: verdict.allowed,
+        reasons: verdict.allowed ? [] : verdict.reasons,
+      };
+    },
+  );
+
+  const history = await getDb()
+    .select()
+    .from(campaignTransitions)
+    .where(eq(campaignTransitions.campaignId, campaign.id))
+    .orderBy(desc(campaignTransitions.createdAt))
+    .limit(20);
 
   return (
     <>
@@ -32,7 +73,7 @@ export default async function CampaignPage({
         <StatusBadge status={campaign.status} />
       </div>
 
-      <p className="mt-2 text-ink-muted">{campaign.objective}</p>
+      <p className="mt-2 max-w-2xl text-ink-muted">{campaign.objective}</p>
       <p className="mt-1 font-[family-name:var(--font-mono)] text-xs text-ink-faint">
         utm_campaign={campaign.campaignCode}
       </p>
@@ -42,52 +83,19 @@ export default async function CampaignPage({
           Next: {action.label}
         </h2>
         <p className="mt-2 text-sm text-ink-muted">{action.detail}</p>
+        <Link
+          href={`/campaigns/${slug}/brief`}
+          className="mt-3 inline-block text-sm font-medium text-teal-deep hover:underline"
+        >
+          Open the brief
+        </Link>
       </Card>
 
       <section className="mt-8" aria-labelledby="transitions-heading">
         <h2 id="transitions-heading" className="mb-3 text-lg font-semibold">
           Where this can go
         </h2>
-        <ul className="space-y-2">
-          {targets.length === 0 ? (
-            <li className="text-sm text-ink-muted">
-              This status is final. The campaign is read only.
-            </li>
-          ) : (
-            targets.map((target) => {
-              const verdict = evaluateTransition(campaign.status, target, readiness);
-              return (
-                <li key={target}>
-                  <Card className="flex flex-wrap items-start justify-between gap-3 py-3">
-                    <div>
-                      <p className="text-sm font-medium">{target}</p>
-                      {!verdict.allowed ? (
-                        <ul className="mt-1 space-y-1 text-sm text-ink-muted">
-                          {verdict.reasons.map((reason) => (
-                            <li key={reason}>{reason}</li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="mt-1 text-sm text-ink-muted">
-                          Everything this needs is in place.
-                        </p>
-                      )}
-                    </div>
-                    <span
-                      className={`shrink-0 rounded-full border border-line px-2.5 py-1 text-xs font-medium ${
-                        verdict.allowed
-                          ? "bg-teal-wash text-teal-deep"
-                          : "bg-paper text-ink-muted"
-                      }`}
-                    >
-                      {verdict.allowed ? "Ready" : "Blocked"}
-                    </span>
-                  </Card>
-                </li>
-              );
-            })
-          )}
-        </ul>
+        <Transitions slug={slug} options={options} />
       </section>
 
       <section className="mt-8" aria-labelledby="readiness-heading">
@@ -118,6 +126,37 @@ export default async function CampaignPage({
             ))}
           </dl>
         </Card>
+      </section>
+
+      <section className="mt-8" aria-labelledby="history-heading">
+        <h2 id="history-heading" className="mb-3 text-lg font-semibold">
+          History
+        </h2>
+        {history.length === 0 ? (
+          <p className="text-sm text-ink-muted">
+            Nothing has moved yet. Every change from here is recorded with who
+            made it and why.
+          </p>
+        ) : (
+          <ol className="space-y-2">
+            {history.map((t) => (
+              <li
+                key={t.id}
+                className="flex flex-wrap items-baseline gap-x-3 text-sm"
+              >
+                <span className="font-[family-name:var(--font-mono)] text-xs text-ink-faint">
+                  {t.createdAt.toISOString().slice(0, 16).replace("T", " ")}
+                </span>
+                <span>
+                  {STATUS_LABEL[t.fromStatus]} to {STATUS_LABEL[t.toStatus]}
+                </span>
+                {t.reason ? (
+                  <span className="text-ink-muted">{t.reason}</span>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        )}
       </section>
     </>
   );

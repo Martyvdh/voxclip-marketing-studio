@@ -26,6 +26,14 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        {/*
+          The rule below warns about fonts loaded outside pages/_document.js.
+          That advice is for the Pages Router. This is the App Router root
+          layout, so the stylesheet applies to every page. Disabled knowingly,
+          not to silence a real finding. It goes away with D-009's follow-up:
+          self-host the files and switch to next/font/local.
+        */}
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
