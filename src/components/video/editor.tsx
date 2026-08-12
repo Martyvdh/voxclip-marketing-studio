@@ -2,62 +2,102 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { renderFrame, type RenderOptions } from "@/lib/video/render";
-import { VIDEO_FORMATS, formatBySlug, type SceneSource } from "@/lib/video/scenes";
-import { RATIOS, buildTimeline, sceneAt, type RatioKey } from "@/lib/video/timeline";
+import { ANIMATIONS } from "@/lib/video/animations";
+import { renderFrame, type MediaSource } from "@/lib/video/render";
+import {
+  addClip,
+  clipAt,
+  duplicateClip,
+  moveClip,
+  newClip,
+  removeClip,
+  splitClip,
+  timelineOf,
+  totalSeconds,
+  updateClip,
+  type Clip,
+  type Project,
+} from "@/lib/video/project";
+import { RATIOS, type RatioKey } from "@/lib/video/timeline";
+import { STARTERS, type StarterSource } from "@/lib/video/starters";
 
 const FPS = 30;
 
-export function VideoEditor({ source }: { source: SceneSource }) {
+export function VideoEditor({ source }: { source: StarterSource }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const rafRef = useRef<number | null>(null);
-  const startedAtRef = useRef<number>(0);
+  const startedAtRef = useRef(0);
+  const mediaRef = useRef(new Map<string, MediaSource>());
 
-  const [formatSlug, setFormatSlug] = useState(VIDEO_FORMATS[0].slug);
-  const [ratio, setRatio] = useState<RatioKey>("9:16");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [showMark, setShowMark] = useState(true);
-  const [seconds, setSeconds] = useState(VIDEO_FORMATS[0].defaultSeconds);
+  const [project, setProject] = useState<Project>(() => STARTERS[0].build(source));
+  const [history, setHistory] = useState<Project[]>([]);
+  const [selectedId, setSelectedId] = useState<string>("");
   const [ms, setMs] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [recording, setRecording] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
 
-  const format = useMemo(() => formatBySlug(formatSlug), [formatSlug]);
-  const scenes = useMemo(() => format.build(source), [format, source]);
-  const timeline = useMemo(() => {
-    try {
-      return buildTimeline(scenes, seconds);
-    } catch {
-      return buildTimeline(scenes, format.defaultSeconds);
-    }
-  }, [scenes, seconds, format.defaultSeconds]);
+  const timeline = useMemo(() => timelineOf(project), [project]);
+  const totalMs = Math.round(totalSeconds(project) * 1000);
+  const current = useMemo(() => clipAt(project, ms), [project, ms]);
+  const selected =
+    project.clips.find((c) => c.id === selectedId) ?? project.clips[0] ?? null;
 
-  const totalMs = seconds * 1000;
-  const options: RenderOptions = useMemo(
-    () => ({ ratio, theme, showMark }),
-    [ratio, theme, showMark],
-  );
+  /** Every edit goes through here, so undo is one stack and nothing is lost. */
+  const edit = useCallback((next: (p: Project) => Project) => {
+    setProject((prev) => {
+      setHistory((h) => [...h.slice(-29), prev]);
+      return next(prev);
+    });
+  }, []);
+
+  const undo = useCallback(() => {
+    setHistory((h) => {
+      if (h.length === 0) return h;
+      setProject(h[h.length - 1]);
+      return h.slice(0, -1);
+    });
+  }, []);
 
   const paint = useCallback(
     (at: number) => {
       const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      renderFrame(ctx, { timeline, ms: at, options });
+      const ctx = canvas?.getContext("2d");
+      if (!canvas || !ctx) return;
+
+      const clip = clipAt(project, at);
+      const media = clip?.media ? (mediaRef.current.get(clip.id) ?? null) : null;
+      renderFrame(ctx, { clip, ratio: project.ratio, showMark: project.showMark, media });
     },
-    [timeline, options],
+    [project],
   );
 
   useEffect(() => {
     paint(ms);
   }, [paint, ms]);
 
+  // Keeps a clip's video element lined up with the playhead.
+  useEffect(() => {
+    const clip = current;
+    if (!clip?.media || clip.media.kind !== "video") return;
+    const el = mediaRef.current.get(clip.id) as HTMLVideoElement | undefined;
+    if (!el) return;
+
+    const into = (clip.progress * clip.durationMs) / 1000;
+    if (playing || recording) {
+      if (el.paused) void el.play().catch(() => undefined);
+      if (Math.abs(el.currentTime - into) > 0.35) el.currentTime = into;
+    } else {
+      if (!el.paused) el.pause();
+      if (Math.abs(el.currentTime - into) > 0.05) el.currentTime = into;
+    }
+  }, [current, playing, recording]);
+
   useEffect(() => {
     if (!playing) return;
-
     startedAtRef.current = performance.now() - ms;
+
     const step = () => {
       const elapsed = performance.now() - startedAtRef.current;
       if (elapsed >= totalMs) {
@@ -73,11 +113,68 @@ export function VideoEditor({ source }: { source: SceneSource }) {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-    // ms is deliberately not a dependency: it changes every frame.
+    // ms changes every frame and must not restart the loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, totalMs]);
 
-  const currentScene = sceneAt(timeline, ms);
+  // Keyboard, the way an editor is actually used.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+
+      if (e.key === " ") {
+        e.preventDefault();
+        setPlaying((p) => !p);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setPlaying(false);
+        setMs((v) => Math.max(0, v - (e.shiftKey ? 1000 : 1000 / FPS)));
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        setPlaying(false);
+        setMs((v) => Math.min(totalMs, v + (e.shiftKey ? 1000 : 1000 / FPS)));
+      } else if (e.key === "s" && !e.metaKey && !e.ctrlKey) {
+        edit((p) => splitClip(p, ms));
+      } else if ((e.metaKey || e.ctrlKey) && e.key === "z") {
+        e.preventDefault();
+        undo();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [totalMs, ms, edit, undo]);
+
+  function attachMedia(clip: Clip, file: File) {
+    const url = URL.createObjectURL(file);
+    const kind: "video" | "image" = file.type.startsWith("video") ? "video" : "image";
+
+    if (kind === "video") {
+      const el = document.createElement("video");
+      el.src = url;
+      el.muted = true;
+      el.playsInline = true;
+      el.preload = "auto";
+      el.onloadeddata = () => {
+        mediaRef.current.set(clip.id, el as unknown as MediaSource);
+        paint(ms);
+      };
+    } else {
+      const el = new Image();
+      el.src = url;
+      el.onload = () => {
+        mediaRef.current.set(clip.id, el as unknown as MediaSource);
+        paint(ms);
+      };
+    }
+
+    edit((p) =>
+      updateClip(p, clip.id, {
+        media: { kind, url, name: file.name, fit: "cover", dim: 0.45 },
+        theme: "media",
+      }),
+    );
+  }
 
   async function record() {
     const canvas = canvasRef.current;
@@ -87,13 +184,9 @@ export function VideoEditor({ source }: { source: SceneSource }) {
       setStatus("This browser cannot record a canvas. Chrome and Edge can.");
       return;
     }
-
-    const types = [
-      "video/webm;codecs=vp9",
-      "video/webm;codecs=vp8",
-      "video/webm",
-    ];
-    const mimeType = types.find((t) => MediaRecorder.isTypeSupported(t));
+    const mimeType = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"].find(
+      (t) => MediaRecorder.isTypeSupported(t),
+    );
     if (!mimeType) {
       setStatus("This browser cannot record webm. Try Chrome.");
       return;
@@ -101,69 +194,69 @@ export function VideoEditor({ source }: { source: SceneSource }) {
 
     setRecording(true);
     setPlaying(false);
-    setStatus("Recording. Leave this tab in front until it finishes.");
+    setStatus("Recording in real time. Keep this tab in front until it finishes.");
 
     const stream = canvas.captureStream(FPS);
-    const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8_000_000 });
+    const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 12_000_000 });
     const chunks: Blob[] = [];
     recorder.ondataavailable = (e) => {
       if (e.data.size) chunks.push(e.data);
     };
-
-    const done = new Promise<void>((resolve) => {
+    const stopped = new Promise<void>((resolve) => {
       recorder.onstop = () => resolve();
     });
 
     recorder.start();
+    const began = performance.now();
 
-    const startedAt = performance.now();
     await new Promise<void>((resolve) => {
       const tick = () => {
-        const elapsed = performance.now() - startedAt;
-        if (elapsed >= totalMs) {
-          paint(totalMs);
-          resolve();
-          return;
-        }
-        paint(elapsed);
+        const elapsed = performance.now() - began;
+        setMs(Math.min(elapsed, totalMs));
+        paint(Math.min(elapsed, totalMs));
+        if (elapsed >= totalMs) return resolve();
         requestAnimationFrame(tick);
       };
       requestAnimationFrame(tick);
     });
 
     recorder.stop();
-    await done;
+    await stopped;
 
     const blob = new Blob(chunks, { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `voxclip-${format.slug}-${ratio.replace(":", "x")}.webm`;
+    a.download = `voxclip-${project.ratio.replace(":", "x")}-${Math.round(totalMs / 1000)}s.webm`;
     a.click();
     URL.revokeObjectURL(url);
 
     setRecording(false);
     setMs(0);
-    setStatus("Downloaded. It is a webm, which every social platform accepts.");
+    setStatus("Downloaded as webm. Every platform in the list accepts it.");
   }
 
-  const { width, height } = RATIOS[ratio];
+  const { width, height } = RATIOS[project.ratio];
+  const previewMax = project.ratio === "9:16" ? 300 : project.ratio === "1:1" ? 380 : 520;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div>
-        <div className="rounded-xl border border-line bg-paper p-4">
-          <canvas
-            ref={canvasRef}
-            width={width}
-            height={height}
-            aria-label={`Video preview, ${format.name}, ${ratio}`}
-            className="mx-auto block h-auto w-full max-w-[320px] rounded-lg shadow-sm"
-          />
-        </div>
+    <div className="space-y-5">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+        {/* preview */}
+        <div>
+          <div className="flex min-h-[380px] items-center justify-center rounded-xl border border-line bg-[#101319] p-5">
+            <canvas
+              ref={canvasRef}
+              width={width}
+              height={height}
+              aria-label={`Preview, ${project.ratio}`}
+              style={{ maxWidth: previewMax }}
+              className="h-auto w-full rounded-lg"
+            />
+          </div>
 
-        <div className="mt-4 space-y-3">
-          <div className="flex items-center gap-3">
+          {/* transport */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => {
@@ -171,7 +264,7 @@ export function VideoEditor({ source }: { source: SceneSource }) {
                 setPlaying((p) => !p);
               }}
               disabled={recording}
-              className="rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium disabled:opacity-60"
+              className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
             >
               {playing ? "Pause" : "Play"}
             </button>
@@ -181,185 +274,440 @@ export function VideoEditor({ source }: { source: SceneSource }) {
                 setPlaying(false);
                 setMs(0);
               }}
-              disabled={recording}
-              className="rounded-lg border border-line bg-surface px-3 py-2 text-sm disabled:opacity-60"
+              className="rounded-lg border border-line bg-surface px-3 py-2 text-sm"
             >
               Restart
             </button>
-            <span className="font-[family-name:var(--font-mono)] text-xs text-ink-muted">
-              {(ms / 1000).toFixed(1)}s / {seconds.toFixed(1)}s
+            <button
+              type="button"
+              onClick={() => edit((p) => splitClip(p, ms))}
+              className="rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+              title="Split the clip under the playhead (S)"
+            >
+              Split
+            </button>
+            <button
+              type="button"
+              onClick={undo}
+              disabled={history.length === 0}
+              className="rounded-lg border border-line bg-surface px-3 py-2 text-sm disabled:opacity-50"
+            >
+              Undo
+            </button>
+            <span className="ml-auto font-[family-name:var(--font-mono)] text-xs text-ink-muted">
+              {(ms / 1000).toFixed(2)}s / {(totalMs / 1000).toFixed(2)}s
             </span>
           </div>
 
-          <div>
-            <label htmlFor="scrub" className="sr-only">
-              Scrub the timeline
-            </label>
-            <input
-              id="scrub"
-              type="range"
-              min={0}
-              max={totalMs}
-              step={1000 / FPS}
-              value={ms}
-              disabled={recording}
-              onChange={(e) => {
-                setPlaying(false);
-                setMs(Number(e.target.value));
-              }}
-              className="w-full"
-            />
-          </div>
+          <p className="mt-1 text-xs text-ink-faint">
+            Space plays. Arrows step a frame, with shift a second. S splits.
+          </p>
+        </div>
 
-          <ol className="flex flex-wrap gap-1.5 text-xs">
-            {timeline.map((s) => (
-              <li key={s.id}>
+        {/* project settings */}
+        <aside className="space-y-4">
+          <div>
+            <span className="block text-sm font-medium">Start from</span>
+            <div className="mt-1 grid gap-1.5">
+              {STARTERS.map((s) => (
                 <button
+                  key={s.slug}
                   type="button"
                   onClick={() => {
+                    edit(() => s.build(source));
+                    setMs(0);
                     setPlaying(false);
-                    setMs(s.startMs);
                   }}
-                  className={`rounded-full border px-2.5 py-1 ${
-                    currentScene?.id === s.id
-                      ? "border-teal-deep bg-teal-wash text-teal-deep"
-                      : "border-line bg-surface text-ink-muted"
-                  }`}
+                  className="rounded-lg border border-line bg-surface px-3 py-2 text-left text-sm hover:border-ink"
                 >
-                  {s.id} · {(s.durationMs / 1000).toFixed(1)}s
+                  {s.name}
+                  <span className="block text-xs text-ink-muted">{s.intent}</span>
                 </button>
-              </li>
-            ))}
-          </ol>
+              ))}
+            </div>
+          </div>
 
-          {currentScene?.note ? (
-            <p className="rounded-lg bg-amber-wash px-3 py-2 text-xs text-amber">
-              {currentScene.note}
-            </p>
-          ) : null}
-        </div>
+          <div>
+            <label htmlFor="ratio" className="block text-sm font-medium">
+              Shape
+            </label>
+            <select
+              id="ratio"
+              value={project.ratio}
+              onChange={(e) =>
+                edit((p) => ({ ...p, ratio: e.target.value as RatioKey }))
+              }
+              className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+            >
+              <option value="9:16">9:16, vertical</option>
+              <option value="1:1">1:1, square</option>
+              <option value="16:9">16:9, wide</option>
+            </select>
+          </div>
+
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={project.showMark}
+              onChange={(e) => edit((p) => ({ ...p, showMark: e.target.checked }))}
+            />
+            Show the mark
+          </label>
+
+          <p className="text-xs text-ink-muted">
+            There is no colour picker. Teal is one element per frame and the
+            renderer places it. That is the whole colour system.
+          </p>
+
+          <div className="border-t border-line pt-4">
+            <button
+              type="button"
+              onClick={record}
+              disabled={recording}
+              className="w-full rounded-lg bg-ink px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"
+            >
+              {recording ? "Recording" : "Render and download"}
+            </button>
+            {status ? (
+              <p role="status" className="mt-2 text-xs text-ink-muted">
+                {status}
+              </p>
+            ) : null}
+          </div>
+        </aside>
       </div>
 
-      <aside className="space-y-4">
-        <div>
-          <label htmlFor="format" className="block text-sm font-medium">
-            Format
-          </label>
-          <select
-            id="format"
-            value={formatSlug}
-            onChange={(e) => {
-              const next = formatBySlug(e.target.value);
-              setFormatSlug(next.slug);
-              setSeconds(next.defaultSeconds);
-              setMs(0);
-              setPlaying(false);
-            }}
-            className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm"
-          >
-            {VIDEO_FORMATS.map((f) => (
-              <option key={f.slug} value={f.slug}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-ink-muted">{format.intent}</p>
-        </div>
-
-        {format.needsRealCapture ? (
-          <p className="rounded-lg bg-amber-wash px-3 py-2 text-xs text-amber">
-            This format is not finished without a real screen recording. The text
-            frames it; it does not stand in for it. A drawn interface would be a
-            picture of an app that does not exist.
-          </p>
-        ) : null}
-
-        <div>
-          <label htmlFor="ratio" className="block text-sm font-medium">
-            Shape
-          </label>
-          <select
-            id="ratio"
-            value={ratio}
-            onChange={(e) => setRatio(e.target.value as RatioKey)}
-            className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm"
-          >
-            <option value="9:16">9:16, vertical</option>
-            <option value="1:1">1:1, square</option>
-            <option value="16:9">16:9, wide</option>
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="seconds" className="block text-sm font-medium">
-            Length: {seconds.toFixed(1)}s
-          </label>
-          <input
-            id="seconds"
-            type="range"
-            min={4}
-            max={30}
-            step={0.5}
-            value={seconds}
-            onChange={(e) => {
-              setSeconds(Number(e.target.value));
-              setMs(0);
-            }}
-            className="mt-1 w-full"
-          />
-        </div>
-
-        <fieldset>
-          <legend className="text-sm font-medium">Canvas</legend>
-          <div className="mt-1 flex gap-2">
-            {(["light", "dark"] as const).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setTheme(t)}
-                aria-pressed={theme === t}
-                className={`rounded-lg border px-3 py-1.5 text-sm ${
-                  theme === t
-                    ? "border-ink bg-ink text-white"
-                    : "border-line bg-surface text-ink-muted"
-                }`}
-              >
-                {t === "light" ? "Paper" : "Canvas dark"}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={showMark}
-            onChange={(e) => setShowMark(e.target.checked)}
-          />
-          Show the mark
-        </label>
-
-        <p className="text-xs text-ink-muted">
-          There is no accent picker. Teal is one element per frame and the
-          renderer places it. That is the whole colour system.
-        </p>
-
-        <div className="border-t border-line pt-4">
+      {/* timeline */}
+      <div className="rounded-xl border border-line bg-surface p-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium">Timeline</h3>
           <button
             type="button"
-            onClick={record}
-            disabled={recording}
-            className="w-full rounded-lg bg-ink px-4 py-2.5 text-sm font-medium text-white disabled:opacity-60"
+            onClick={() => {
+              edit((p) => addClip(p, newClip({ text: "New line" })));
+            }}
+            className="rounded-lg border border-line px-2.5 py-1 text-xs"
           >
-            {recording ? "Recording" : "Render and download"}
+            Add clip
           </button>
-          {status ? (
-            <p role="status" className="mt-2 text-xs text-ink-muted">
-              {status}
+        </div>
+
+        <div className="relative mt-3">
+          <div className="flex gap-1">
+            {timeline.map((c, i) => {
+              const share = Math.max(6, (c.durationMs / Math.max(1, totalMs)) * 100);
+              const active = current?.id === c.id;
+              return (
+                <div
+                  key={c.id}
+                  draggable
+                  onDragStart={() => setDragIndex(i)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => {
+                    if (dragIndex !== null) edit((p) => moveClip(p, dragIndex, i));
+                    setDragIndex(null);
+                  }}
+                  style={{ width: `${share}%` }}
+                  className={`min-w-0 cursor-grab rounded-lg border p-2 text-left ${
+                    active ? "border-teal-deep bg-teal-wash" : "border-line bg-paper"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedId(c.id);
+                      setPlaying(false);
+                      setMs(c.startMs);
+                    }}
+                    className="w-full text-left"
+                  >
+                    <span className="block truncate text-xs font-medium">
+                      {c.text || "Empty"}
+                    </span>
+                    <span className="block font-[family-name:var(--font-mono)] text-[10px] text-ink-muted">
+                      {c.seconds.toFixed(1)}s
+                      {c.media ? ` · ${c.media.kind}` : ""}
+                    </span>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -top-1 bottom-[-4px] w-0.5 bg-alert"
+            style={{ left: `${(ms / Math.max(1, totalMs)) * 100}%` }}
+          />
+        </div>
+
+        <label htmlFor="scrub" className="sr-only">
+          Scrub the timeline
+        </label>
+        <input
+          id="scrub"
+          type="range"
+          min={0}
+          max={totalMs}
+          step={1000 / FPS}
+          value={ms}
+          disabled={recording}
+          onChange={(e) => {
+            setPlaying(false);
+            setMs(Number(e.target.value));
+          }}
+          className="mt-3 w-full"
+        />
+      </div>
+
+      {/* inspector */}
+      {selected ? (
+        <div className="rounded-xl border border-line bg-surface p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-medium">
+              Clip {project.clips.findIndex((c) => c.id === selected.id) + 1} of{" "}
+              {project.clips.length}
+            </h3>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => edit((p) => duplicateClip(p, selected.id))}
+                className="rounded-lg border border-line px-2.5 py-1 text-xs"
+              >
+                Duplicate
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  edit((p) => removeClip(p, selected.id));
+                  setMs(0);
+                }}
+                disabled={project.clips.length <= 1}
+                className="rounded-lg border border-line px-2.5 py-1 text-xs text-alert disabled:opacity-50"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="clip-text" className="block text-sm font-medium">
+                  Line
+                </label>
+                <textarea
+                  id="clip-text"
+                  rows={2}
+                  value={selected.text}
+                  onChange={(e) =>
+                    edit((p) => updateClip(p, selected.id, { text: e.target.value }))
+                  }
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="clip-second" className="block text-sm font-medium">
+                  Second line
+                </label>
+                <textarea
+                  id="clip-second"
+                  rows={2}
+                  value={selected.secondary}
+                  onChange={(e) =>
+                    edit((p) =>
+                      updateClip(p, selected.id, { secondary: e.target.value }),
+                    )
+                  }
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="clip-anim" className="block text-sm font-medium">
+                  Animation
+                </label>
+                <select
+                  id="clip-anim"
+                  value={selected.animation}
+                  onChange={(e) =>
+                    edit((p) =>
+                      updateClip(p, selected.id, {
+                        animation: e.target.value as Clip["animation"],
+                      }),
+                    )
+                  }
+                  className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+                >
+                  {ANIMATIONS.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-ink-muted">
+                  {ANIMATIONS.find((a) => a.id === selected.animation)?.description}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label htmlFor="clip-seconds" className="block text-sm font-medium">
+                  Length: {selected.seconds.toFixed(1)}s
+                </label>
+                <input
+                  id="clip-seconds"
+                  type="range"
+                  min={0.5}
+                  max={20}
+                  step={0.1}
+                  value={selected.seconds}
+                  onChange={(e) =>
+                    edit((p) =>
+                      updateClip(p, selected.id, { seconds: Number(e.target.value) }),
+                    )
+                  }
+                  className="mt-1 w-full"
+                />
+              </div>
+
+              <fieldset>
+                <legend className="text-sm font-medium">Size and alignment</legend>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {(["s", "m", "l"] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      aria-pressed={selected.size === s}
+                      onClick={() => edit((p) => updateClip(p, selected.id, { size: s }))}
+                      className={`rounded-lg border px-3 py-1.5 text-sm ${
+                        selected.size === s
+                          ? "border-ink bg-ink text-white"
+                          : "border-line bg-surface"
+                      }`}
+                    >
+                      {s.toUpperCase()}
+                    </button>
+                  ))}
+                  {(["left", "center"] as const).map((a) => (
+                    <button
+                      key={a}
+                      type="button"
+                      aria-pressed={selected.align === a}
+                      onClick={() => edit((p) => updateClip(p, selected.id, { align: a }))}
+                      className={`rounded-lg border px-3 py-1.5 text-sm ${
+                        selected.align === a
+                          ? "border-ink bg-ink text-white"
+                          : "border-line bg-surface"
+                      }`}
+                    >
+                      {a}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend className="text-sm font-medium">Background</legend>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {(["paper", "ink"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      aria-pressed={selected.theme === t}
+                      onClick={() => edit((p) => updateClip(p, selected.id, { theme: t }))}
+                      className={`rounded-lg border px-3 py-1.5 text-sm ${
+                        selected.theme === t
+                          ? "border-ink bg-ink text-white"
+                          : "border-line bg-surface"
+                      }`}
+                    >
+                      {t === "paper" ? "Paper" : "Ink"}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <div>
+                <label htmlFor="clip-media" className="block text-sm font-medium">
+                  Screen recording or screenshot
+                </label>
+                <input
+                  id="clip-media"
+                  type="file"
+                  accept="video/*,image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) attachMedia(selected, file);
+                  }}
+                  className="mt-1 w-full text-xs"
+                />
+                <p className="mt-1 text-xs text-ink-muted">
+                  Use a real capture of the shipping app. Nothing here draws a
+                  product interface, because a drawn one would be a picture of an
+                  app that does not exist.
+                </p>
+
+                {selected.media ? (
+                  <div className="mt-2 space-y-2">
+                    <p className="truncate font-[family-name:var(--font-mono)] text-xs text-ink-muted">
+                      {selected.media.name}
+                    </p>
+                    <label
+                      htmlFor="clip-dim"
+                      className="block text-xs text-ink-muted"
+                    >
+                      Dim: {Math.round(selected.media.dim * 100)}%
+                    </label>
+                    <input
+                      id="clip-dim"
+                      type="range"
+                      min={0}
+                      max={0.85}
+                      step={0.05}
+                      value={selected.media.dim}
+                      onChange={(e) =>
+                        edit((p) =>
+                          updateClip(p, selected.id, {
+                            media: {
+                              ...selected.media!,
+                              dim: Number(e.target.value),
+                            },
+                          }),
+                        )
+                      }
+                      className="w-full"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        mediaRef.current.delete(selected.id);
+                        edit((p) =>
+                          updateClip(p, selected.id, {
+                            media: undefined,
+                            theme: "paper",
+                          }),
+                        );
+                      }}
+                      className="rounded-lg border border-line px-2.5 py-1 text-xs"
+                    >
+                      Remove media
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {selected.note ? (
+            <p className="mt-4 rounded-lg bg-amber-wash px-3 py-2 text-xs text-amber">
+              {selected.note}
             </p>
           ) : null}
         </div>
-      </aside>
+      ) : null}
     </div>
   );
 }

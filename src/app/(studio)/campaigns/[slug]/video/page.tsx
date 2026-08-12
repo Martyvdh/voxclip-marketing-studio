@@ -9,7 +9,7 @@ import { VideoEditor } from "@/components/video/editor";
 import { requireUser } from "@/lib/auth";
 import { loadCampaignBySlug } from "@/lib/campaign/queries";
 import { normaliseDashes } from "@/lib/content/draft";
-import type { SceneSource } from "@/lib/video/scenes";
+import type { StarterSource } from "@/lib/video/starters";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +67,7 @@ export default async function VideoPage({
 
   // Everything drawn comes from the campaign, not from a template. Dashes are
   // normalised because they are as forbidden on screen as they are in a caption.
-  const source: SceneSource = {
+  const source: StarterSource = {
     hook: normaliseDashes(brief.promise),
     problem: normaliseDashes(brief.problem),
     promise: normaliseDashes(brief.promise),

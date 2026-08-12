@@ -1,78 +1,106 @@
 /**
  * The canvas renderer.
  *
- * Brand rules are enforced here, not left to whoever fills the fields:
+ * Brand rules live here, not in whoever fills the fields:
  *  - Ink or Paper carries the frame. Teal is one small element, never a wash.
- *  - Space Grotesk for display, sizes from a scale, hierarchy from weight.
+ *  - Space Grotesk for display. Hierarchy from weight and size, never colour.
  *  - Text stays inside the safe area, which is asymmetric on vertical.
- *  - Nothing snaps. Every entrance eases.
- *  - No product interface is ever drawn. Real captures only.
+ *  - Nothing snaps. Entrances come from animations.ts.
+ *  - No product interface is ever drawn. Real captures only, supplied as media.
  */
 
-import { RATIOS, easeInOut, safeArea, sceneAt, type RatioKey, type TimedScene } from "./timeline";
+import { transformAt } from "./animations";
+import type { ClipAt } from "./project";
+import { RATIOS, easeInOut, safeArea, type RatioKey } from "./timeline";
 
 export const INK = "#1C2230";
 export const PAPER = "#F7F7F5";
 export const CANVAS_DARK = "#14181F";
 export const SIGNAL_TEAL = "#12B3A6";
-export const TEAL_DEEP = "#0B7A6E";
 export const MUTED_ON_DARK = "#8D94A3";
 export const MUTED_ON_LIGHT = "#5A6274";
 
-export interface RenderOptions {
-  ratio: RatioKey;
-  theme: "light" | "dark";
-  /** Drawn once, small, in the corner. The only teal on most frames. */
-  showMark: boolean;
-}
+/** Anything that can be painted as a clip background. */
+export type MediaSource = CanvasImageSource & {
+  readonly width?: number;
+  readonly height?: number;
+  readonly videoWidth?: number;
+  readonly videoHeight?: number;
+};
 
 export interface RenderInput {
-  timeline: TimedScene[];
-  ms: number;
-  options: RenderOptions;
+  clip: ClipAt | null;
+  ratio: RatioKey;
+  showMark: boolean;
+  /** Resolved element for this clip's media, when there is one and it is ready. */
+  media?: MediaSource | null;
+}
+
+const SIZE_SCALE: Record<string, number> = { s: 0.052, m: 0.068, l: 0.086 };
+
+function mediaSize(media: MediaSource) {
+  const w = (media.videoWidth || media.width || 0) as number;
+  const h = (media.videoHeight || media.height || 0) as number;
+  return { w, h };
+}
+
+function drawMedia(
+  ctx: CanvasRenderingContext2D,
+  media: MediaSource,
+  fit: "cover" | "contain",
+  width: number,
+  height: number,
+) {
+  const { w, h } = mediaSize(media);
+  if (!w || !h) return;
+
+  const scale =
+    fit === "cover"
+      ? Math.max(width / w, height / h)
+      : Math.min(width / w, height / h);
+
+  const dw = w * scale;
+  const dh = h * scale;
+  ctx.drawImage(media, (width - dw) / 2, (height - dh) / 2, dw, dh);
 }
 
 function fitLines(
   ctx: CanvasRenderingContext2D,
   text: string,
   maxWidth: number,
-  fontWeight: number,
+  weight: number,
   startSize: number,
 ): { lines: string[]; size: number } {
   let size = startSize;
 
-  for (; size > 24; size -= 4) {
-    ctx.font = `${fontWeight} ${size}px "Space Grotesk", system-ui, sans-serif`;
+  for (; size > 20; size -= 3) {
+    ctx.font = `${weight} ${size}px "Space Grotesk", system-ui, sans-serif`;
     const words = text.split(/\s+/).filter(Boolean);
     const lines: string[] = [];
     let current = "";
 
     for (const word of words) {
       const candidate = current ? `${current} ${word}` : word;
-      if (ctx.measureText(candidate).width <= maxWidth) {
-        current = candidate;
-      } else {
+      if (ctx.measureText(candidate).width <= maxWidth) current = candidate;
+      else {
         if (current) lines.push(current);
         current = word;
       }
     }
     if (current) lines.push(current);
 
-    const tooWide = lines.some((l) => ctx.measureText(l).width > maxWidth);
-    if (!tooWide && lines.length <= 5) return { lines, size };
+    if (!lines.some((l) => ctx.measureText(l).width > maxWidth) && lines.length <= 6) {
+      return { lines, size };
+    }
   }
 
-  ctx.font = `${fontWeight} ${size}px "Space Grotesk", system-ui, sans-serif`;
+  ctx.font = `${weight} ${size}px "Space Grotesk", system-ui, sans-serif`;
   return { lines: [text], size };
 }
 
 /**
- * The chip, small, in the corner.
- *
- * The same geometry as public/voxclip-mark.svg, drawn at 256 and scaled: a
- * filled Ink tile with a notched corner, three bars, the middle one teal and
- * tallest. On a dark canvas the tile flips to Paper and the outer bars to Ink,
- * so the mark stays legible. The teal bar never changes; it is the signal.
+ * The chip. Same geometry as public/voxclip-mark.svg, drawn on a 256 grid.
+ * On a dark or media frame the tile flips to Paper. The teal bar never changes.
  */
 function drawMark(
   ctx: CanvasRenderingContext2D,
@@ -114,86 +142,144 @@ function drawMark(
     ctx.roundRect(bx, by, 26, h, 13);
     ctx.fill();
   }
-
   ctx.restore();
 }
 
-export function renderFrame(
+/** Draws one line with its reveal applied as a left-to-right clip. */
+function drawRevealed(
   ctx: CanvasRenderingContext2D,
-  { timeline, ms, options }: RenderInput,
-): void {
-  const { width, height } = RATIOS[options.ratio];
-  const safe = safeArea(options.ratio);
-  const onDark = options.theme === "dark";
+  line: string,
+  x: number,
+  y: number,
+  reveal: number,
+  align: CanvasTextAlign,
+  maxWidth: number,
+) {
+  if (reveal >= 0.999) {
+    ctx.fillText(line, x, y);
+    return;
+  }
+
+  const width = ctx.measureText(line).width;
+  const left = align === "center" ? x - width / 2 : x;
 
   ctx.save();
-  ctx.fillStyle = onDark ? CANVAS_DARK : PAPER;
+  ctx.beginPath();
+  ctx.rect(left, y - maxWidth, width * reveal, maxWidth * 3);
+  ctx.clip();
+  ctx.fillText(line, x, y);
+  ctx.restore();
+}
+
+export function renderFrame(ctx: CanvasRenderingContext2D, input: RenderInput): void {
+  const { width, height } = RATIOS[input.ratio];
+  const safe = safeArea(input.ratio);
+  const clip = input.clip;
+
+  ctx.save();
+  ctx.clearRect(0, 0, width, height);
+
+  const hasMedia = Boolean(input.media && clip?.media);
+  const theme = clip?.theme ?? "paper";
+  const onDark = theme === "ink" || hasMedia;
+
+  ctx.fillStyle = theme === "ink" ? CANVAS_DARK : PAPER;
   ctx.fillRect(0, 0, width, height);
 
-  const scene = sceneAt(timeline, ms);
-  if (!scene) {
+  if (hasMedia && input.media && clip?.media) {
+    drawMedia(ctx, input.media, clip.media.fit, width, height);
+    if (clip.media.dim > 0) {
+      ctx.fillStyle = `rgba(20, 24, 31, ${Math.min(0.85, clip.media.dim)})`;
+      ctx.fillRect(0, 0, width, height);
+    }
+  }
+
+  if (!clip) {
     ctx.restore();
     return;
   }
 
-  const isCta = scene.id === "cta";
-  const eased = easeInOut(Math.min(1, scene.progress / 0.28));
-  const exiting = scene.progress > 0.9 ? (scene.progress - 0.9) / 0.1 : 0;
-  const opacity = eased * (1 - exiting * 0.6);
-  const rise = (1 - eased) * height * 0.02;
+  const blocks = [
+    { text: clip.text, weight: 700, scale: 1 },
+    { text: clip.secondary, weight: 500, scale: 0.66 },
+  ].filter((b) => b.text.trim().length > 0);
+
+  if (blocks.length === 0) {
+    if (input.showMark) {
+      drawMark(ctx, safe.left, safe.top - height * 0.06, height * 0.035, onDark);
+    }
+    ctx.restore();
+    return;
+  }
 
   const maxWidth = safe.right - safe.left;
-  const blocks = scene.lines.filter(Boolean).map((text, i) => {
-    const weight = i === 0 ? 700 : 500;
-    const startSize = i === 0 ? Math.round(height * 0.072) : Math.round(height * 0.048);
+  const base = height * (SIZE_SCALE[clip.size] ?? SIZE_SCALE.m);
+
+  const measured = blocks.map((b) => {
     ctx.save();
-    const fitted = fitLines(ctx, text, maxWidth, weight, startSize);
+    const fitted = fitLines(ctx, b.text, maxWidth, b.weight, Math.round(base * b.scale));
     ctx.restore();
-    return { ...fitted, weight };
+    return { ...b, ...fitted };
   });
 
-  const lineGap = 1.18;
-  const blockGap = height * 0.03;
+  const lineGap = 1.16;
+  const blockGap = height * 0.028;
+  const totalLines = measured.reduce((n, m) => n + m.lines.length, 0);
   const totalHeight =
-    blocks.reduce((sum, b) => sum + b.lines.length * b.size * lineGap, 0) +
-    blockGap * Math.max(0, blocks.length - 1);
+    measured.reduce((sum, m) => sum + m.lines.length * m.size * lineGap, 0) +
+    blockGap * Math.max(0, measured.length - 1);
 
-  let y = safe.top + (safe.bottom - safe.top - totalHeight) / 2 + rise;
+  const centred = clip.align === "center";
+  const x = centred ? (safe.left + safe.right) / 2 : safe.left;
+  let y = safe.top + (safe.bottom - safe.top - totalHeight) / 2;
 
-  ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
-  ctx.textAlign = "left";
+  ctx.textAlign = centred ? "center" : "left";
   ctx.textBaseline = "top";
 
-  blocks.forEach((block, blockIndex) => {
+  let lineIndex = 0;
+  measured.forEach((block, blockIndex) => {
     const primary = blockIndex === 0;
-    ctx.fillStyle = primary
-      ? onDark
-        ? PAPER
-        : INK
-      : onDark
-        ? MUTED_ON_DARK
-        : MUTED_ON_LIGHT;
-
     ctx.font = `${block.weight} ${block.size}px "Space Grotesk", system-ui, sans-serif`;
 
-    for (const l of block.lines) {
-      ctx.fillText(l, safe.left, y);
+    for (const line of block.lines) {
+      const t = transformAt(clip.animation, clip.progress, lineIndex, totalLines);
+
+      ctx.save();
+      ctx.globalAlpha = t.opacity;
+      ctx.fillStyle = primary
+        ? onDark
+          ? PAPER
+          : INK
+        : onDark
+          ? MUTED_ON_DARK
+          : MUTED_ON_LIGHT;
+
+      ctx.translate(x + t.dx, y + t.dy);
+      if (t.scale !== 1) {
+        ctx.scale(t.scale, t.scale);
+      }
+      drawRevealed(ctx, line, 0, 0, t.reveal, ctx.textAlign, block.size * 1.4);
+      ctx.restore();
+
       y += block.size * lineGap;
+      lineIndex += 1;
     }
     y += blockGap;
   });
 
   ctx.globalAlpha = 1;
 
-  // The one teal element. On the call to action it is a rule under the words;
-  // everywhere else it is the single bar in the mark.
-  if (isCta) {
-    const ruleWidth = maxWidth * 0.22 * easeInOut(scene.progress);
-    ctx.fillStyle = SIGNAL_TEAL;
-    ctx.fillRect(safe.left, y + height * 0.005, ruleWidth, Math.max(4, height * 0.005));
-  }
+  // The one teal element: a short rule that draws itself in under the text.
+  const ruleWidth = maxWidth * 0.2 * easeInOut(Math.min(1, clip.progress / 0.5));
+  ctx.fillStyle = SIGNAL_TEAL;
+  ctx.fillRect(
+    centred ? x - ruleWidth / 2 : x,
+    y + height * 0.004,
+    ruleWidth,
+    Math.max(4, height * 0.005),
+  );
 
-  if (options.showMark) {
+  if (input.showMark) {
     drawMark(ctx, safe.left, safe.top - height * 0.06, height * 0.035, onDark);
   }
 
