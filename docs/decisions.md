@@ -58,7 +58,7 @@ suits a schema this size.
 
 ## D-003 — Hosting: Vercel + Neon Postgres
 
-**Date:** 2026-08-12 · **Status:** accepted
+**Date:** 2026-08-12 · **Status:** superseded by D-003a
 
 **Decision:** deploy on Vercel, database on Neon. Scheduling uses Vercel Cron in the first
 iteration.
@@ -68,6 +68,54 @@ volume ever needs a real queue, that becomes a separate decision.
 
 **Escape hatch:** all database access goes through Prisma and all environment configuration
 through `src/lib/env.ts`, so moving to another host is a configuration change, not a rewrite.
+
+---
+
+## D-003a — Supabase instead of Neon (supersedes D-003)
+
+**Date:** 2026-08-12 · **Status:** accepted
+
+**Decision:** the database is Supabase Postgres, project `voxclip-marketing-studio` in
+`eu-central-1` (Frankfurt). Deployment target stays Vercel.
+
+**Why Frankfurt:** closest EU region to the Netherlands, and it keeps campaign and audience data
+inside the EU, which matches the GDPR-first posture on the public site.
+
+**The Data API is switched off.** Supabase would otherwise expose an automatic REST API over the
+public schema. This database holds audit events, encrypted provider tokens, and unpublished
+campaign work; none of that should be one anon key away from the internet. We talk to Postgres
+directly through Drizzle, so the Data API buys us nothing and costs us a large attack surface.
+
+**Cost:** `supabase-js` and anything built on it cannot query this database. If a future feature
+genuinely needs the Data API, turning it on is a deliberate decision with row level security
+designed first, not a checkbox flipped in passing.
+
+---
+
+## D-003b — Supabase Auth and Storage are a later lane, not this one
+
+**Date:** 2026-08-12 · **Status:** accepted
+
+Marty asked for Supabase Auth and Storage alongside Postgres. The identity layer in
+`src/lib/auth/` is already written and covered by 30 tests.
+
+**Decision:** get the database live on the current, tested auth first. Replace it with Supabase
+Auth as its own lane, with its own plan and its own failing tests written before anything is
+removed.
+
+**Why:** swapping a working authentication layer mid-migration means running with neither the old
+guarantees nor the new ones. The order costs nothing and removes the window where the system is
+unprotected.
+
+**What the lane has to cover:** session handling moves from our cookie to Supabase's, the role
+and capability matrix has to survive (Supabase has no concept of our roles, so they stay in the
+`users` table and are read after authentication), the audit trail keeps recording sign-ins, and
+row level security has to be designed before any table is reachable by a Supabase key.
+
+**Cost of doing it at all:** Supabase Auth adds a dependency and an external failure mode to
+signing in, in exchange for password reset, email verification, and social sign-in that we would
+otherwise write ourselves. For a team of one to three people that trade is close to even, which is
+why it is worth doing deliberately rather than by default.
 
 ---
 

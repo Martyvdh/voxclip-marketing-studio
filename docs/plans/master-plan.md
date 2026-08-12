@@ -34,6 +34,23 @@ the tests, the commands, and the expected failures. No placeholders.
 4. **Password change and admin user management.** The seed prints a password once. There is no
    way to change it in the product yet.
 
+### Lane 8b — Supabase Auth and Storage
+
+Requested explicitly. Deliberately scheduled after the database is live, so a working
+authentication layer is never removed before its replacement is proven. See D-003b.
+
+- Write the failing tests first: a Supabase session grants access, a revoked one does not, and a
+  user's role still comes from our `users` table rather than from the token.
+- Keep the role and capability matrix. Supabase has no concept of AUTHOR, REVIEWER, or PUBLISHER;
+  those stay ours and are read after authentication.
+- Keep writing `LOGIN_SUCCEEDED`, `LOGIN_FAILED`, and `LOGOUT` audit events.
+- Design row level security before any table becomes reachable by a Supabase key. The Data API is
+  off today, which is what makes that safe to postpone rather than urgent.
+- Storage: buckets for the asset library, private by default, signed URLs only, with the
+  origin and approval state still enforced by our own tables.
+- Remove `src/lib/auth/password.ts` and its session handling only once every test that covered it
+  has an equivalent passing against Supabase.
+
 ### Wave 2 — content production
 
 5. **House formats.** 8 to 12 records, seeded, each with channels, ratios, hook, evidence, shot

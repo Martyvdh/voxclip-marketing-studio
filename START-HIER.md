@@ -1,28 +1,29 @@
 # Start hier
 
-Korte handleiding om dit lokaal draaiend te krijgen. Alles hieronder is getest behalve de
-stappen die een echte database nodig hebben, want die had ik niet.
+Korte handleiding. GitHub en Supabase staan al klaar; er is nog één ding dat jij moet invullen.
 
-## 1. Database aanmaken
+| Wat | Waar |
+| --- | --- |
+| Repo | https://github.com/Martyvdh/voxclip-marketing-studio (publiek) |
+| Database | Supabase `voxclip-marketing-studio`, eu-central-1 (Frankfurt) |
+| Data API | Bewust uitgeschakeld, zie `docs/decisions.md` D-003a |
 
-Neem een gratis Postgres bij [Neon](https://neon.tech) en kopieer de connection string.
-Lokaal werkt ook: Postgres.app of `docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:16`.
+## 1. Wachtwoord invullen
 
-## 2. Omgeving invullen
+`.env` staat al klaar met de juiste connection string. Er ontbreekt één ding: het
+databasewachtwoord dat je bij het aanmaken van het Supabase-project hebt gegenereerd.
+
+Open `.env` en vervang `PLAK-HIER-JE-WACHTWOORD` door dat wachtwoord. Verder hoef je niets te
+wijzigen. Bevat het wachtwoord tekens als `@ : / ? # [ ]`, percent-encodeer die dan.
+
+Kwijt? In Supabase kun je hem resetten: project → Connect → Direct → *Reset database password*.
+
+## 2. Installeren en starten
 
 ```bash
-cd "~/Claude/VoxClipStudio nieuw"
-cp .env.example .env
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"   # zet dit in SESSION_SECRET
-```
-
-Vul in `.env` de `DATABASE_URL` en `SESSION_SECRET` in. Laat `ENABLE_REAL_PUBLISHING` op `false`.
-
-## 3. Installeren en starten
-
-```bash
+cd ~/Claude/VoxClipStudio\ nieuw
 npm install
-npm run db:migrate     # zet de 29 tabellen neer
+npm run db:migrate     # zet de 29 tabellen neer in Supabase
 npm run db:seed        # maakt je admin-account en laadt Product Truth
 npm run dev            # http://localhost:3000
 ```
