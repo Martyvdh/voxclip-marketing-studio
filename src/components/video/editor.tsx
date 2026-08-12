@@ -514,7 +514,7 @@ export function VideoEditor({
         </div>
 
         <div className="relative mt-3">
-          <div className="flex gap-1">
+          <div className="flex gap-1 overflow-x-auto pb-1">
             {timeline.map((c, i) => {
               const share = Math.max(6, (c.durationMs / Math.max(1, totalMs)) * 100);
               const active = current?.id === c.id;
@@ -528,7 +528,7 @@ export function VideoEditor({
                     if (dragIndex !== null) edit((p) => moveClip(p, dragIndex, i));
                     setDragIndex(null);
                   }}
-                  style={{ width: `${share}%` }}
+                  style={{ width: `${share}%`, minWidth: 88 }}
                   className={`min-w-0 cursor-grab rounded-lg border p-2 text-left ${
                     active ? "border-teal-deep bg-teal-wash" : "border-line bg-paper"
                   }`}

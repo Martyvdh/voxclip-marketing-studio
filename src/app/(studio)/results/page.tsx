@@ -88,7 +88,8 @@ export default async function ResultsPage() {
               <h2 id="log-heading" className="mb-3 text-lg font-semibold">
                 Everything logged
               </h2>
-              <table className="w-full border-separate border-spacing-y-1 text-left text-sm">
+              <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+              <table className="w-full min-w-[560px] border-separate border-spacing-y-1 text-left text-sm">
                 <caption className="sr-only">Logged results, newest first</caption>
                 <thead className="text-xs uppercase tracking-wide text-ink-faint">
                   <tr>
@@ -119,6 +120,7 @@ export default async function ResultsPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </section>
           ) : null}
         </div>

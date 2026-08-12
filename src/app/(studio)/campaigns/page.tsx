@@ -42,7 +42,8 @@ export default async function CampaignsPage() {
             detail="A campaign starts from a sourced signal or a blank brief. Both need an objective and an audience before they can move."
           />
         ) : (
-          <table className="w-full border-separate border-spacing-y-2 text-left text-sm">
+          <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          <table className="w-full min-w-[520px] border-separate border-spacing-y-2 text-left text-sm">
             <caption className="sr-only">
               All active campaigns, newest first
             </caption>
@@ -81,6 +82,7 @@ export default async function CampaignsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
