@@ -88,12 +88,20 @@ export default async function CampaignPage({
           Next: {action.label}
         </h2>
         <p className="mt-2 text-sm text-ink-muted">{action.detail}</p>
-        <Link
-          href={`/campaigns/${slug}/brief`}
-          className="mt-3 inline-block text-sm font-medium text-teal-deep hover:underline"
-        >
-          Open the brief
-        </Link>
+        <div className="mt-3 flex flex-wrap gap-4">
+          <Link
+            href={`/campaigns/${slug}/brief`}
+            className="text-sm font-medium text-teal-deep hover:underline"
+          >
+            Open the brief
+          </Link>
+          <Link
+            href={`/campaigns/${slug}/video`}
+            className="text-sm font-medium text-teal-deep hover:underline"
+          >
+            Make a video
+          </Link>
+        </div>
       </Card>
 
       <section className="mt-10" aria-labelledby="variants-heading">
