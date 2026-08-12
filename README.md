@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VoxClip Marketing Studio
 
-## Getting Started
+Internal marketing operating system for VoxClip. It takes one verified campaign idea through
+creation, approval, channel adaptation, safe publishing, attribution, and learning.
 
-First, run the development server:
+Not part of the VoxClip desktop product. Read `AGENTS.md` before writing any code.
+
+## Requirements
+
+- Node.js 20 or later (developed on 22)
+- A Postgres database (Neon in production, Docker or Postgres.app locally)
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env          # then fill in DATABASE_URL and SESSION_SECRET
+npm run db:push               # create the schema in your database
+npm run db:seed               # load Product Truth, roles, and the first admin account
+npm run dev                   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Generate a session secret:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The seed prints the first admin's email and a generated password once. Change it after first login.
 
-## Learn More
+## Checks
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run verify      # lint + typecheck + test + build. Everything must pass.
+npm run test        # unit and domain tests only
+npm run test:watch  # while working
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Safety
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- No real post is ever published and no email is ever sent by a test, a preview, or a seed.
+  Provider adapters are fakes unless `ENABLE_REAL_PUBLISHING=true` **and** the operator confirms
+  the exact payload in the UI.
+- The desktop product's Timeline, clipboard contents, and dictation audio never enter this system.
 
-## Deploy on Vercel
+## Documentation
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| File | What it is |
+| --- | --- |
+| `AGENTS.md` | Binding rules for anyone writing code here |
+| `docs/brand.md` | Voice, colour, type, and the rules the linter enforces |
+| `docs/product-truth.md` | The authoritative product facts every claim is checked against |
+| `docs/decisions.md` | Append-only decision log |
+| `docs/architecture.md` | Source map, target architecture, lane roadmap, blockers |
+| `docs/plans/` | One implementation plan per shippable subsystem |
