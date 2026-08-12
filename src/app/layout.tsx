@@ -39,7 +39,16 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
         />
       </head>
-      <body className="antialiased">{children}</body>
+      {/*
+        Browser extensions add attributes to body before React loads, which
+        React reports as a hydration mismatch. ColorZilla adds
+        cz-shortcut-listen, password managers add their own. Scoped to this one
+        element on purpose: it silences a warning about markup we do not
+        control, and nothing about the markup we do.
+      */}
+      <body className="antialiased" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }
