@@ -66,7 +66,14 @@ function fitLines(
   return { lines: [text], size };
 }
 
-/** The chip, small, in the corner. One teal bar and nothing else. */
+/**
+ * The chip, small, in the corner.
+ *
+ * The same geometry as public/voxclip-mark.svg, drawn at 256 and scaled: a
+ * filled Ink tile with a notched corner, three bars, the middle one teal and
+ * tallest. On a dark canvas the tile flips to Paper and the outer bars to Ink,
+ * so the mark stays legible. The teal bar never changes; it is the signal.
+ */
 function drawMark(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -74,29 +81,40 @@ function drawMark(
   size: number,
   onDark: boolean,
 ) {
-  const stroke = onDark ? PAPER : INK;
-  const s = size / 32;
+  const s = size / 256;
+  const tile = onDark ? PAPER : INK;
+  const bar = onDark ? INK : PAPER;
 
   ctx.save();
   ctx.translate(x, y);
-  ctx.lineWidth = 2 * s;
-  ctx.strokeStyle = stroke;
-  ctx.beginPath();
-  ctx.roundRect(4 * s, 4 * s, 24 * s, 24 * s, 3 * s);
-  ctx.stroke();
+  ctx.scale(s, s);
 
-  const bars: [number, number, string][] = [
-    [10, 5, stroke],
-    [14, 11, stroke],
-    [18, 7, SIGNAL_TEAL],
-    [22, 3, stroke],
+  ctx.fillStyle = tile;
+  ctx.beginPath();
+  ctx.moveTo(56, 0);
+  ctx.lineTo(184, 0);
+  ctx.lineTo(256, 72);
+  ctx.lineTo(256, 200);
+  ctx.arcTo(256, 256, 200, 256, 56);
+  ctx.lineTo(56, 256);
+  ctx.arcTo(0, 256, 0, 200, 56);
+  ctx.lineTo(0, 56);
+  ctx.arcTo(0, 0, 56, 0, 56);
+  ctx.closePath();
+  ctx.fill();
+
+  const bars: [number, number, number, string][] = [
+    [71, 108, 66, bar],
+    [115, 88, 106, SIGNAL_TEAL],
+    [159, 108, 66, bar],
   ];
-  for (const [bx, h, colour] of bars) {
+  for (const [bx, by, h, colour] of bars) {
     ctx.fillStyle = colour;
     ctx.beginPath();
-    ctx.roundRect(bx * s, (22 - h) * s, 2 * s, h * s, 1 * s);
+    ctx.roundRect(bx, by, 26, h, 13);
     ctx.fill();
   }
+
   ctx.restore();
 }
 

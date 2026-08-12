@@ -103,9 +103,18 @@ mascots, microphone clichés, literal clipboards, gradients, or 3-D.
 
 ## The mark
 
-"The chip": a tile (the capture surface) holding a waveform (the voice) with a notched corner (the
-clip cue). Teal is exactly one bar, the signal, never the whole mark. Wordmark is "VoxClip" in
-Space Grotesk 600. Do not recolour, stretch, add gradients or shadows, or outline the wordmark.
+"The chip": a filled Ink tile (the capture surface) with a notched top-right corner (the clip cue),
+holding three rounded bars (the voice). The middle bar is teal and the tallest. The outer two are
+Paper. Teal is exactly one bar, the signal, never the whole mark.
+
+The authoritative file is `public/voxclip-mark.svg`. `VoxClipMark` in `src/components/brand.tsx`
+and `drawMark` in `src/lib/video/render.ts` use the same geometry, drawn on a 256 grid. If the mark
+changes, all three change in the same commit.
+
+On a dark canvas the tile becomes Paper and the outer bars become Ink. The teal bar never changes.
+
+Wordmark is "VoxClip" in Space Grotesk 600. Do not recolour, stretch, add gradients or shadows,
+outline the wordmark, or use the mark without the notch.
 
 ## Prohibited in any public asset
 

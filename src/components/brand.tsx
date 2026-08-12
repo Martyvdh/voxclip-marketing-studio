@@ -1,36 +1,29 @@
 import type { CampaignStatus } from "@/db/schema";
 
 /**
- * The chip: a tile holding a waveform, with a notched corner.
- * Teal is exactly one bar. See docs/brand.md.
+ * The chip.
+ *
+ * A filled Ink tile is the capture surface, the notched corner is the clip cue,
+ * and there are three bars with the middle one teal and tallest. Teal is exactly
+ * one bar, which is the whole point of the mark. Do not recolour it, do not
+ * stretch it, do not add a gradient or a shadow. See docs/brand.md.
  */
 export function VoxClipMark({ size = 28 }: { size?: number }) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 32 32"
-      fill="none"
+      viewBox="0 0 256 256"
       role="img"
       aria-label="VoxClip"
     >
       <path
-        d="M4 7a3 3 0 0 1 3-3h14l7 7v14a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7Z"
-        stroke="var(--ink)"
-        strokeWidth="2"
+        d="M56 0 H184 L256 72 V200 A56 56 0 0 1 200 256 H56 A56 56 0 0 1 0 200 V56 A56 56 0 0 1 56 0 Z"
+        fill="#1C2230"
       />
-      <path d="M21 4v4a3 3 0 0 0 3 3h4" stroke="var(--ink)" strokeWidth="2" />
-      <rect x="10" y="17" width="2" height="5" rx="1" fill="var(--ink)" />
-      <rect x="14" y="14" width="2" height="11" rx="1" fill="var(--ink)" />
-      <rect
-        x="18"
-        y="16"
-        width="2"
-        height="7"
-        rx="1"
-        fill="var(--signal-teal)"
-      />
-      <rect x="22" y="18" width="2" height="3" rx="1" fill="var(--ink)" />
+      <rect x="71" y="108" width="26" height="66" rx="13" fill="#F7F7F5" />
+      <rect x="115" y="88" width="26" height="106" rx="13" fill="#12B3A6" />
+      <rect x="159" y="108" width="26" height="66" rx="13" fill="#F7F7F5" />
     </svg>
   );
 }
