@@ -267,3 +267,37 @@ and type checked instead of hiding in SQL.
 
 **Cost:** it scales with total rows, not with rows shown. Revisit when the campaign table passes
 a few thousand rows, not before.
+
+---
+
+## D-013 — An approval binds to a version id, not to a variant
+
+**Date:** 2026-08-16 · **Status:** accepted
+
+`approvals` records `variantId` *and* `versionId`, with a unique index on the pair. Approving
+writes the id of the version that was on screen.
+
+**Why:** the failure this prevents is the ordinary one. Somebody approves the copy, the author
+tweaks a line afterwards, and the approval silently carries over to words nobody read. The queue
+now says so out loud: `approvalIsStale` compares the approved version to the current one, and the
+card shows a warning rather than a green tick.
+
+**Cost:** a revision after approval means asking again. That is the intended cost.
+
+---
+
+## D-014 — The page and the server ask the same function
+
+**Date:** 2026-08-16 · **Status:** accepted
+
+`canSendForReview` and `canApprove` in `src/lib/review/rules.ts` are pure functions with no
+database access. The server action calls them to decide, and the client component calls them to
+decide what to render.
+
+**Why:** the alternative is duplicating the rule in JSX and letting the two drift, which shows up
+as a button that always fails. Pure functions also mean the rules are tested without a database.
+
+**Not a security shortcut:** the client copy hides a control, the server copy refuses the action.
+Removing the client check changes nothing about what can happen.
+
+**Cost:** the rules live one file away from the action that enforces them.

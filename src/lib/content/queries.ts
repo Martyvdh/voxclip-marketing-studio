@@ -7,13 +7,14 @@ import {
   qualityFindings,
   qualityRuns,
   type Channel,
+  type VariantStatus,
 } from "@/db/schema";
 
 export interface VariantView {
   id: string;
   channel: Channel;
   code: string;
-  status: string;
+  status: VariantStatus;
   versionNo: number;
   title: string | null;
   body: string;

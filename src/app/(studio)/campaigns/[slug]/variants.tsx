@@ -9,6 +9,8 @@ import { SubmitButton } from "@/components/form";
 import type { FormState } from "@/lib/campaign/actions";
 import { generateVariants } from "@/lib/content/actions";
 import type { VariantView } from "@/lib/content/queries";
+import { sendForReview } from "@/lib/review/actions";
+import { canSendForReview } from "@/lib/review/rules";
 
 const CHANNELS: { value: string; label: string; note: string }[] = [
   { value: "TIKTOK", label: "TikTok", note: "vertical, needs a real recording" },
@@ -33,6 +35,39 @@ const STATUS_TEXT: Record<string, string> = {
   FAILED: "Failed",
   ARCHIVED: "Archived",
 };
+
+/**
+ * The one control that moves a variant off the author's desk.
+ *
+ * It asks the same function the server action asks, so a blocked draft shows
+ * the reason here instead of getting refused after the click.
+ */
+function SendForReview({ variant }: { variant: VariantView }) {
+  const [state, action] = useActionState<FormState, FormData>(sendForReview, {});
+
+  const verdict = canSendForReview({
+    status: variant.status,
+    gatePassed: variant.passed,
+  });
+
+  if (!verdict.allowed) {
+    return (
+      <p className="mt-4 border-t border-line pt-3 text-sm text-ink-muted">
+        {verdict.reason}
+      </p>
+    );
+  }
+
+  return (
+    <form action={action} className="mt-4 space-y-2 border-t border-line pt-3">
+      <input type="hidden" name="variantId" value={variant.id} />
+      <FormMessage message={state.message} />
+      <SubmitButton variant="quiet" pendingLabel="Sending">
+        Send for review
+      </SubmitButton>
+    </form>
+  );
+}
 
 export function Variants({
   slug,
@@ -173,6 +208,8 @@ export function Variants({
                     </ul>
                   </div>
                 ) : null}
+
+                <SendForReview variant={v} />
               </Card>
             </li>
           ))}

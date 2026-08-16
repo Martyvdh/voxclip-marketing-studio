@@ -4,17 +4,23 @@ import { signOut } from "@/app/login/actions";
 import { VoxClipMark, Wordmark } from "@/components/brand";
 import { StudioNav, type NavItem } from "@/components/nav";
 import { requireUser } from "@/lib/auth";
+import { countWaitingForReview } from "@/lib/review/queries";
 
 export const dynamic = "force-dynamic";
 
-const NAV: NavItem[] = [
-  { href: "/", label: "Home" },
-  { href: "/campaigns", label: "Campaigns" },
-  { href: "/truth", label: "Product Truth" },
-  { href: "/results", label: "Results" },
-  { href: "/channels", label: "Channels" },
-  { href: "/users", label: "Team" },
-];
+function navFor(waiting: number): NavItem[] {
+  return [
+    { href: "/", label: "Home" },
+    { href: "/campaigns", label: "Campaigns" },
+    // The count is in the label rather than a coloured dot: teal is the one
+    // accent and a number says how much is waiting, which a dot does not.
+    { href: "/review", label: waiting > 0 ? `Review (${waiting})` : "Review" },
+    { href: "/truth", label: "Product Truth" },
+    { href: "/results", label: "Results" },
+    { href: "/channels", label: "Channels" },
+    { href: "/users", label: "Team" },
+  ];
+}
 
 export default async function StudioLayout({
   children,
@@ -22,6 +28,7 @@ export default async function StudioLayout({
   children: React.ReactNode;
 }) {
   const user = await requireUser();
+  const nav = navFor(await countWaitingForReview());
 
   const account = (
     <>
@@ -61,7 +68,7 @@ export default async function StudioLayout({
             <Wordmark />
           </Link>
 
-          <StudioNav items={NAV}>{account}</StudioNav>
+          <StudioNav items={nav}>{account}</StudioNav>
 
           <div className="ml-auto hidden items-center gap-3 md:flex">{account}</div>
         </div>
