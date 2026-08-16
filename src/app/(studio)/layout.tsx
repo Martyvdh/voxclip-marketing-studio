@@ -15,6 +15,7 @@ function navFor(waiting: number): NavItem[] {
     // The count is in the label rather than a coloured dot: teal is the one
     // accent and a number says how much is waiting, which a dot does not.
     { href: "/review", label: waiting > 0 ? `Review (${waiting})` : "Review" },
+    { href: "/calendar", label: "Calendar" },
     { href: "/truth", label: "Product Truth" },
     { href: "/results", label: "Results" },
     { href: "/channels", label: "Channels" },
