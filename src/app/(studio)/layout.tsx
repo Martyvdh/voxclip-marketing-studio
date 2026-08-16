@@ -53,7 +53,7 @@ export default async function StudioLayout({
         href="/guide"
         className="shrink-0 text-sm text-ink-muted hover:text-ink hover:underline"
       >
-        Guide
+        Uitleg
       </Link>
       <Link
         href="/users"

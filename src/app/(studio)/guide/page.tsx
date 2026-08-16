@@ -5,6 +5,13 @@ import { requireUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * De uitleg staat in het Nederlands, de knoppen in het Engels.
+ *
+ * Dat is met opzet: de namen tussen aanhalingstekens hieronder staan letterlijk
+ * zo op het scherm. Ze vertalen zou betekenen dat je een knop zoekt die er niet
+ * is, en dat is precies waar een handleiding onbruikbaar wordt.
+ */
 const STEPS: {
   title: string;
   body: string;
@@ -12,56 +19,56 @@ const STEPS: {
   href: string;
 }[] = [
   {
-    title: "Start a campaign",
-    body: "Give it a title, an objective, an audience, and one of the four pillars. Everything public hangs off a campaign, so a post can always be traced back to why it existed.",
+    title: "Campagne aanmaken",
+    body: "Geef hem een titel, een doel, een doelgroep en een van de vier pijlers. Alles wat naar buiten gaat hangt aan een campagne, zodat je bij elke post kunt terugvinden waarom hij bestond.",
     where: "Campaigns → New campaign",
     href: "/campaigns/new",
   },
   {
-    title: "Write the brief",
-    body: "What you are saying, to whom, and what you want them to do. The brief is what the drafts are generated from, so a vague brief produces vague copy.",
-    where: "Open the campaign → Brief",
+    title: "De brief schrijven",
+    body: "Wat je zegt, tegen wie, en wat ze daarna moeten doen. Hieruit worden de teksten geschreven, dus een vage brief levert vage teksten op.",
+    where: "Open de campagne → Brief",
     href: "/campaigns",
   },
   {
-    title: "Draft the channel variants",
-    body: "Tick the channels and the Studio writes one draft each, with the campaign code and a tagged link already in place. Every draft is checked against the brand rules and Product Truth before it is stored.",
-    where: "Open the campaign → tick channels → Draft these",
+    title: "Teksten laten schrijven per kanaal",
+    body: "Vink de kanalen aan en je krijgt per kanaal een tekst, met de campagnecode en een getagde link er al in. Elke tekst wordt langs de merkregels en Product Truth gehaald voordat hij wordt opgeslagen.",
+    where: "Open de campagne → kanalen aanvinken → Draft these",
     href: "/campaigns",
   },
   {
-    title: "Fix whatever the gate blocked",
-    body: "A blocked draft says which rule and why: a dash that should be a comma, a claim that is not verified, a caption over the limit. Rewrite it and it is checked again.",
-    where: "On the campaign, under each variant",
+    title: "Oplossen wat geblokkeerd is",
+    body: "Een geblokkeerde tekst zegt welke regel en waarom: een streepje dat een komma hoort te zijn, een claim die niet geverifieerd is, een caption over de limiet. Herschrijf hem en hij wordt opnieuw gecontroleerd.",
+    where: "Op de campagne, onder elke tekst",
     href: "/campaigns",
   },
   {
-    title: "Send it for review",
-    body: "Only a draft that passes the gate can go. Asking someone to read copy that cannot go out either way wastes their afternoon.",
-    where: "On the variant → Send for review",
+    title: "Naar review sturen",
+    body: "Kan alleen als de controle slaagt. Iemand laten lezen wat er toch niet uit mag kost hem een half uur en levert niets op.",
+    where: "Bij de tekst → Send for review",
     href: "/campaigns",
   },
   {
-    title: "Someone else approves it",
-    body: "The approval binds to that exact version. Rewrite it afterwards and the queue says the approval no longer covers what is there. You cannot approve a campaign you own.",
+    title: "Iemand anders keurt goed",
+    body: "De goedkeuring hangt aan die exacte versie. Herschrijf je hem daarna, dan zegt de wachtrij dat de goedkeuring niet meer dekt wat er staat. Je eigen campagne kun je niet goedkeuren.",
     where: "Review",
     href: "/review",
   },
   {
-    title: "Put it on the calendar",
-    body: "Pick a day and a time in Amsterdam time. This does not post anything; it is a reminder with the finished words attached.",
+    title: "Inplannen op de kalender",
+    body: "Kies een dag en een tijd, Amsterdamse tijd. Dit post niets. Het is een herinnering met de afgeronde tekst eraan vast.",
     where: "Calendar → Plan a post",
     href: "/calendar",
   },
   {
-    title: "Post it by hand",
-    body: "The handoff gives you the caption, the tagged link, and a checklist for that platform, each with a copy button. Paste it into the platform, post it, then log it here so the calendar knows it happened.",
-    where: "Calendar → click the planned post",
+    title: "Zelf posten",
+    body: "De handoff geeft je de caption, de getagde link en een checklist voor dat platform, elk met een kopieerknop. Plak het in het platform, post het, en vink het hier af zodat de kalender weet dat het gebeurd is.",
+    where: "Calendar → klik op de geplande post",
     href: "/calendar",
   },
   {
-    title: "Log what it did",
-    body: "A few days later, type in the numbers from each platform. Nothing counts clicks by itself yet, so this is the only way the Studio learns anything.",
+    title: "De cijfers loggen",
+    body: "Een paar dagen later tik je de getallen van elk platform in. Er wordt nog niets automatisch geteld, dus dit is voorlopig de enige manier waarop de Studio iets leert.",
     where: "Results",
     href: "/results",
   },
@@ -71,42 +78,42 @@ const SECTIONS: { name: string; href: string; body: string }[] = [
   {
     name: "Home",
     href: "/",
-    body: "What is waiting on you, and nothing else. Not a dashboard of numbers.",
+    body: "Wat op jou wacht, en verder niets. Geen dashboard vol getallen.",
   },
   {
     name: "Campaigns",
     href: "/campaigns",
-    body: "Everything that is running, with the next step spelled out for each.",
+    body: "Alles wat loopt, met per campagne de volgende stap erbij.",
   },
   {
     name: "Review",
     href: "/review",
-    body: "The queue of things waiting on a person, oldest first.",
+    body: "De wachtrij van dingen die op een mens wachten, langst wachtende bovenaan.",
   },
   {
     name: "Calendar",
     href: "/calendar",
-    body: "The week ahead. Approved work with a day and a time against it.",
+    body: "De week vooruit. Goedgekeurd werk met een dag en een tijd ertegen.",
   },
   {
     name: "Assets",
     href: "/assets",
-    body: "Real screenshots and recordings, each carrying which app version it shows.",
+    body: "Echte screenshots en opnames, elk met de appversie die erop te zien is.",
   },
   {
     name: "Channels",
     href: "/channels",
-    body: "Where the work goes, and what the Studio can honestly do on each one.",
+    body: "Waar het werk naartoe gaat, en wat de Studio daar eerlijk gezegd wel en niet kan.",
   },
   {
     name: "Results",
     href: "/results",
-    body: "The numbers you typed in, per campaign, exportable as a spreadsheet.",
+    body: "De cijfers die je hebt ingetikt, per campagne, te exporteren als spreadsheet.",
   },
   {
     name: "Truth",
     href: "/truth",
-    body: "The facts every claim is checked against. Fix an unverified fact here and copy that relies on it stops being blocked.",
+    body: "De feiten waar elke claim tegenaan wordt gehouden. Verifieer hier een feit en de teksten die erop leunen worden niet langer geblokkeerd.",
   },
 ];
 
@@ -115,24 +122,28 @@ export default async function GuidePage() {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-3xl font-bold">How this works</h1>
+      <h1 className="text-3xl font-bold">Zo werkt het</h1>
       <p className="mt-2 text-ink-muted">
-        One campaign, start to finish. Nine steps, and none of them are long.
+        Eén campagne van begin tot eind. Negen stappen, geen ervan lang.
       </p>
 
       <Card className="mt-6">
         <h2 className="font-[family-name:var(--font-display)] text-base font-semibold">
-          Before your first campaign
+          Voor je eerste campagne
         </h2>
         <p className="mt-2 text-sm text-ink-muted">
-          Open{" "}
+          Kijk eerst op{" "}
           <Link href="/truth" className="text-teal-deep hover:underline">
             Truth
           </Link>{" "}
-          and check what is still marked as not verified. Any copy that relies on
-          an unverified fact is blocked, which is deliberate but will confuse you
-          on day one if you do not know it is there. The hotkeys and the app
-          version are the usual two.
+          wat er nog op <em>not verified</em> staat. Elke tekst die op een
+          niet-geverifieerd feit leunt wordt geblokkeerd. Dat is met opzet zo,
+          maar het is ook precies het moment waarop je op dag één denkt dat er
+          iets stuk is. Meestal gaat het om de hotkeys en het versienummer.
+        </p>
+        <p className="mt-2 text-sm text-ink-muted">
+          De knoppen in de app zijn Engels. De namen hieronder staan letterlijk
+          zo op je scherm.
         </p>
       </Card>
 
@@ -169,27 +180,28 @@ export default async function GuidePage() {
 
       <Card className="mt-8">
         <h2 className="font-[family-name:var(--font-display)] text-base font-semibold">
-          Where the video fits
+          Waar de video-editor past
         </h2>
         <p className="mt-2 text-sm text-ink-muted">
-          A vertical channel needs something to look at. Open a campaign and go
-          to Video: pick a starting point, drop your own recording into a clip,
-          add elements from the palette, and export it. Save the project and you
-          can come back and change it later. Drop the exported file into{" "}
+          Een verticaal kanaal heeft iets nodig om naar te kijken. Open een
+          campagne en ga naar Video: kies een startpunt, zet je eigen opname in
+          een clip, plak er elementen uit het palet bij en exporteer hem. Sla het
+          project op en je kunt er later nog aan sleutelen. Zet het geëxporteerde
+          bestand daarna in{" "}
           <Link href="/assets" className="text-teal-deep hover:underline">
             Assets
-          </Link>{" "}
-          so the next campaign can reuse it.
+          </Link>
+          , dan kan de volgende campagne hem hergebruiken.
         </p>
         <p className="mt-2 text-sm text-ink-muted">
-          The editor never draws a fake VoxClip interface. If a clip should show
-          the app, it shows a recording of the app.
+          De editor tekent nooit een nagebootste VoxClip-interface. Moet een clip
+          de app laten zien, dan is het een opname van de app.
         </p>
       </Card>
 
       <section className="mt-10" aria-labelledby="sections-heading">
         <h2 id="sections-heading" className="mb-3 text-lg font-semibold">
-          What each section is for
+          Waar elk onderdeel voor is
         </h2>
         <dl className="space-y-2">
           {SECTIONS.map((section) => (
@@ -207,45 +219,48 @@ export default async function GuidePage() {
           ))}
         </dl>
         <p className="mt-3 text-sm text-ink-muted">
-          Team and your own account sit top right, next to your name.
+          Team en je eigen account staan rechtsboven, naast je naam.
         </p>
       </section>
 
       <section className="mt-10" aria-labelledby="not-heading">
         <h2 id="not-heading" className="mb-3 text-lg font-semibold">
-          What it deliberately does not do
+          Wat het met opzet niet doet
         </h2>
         <Card>
           <ul className="space-y-3 text-sm text-ink-muted">
             <li>
-              <span className="font-medium text-ink">It does not post.</span> No
-              platform account is connected, and none will be faked. Planning and
-              posting are two different things here, and the second one is yours.
+              <span className="font-medium text-ink">Het post niet.</span> Er is
+              geen platformaccount gekoppeld, en dat wordt ook niet nagebootst.
+              Inplannen en posten zijn hier twee verschillende dingen, en het
+              tweede is aan jou.
             </li>
             <li>
               <span className="font-medium text-ink">
-                It does not count clicks.
+                Het telt geen klikken.
               </span>{" "}
-              The links are tagged and ready, but nothing is reading them yet.
-              That needs a small endpoint on voxclip.it.
+              De links zijn getagd en klaar, maar er leest nog niets mee. Daar is
+              een klein endpoint op voxclip.it voor nodig.
             </li>
             <li>
               <span className="font-medium text-ink">
-                It does not invent facts.
+                Het verzint geen feiten.
               </span>{" "}
-              If something is not in Product Truth, the gate blocks the copy
-              rather than filling in a plausible number.
+              Staat iets niet in Product Truth, dan blokkeert de controle de
+              tekst in plaats van er een geloofwaardig getal in te schrijven.
             </li>
             <li>
               <span className="font-medium text-ink">
-                It does not let you approve your own work.
+                Je keurt je eigen werk niet goed.
               </span>{" "}
-              Not a formality. It is the only place where a second pair of eyes
-              is guaranteed.
+              Geen formaliteit. Het is de enige plek waar een tweede paar ogen
+              gegarandeerd is.
             </li>
             <li>
-              <span className="font-medium text-ink">It does not delete.</span>{" "}
-              Archiving takes something off the board and leaves the record.
+              <span className="font-medium text-ink">
+                Het verwijdert niets.
+              </span>{" "}
+              Archiveren haalt iets van het bord en laat het dossier staan.
             </li>
           </ul>
         </Card>

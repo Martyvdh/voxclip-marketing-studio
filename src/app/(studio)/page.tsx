@@ -95,7 +95,7 @@ export default async function HomePage() {
           </ol>
           <p className="mt-4 border-t border-line pt-3 text-sm">
             <Link href="/guide" className="text-teal-deep hover:underline">
-              The same thing, step by step, with where to click
+              Hetzelfde, stap voor stap, met waar je moet klikken
             </Link>
           </p>
         </Card>
