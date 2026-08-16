@@ -50,6 +50,12 @@ export default async function StudioLayout({
         </span>
       </Link>
       <Link
+        href="/guide"
+        className="shrink-0 text-sm text-ink-muted hover:text-ink hover:underline"
+      >
+        Guide
+      </Link>
+      <Link
         href="/users"
         className="shrink-0 text-sm text-ink-muted hover:text-ink hover:underline"
       >

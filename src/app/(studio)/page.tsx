@@ -93,6 +93,11 @@ export default async function HomePage() {
               </li>
             ))}
           </ol>
+          <p className="mt-4 border-t border-line pt-3 text-sm">
+            <Link href="/guide" className="text-teal-deep hover:underline">
+              The same thing, step by step, with where to click
+            </Link>
+          </p>
         </Card>
       </section>
     </>
