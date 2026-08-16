@@ -1,5 +1,7 @@
+import Link from "next/link";
+
 import { getDb } from "@/db";
-import { channelCapabilities, channelConnections } from "@/db/schema";
+import { channelConnections } from "@/db/schema";
 import { Card } from "@/components/brand";
 import { requireUser } from "@/lib/auth";
 
@@ -19,7 +21,7 @@ const TIERS: {
   {
     tier: "A",
     summary:
-      "Intended to carry the full workflow: draft, preview, schedule, publish, and read metrics.",
+      "Where the vertical demos and the long-form writing go. Most of your week lands here.",
     channels: [
       "TikTok",
       "Instagram Reels",
@@ -31,13 +33,13 @@ const TIERS: {
   },
   {
     tier: "B",
-    summary: "Partial. Some steps work, others stay manual.",
+    summary: "Worth posting to, less often. Same handoff, shorter copy.",
     channels: ["X", "Threads", "Facebook", "YouTube long-form"],
   },
   {
     tier: "C",
     summary:
-      "Manual by design. The Studio produces a complete handoff package with the final copy, asset, alt text, tags, link, and a checklist. It never pretends to publish.",
+      "Communities with their own rules. The handoff includes those rules, because getting them wrong costs more here than anywhere else.",
     channels: ["Reddit", "Product Hunt", "Hacker News", "Directories"],
   },
 ];
@@ -47,47 +49,46 @@ export default async function ChannelsPage() {
   const db = getDb();
 
   const connections = await db.select().from(channelConnections);
-  const capabilities = await db.select().from(channelCapabilities);
 
   return (
     <>
       <h1 className="text-3xl font-bold">Channels</h1>
-      <p className="mt-2 text-ink-muted">
-        What this system can actually do on each channel today. Nothing here is
-        labelled connected until an official integration exists and a real
-        payload has been previewed.
+      <p className="mt-2 max-w-2xl text-ink-muted">
+        You post by hand for now. The Studio writes it, checks it, and hands it
+        over ready to paste.
       </p>
 
-      <div
-        role="status"
-        className="mt-6 rounded-xl border border-line bg-amber-wash p-5"
-      >
-        <p className="font-[family-name:var(--font-display)] font-semibold text-amber">
-          No provider is connected
-        </p>
-        <p className="mt-2 text-sm text-ink-muted">
-          {connections.length === 0
-            ? "There are no channel connections yet. Every adapter is a fake that records the payload and posts nothing."
-            : `${connections.length} connection(s) exist and ${connections.filter((c) => c.isFake).length} of them are fakes.`}{" "}
-          Real publishing needs official API access, a feature flag, and an
-          operator confirming the exact payload. Until then every channel has a
-          handoff package: open a campaign, pick a variant, and everything is laid
-          out ready to paste, with the link tagged and a place to record where you
-          posted it.
-        </p>
-      </div>
+      <Card className="mt-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-md">
+            <h2 className="font-[family-name:var(--font-display)] text-base font-semibold">
+              Start from a campaign
+            </h2>
+            <p className="mt-1 text-sm text-ink-muted">
+              Pick a variant and you get the caption, the tagged link, and a
+              checklist for that platform, with a copy button on each.
+            </p>
+          </div>
+          <Link
+            href="/campaigns"
+            className="shrink-0 rounded-lg bg-ink px-4 py-2.5 text-sm font-medium text-white"
+          >
+            Open campaigns
+          </Link>
+        </div>
+      </Card>
 
-      {capabilities.length > 0 ? (
-        <p className="mt-4 text-sm text-ink-muted">
-          {capabilities.length} capability records are on file.
-        </p>
-      ) : null}
+      <p className="mt-4 text-sm text-ink-muted">
+        {connections.length === 0
+          ? "No account is connected, so nothing posts by itself. That needs approved API access from each platform, which is an application with a review, not a setting."
+          : `${connections.length} connection(s) on file, ${connections.filter((c) => c.isFake).length} of them still fakes that post nothing.`}
+      </p>
 
       <div className="mt-8 space-y-4">
         {TIERS.map((tier) => (
           <Card key={tier.tier}>
             <h2 className="font-[family-name:var(--font-display)] text-base font-semibold">
-              Tier {tier.tier}
+              {tier.tier === "A" ? "Where the work goes" : tier.tier === "B" ? "Now and then" : "Read the room first"}
             </h2>
             <p className="mt-1 text-sm text-ink-muted">{tier.summary}</p>
             <ul className="mt-3 flex flex-wrap gap-2">
