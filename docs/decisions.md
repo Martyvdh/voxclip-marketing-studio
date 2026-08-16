@@ -301,3 +301,70 @@ as a button that always fails. Pure functions also mean the rules are tested wit
 Removing the client check changes nothing about what can happen.
 
 **Cost:** the rules live one file away from the action that enforces them.
+
+---
+
+## D-015 — The calendar plans, it does not publish
+
+**Date:** 2026-08-16 · **Status:** accepted
+
+`/calendar` writes rows in `schedules` and shows a week. No worker reads those rows and no
+adapter posts anything.
+
+**Why:** no platform account is connected, and AGENTS.md forbids browser-automating around a
+platform's API limits. A calendar that pretends to post would be the dishonest version of this
+feature. So a slot is a reminder with the finished words attached, and it links to the handoff.
+
+**Already built for later:** `idempotencyKey` covers variant, version, and minute, so when a
+worker does take over, a retry cannot double-post.
+
+**Cost:** somebody still has to press the button on the platform.
+
+---
+
+## D-016 — Times are planned in Europe/Amsterdam, stored in UTC
+
+**Date:** 2026-08-16 · **Status:** accepted
+
+`zonedToUtc` converts a date and a time in the planning zone to an instant, using a two-pass
+offset lookup through `Intl`. Storage is UTC throughout.
+
+**Why:** "post at nine" means nine where the work happens. A single-pass conversion is wrong for
+several hours either side of a clock change, which is exactly when a mistake is hardest to spot.
+Both clock changes in 2026 are covered by tests.
+
+**Cost:** one zone is hard-coded. A second country means a per-user setting, not a rewrite.
+
+---
+
+## D-017 — Asset bytes live in Postgres, behind the session
+
+**Date:** 2026-08-16 · **Status:** accepted
+
+`asset_blobs` holds the file in a `bytea` column, capped at 10 MB. `/assets/[id]` serves it only
+to a signed-in session, with `Content-Security-Policy: sandbox` and `nosniff`.
+
+**Why:** there is no object store yet, and adding one is a config step with keys. Screenshots and
+short clips fit comfortably; the cap is enforced with a message that says to use a file host
+instead, rather than failing at the database. Bytes sit in their own table so listing the library
+never moves a megabyte.
+
+**Why behind the session:** unapproved captures and work for unpublished campaigns are in there.
+A public URL would leak the roadmap to anyone who guesses an id.
+
+**Cost:** the database grows with the library, and Supabase's free tier is 500 MB. Revisit when
+it passes a few hundred files, and move `storageKey` to point at an object store.
+
+---
+
+## D-018 — A generated image may never be a screenshot
+
+**Date:** 2026-08-16 · **Status:** accepted
+
+`validateUpload` refuses `origin: GENERATED` combined with `kind: SCREENSHOT` or
+`SCREEN_RECORDING`, and `canApproveAsset` refuses it again at approval.
+
+**Why:** this is the one asset rule that is not taste. A picture that looks like the product is a
+claim about the product. Designed graphics are fine as long as they are not pretending.
+
+**Cost:** none worth naming.

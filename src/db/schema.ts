@@ -10,6 +10,7 @@
  */
 
 import { randomUUID } from "node:crypto";
+import { customType } from "drizzle-orm/pg-core";
 import {
   boolean,
   doublePrecision,
@@ -36,6 +37,11 @@ const updatedAt = () =>
     .defaultNow()
     .notNull()
     .$onUpdate(() => new Date());
+
+/** Raw bytes. Drizzle has no bytea column, so this is the standard shim. */
+const customBytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType: () => "bytea",
+});
 
 // ---------------------------------------------------------------------------
 // Enums
@@ -799,6 +805,22 @@ export const assetRenditions = pgTable(
   (t) => [uniqueIndex("asset_renditions_label_uq").on(t.assetId, t.label)],
 );
 
+/**
+ * The bytes, in their own table.
+ *
+ * Kept apart from `assets` so that listing the library never drags megabytes
+ * across the wire: every query in the app selects metadata, and only the one
+ * route that serves a file touches this table. There is no object store yet;
+ * when there is, this table empties and `storageKey` starts pointing at it.
+ */
+export const assetBlobs = pgTable("asset_blobs", {
+  assetId: text("asset_id")
+    .primaryKey()
+    .references(() => assets.id, { onDelete: "cascade" }),
+  bytes: customBytea("bytes").notNull(),
+  createdAt: createdAt(),
+});
+
 // ---------------------------------------------------------------------------
 // Review and approval
 // ---------------------------------------------------------------------------
@@ -1080,6 +1102,8 @@ export type CampaignBrief = typeof campaignBriefs.$inferSelect;
 export type ChannelVariant = typeof channelVariants.$inferSelect;
 export type ContentVersion = typeof contentVersions.$inferSelect;
 export type Asset = typeof assets.$inferSelect;
+export type AssetKind = (typeof assetKindEnum.enumValues)[number];
+export type AssetOrigin = (typeof assetOriginEnum.enumValues)[number];
 export type Hook = typeof hooks.$inferSelect;
 export type PillarDefault = typeof pillarDefaults.$inferSelect;
 export type HouseFormat = typeof houseFormats.$inferSelect;
