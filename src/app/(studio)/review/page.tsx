@@ -24,6 +24,11 @@ export default async function ReviewPage() {
         one approves their own campaign.
       </p>
 
+      {/*
+        A review is reading. The column stays at a readable measure rather than
+        stretching a paragraph across the whole page.
+      */}
+      <div className="max-w-3xl">
       {queue.length === 0 ? (
         <div className="mt-8">
           <EmptyState
@@ -78,7 +83,7 @@ export default async function ReviewPage() {
       )}
 
       {!canApproveByRole ? (
-        <Card className="mt-8">
+        <Card className="mt-8 max-w-2xl">
           <h2 className="font-[family-name:var(--font-display)] text-base font-semibold">
             Your role
           </h2>
@@ -89,6 +94,7 @@ export default async function ReviewPage() {
           </p>
         </Card>
       ) : null}
+      </div>
     </>
   );
 }

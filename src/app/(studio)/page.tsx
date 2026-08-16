@@ -38,7 +38,7 @@ export default async function HomePage() {
             detail="Every campaign is either queued, published, or parked. Start a new one from a sourced signal, or read the results of the last one."
           />
         ) : (
-          <ul className="space-y-3">
+          <ul className="grid gap-3 lg:grid-cols-2">
             {waiting.map(({ campaign, action }) => (
               <li key={campaign.id}>
                 <Card>

@@ -72,13 +72,13 @@ export default async function TruthPage() {
   return (
     <>
       <h1 className="text-3xl font-bold">Product Truth</h1>
-      <p className="mt-2 text-ink-muted">
+      <p className="mt-2 max-w-2xl text-ink-muted">
         Every public claim is checked against these facts. A fact that is not
         verified, or past its review date, blocks any asset that relies on it.
         The gate never rewrites a claim for you.
       </p>
 
-      <Card className="mt-8">
+      <Card className="mt-8 max-w-3xl">
         <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
           <div className="flex justify-between gap-4">
             <dt className="text-ink-muted">Record version</dt>
@@ -110,7 +110,7 @@ export default async function TruthPage() {
       {unreliable.length > 0 ? (
         <div
           role="status"
-          className="mt-6 rounded-xl border border-line bg-amber-wash p-5"
+          className="mt-6 max-w-3xl rounded-xl border border-line bg-amber-wash p-5"
         >
           <p className="font-[family-name:var(--font-display)] font-semibold text-amber">
             {unreliable.length} fact
@@ -129,7 +129,7 @@ export default async function TruthPage() {
           <h2 id={`kind-${kind}`} className="mb-3 text-lg font-semibold">
             {KIND_LABEL[kind] ?? kind}
           </h2>
-          <ul className="space-y-2">
+          <ul className="grid gap-2 lg:grid-cols-2">
             {group.map((claim) => {
               const style = STATUS_STYLE[claim.status] ?? STATUS_STYLE.RETIRED;
               return (

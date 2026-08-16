@@ -7,6 +7,8 @@ import { useEffect, useRef, useState } from "react";
 export interface NavItem {
   href: string;
   label: string;
+  /** Shown as a small count beside the label. Omitted when zero. */
+  badge?: number;
 }
 
 function isCurrent(pathname: string, href: string): boolean {
@@ -14,9 +16,22 @@ function isCurrent(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+function Badge({ count }: { count: number }) {
+  return (
+    <span className="ml-1.5 rounded-full bg-teal-wash px-1.5 py-0.5 font-[family-name:var(--font-mono)] text-[10px] font-medium text-teal-deep">
+      {count}
+    </span>
+  );
+}
+
 /**
  * The navigation, twice: a row on a wide screen and a panel behind a button on
  * a narrow one. Same links, same order, one source.
+ *
+ * The row does not wrap. Nine sections wrapping onto a second line made the
+ * header look broken and pushed the account controls around, so below the
+ * breakpoint the whole thing becomes the panel instead, and in the small gap
+ * where it almost fits the row scrolls sideways rather than folding.
  *
  * The panel closes on Escape and when a link is followed, and focus returns to
  * the button that opened it. Nothing behind the panel scrolls while it is open.
@@ -59,19 +74,23 @@ export function StudioNav({
 
   return (
     <>
-      <nav aria-label="Sections" className="hidden flex-wrap gap-1 md:flex">
+      <nav
+        aria-label="Sections"
+        className="no-scrollbar hidden min-w-0 flex-1 flex-nowrap items-center gap-0.5 overflow-x-auto lg:flex"
+      >
         {items.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             aria-current={isCurrent(pathname, item.href) ? "page" : undefined}
-            className={`rounded-lg px-2.5 py-1.5 text-sm ${
+            className={`flex shrink-0 items-center whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm transition-colors ${
               isCurrent(pathname, item.href)
                 ? "bg-paper font-medium text-ink"
                 : "text-ink-muted hover:bg-paper hover:text-ink"
             }`}
           >
             {item.label}
+            {item.badge ? <Badge count={item.badge} /> : null}
           </Link>
         ))}
       </nav>
@@ -82,7 +101,7 @@ export function StudioNav({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-controls="studio-menu"
-        className="ml-auto flex h-11 w-11 items-center justify-center rounded-lg border border-line md:hidden"
+        className="ml-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-line lg:hidden"
       >
         <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
         <span aria-hidden="true" className="relative block h-4 w-5">
@@ -111,12 +130,15 @@ export function StudioNav({
             aria-hidden="true"
             tabIndex={-1}
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-40 bg-ink/20 md:hidden"
+            className="fixed inset-0 z-40 bg-ink/20 lg:hidden"
           />
           <div
             id="studio-menu"
             ref={panelRef}
-            className="fixed inset-x-0 top-[57px] z-50 border-b border-line bg-surface p-4 shadow-lg md:hidden"
+            // Anchored to the header rather than a hard-coded pixel offset, so
+            // it stays put when the header changes height. It scrolls on a
+            // short screen instead of running off the bottom.
+            className="absolute inset-x-0 top-full z-50 max-h-[80dvh] overflow-y-auto border-b border-line bg-surface p-4 shadow-lg lg:hidden"
           >
             <nav aria-label="Sections">
               <ul className="space-y-1">
@@ -126,13 +148,14 @@ export function StudioNav({
                       href={item.href}
                       onClick={() => setOpen(false)}
                       aria-current={isCurrent(pathname, item.href) ? "page" : undefined}
-                      className={`block rounded-lg px-3 py-3 text-base ${
+                      className={`flex items-center rounded-lg px-3 py-3 text-base ${
                         isCurrent(pathname, item.href)
                           ? "bg-paper font-medium text-ink"
                           : "text-ink-muted"
                       }`}
                     >
                       {item.label}
+                      {item.badge ? <Badge count={item.badge} /> : null}
                     </Link>
                   </li>
                 ))}

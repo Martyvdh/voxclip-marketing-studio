@@ -41,7 +41,9 @@ export default async function AssetsPage() {
       )}
 
       {canEdit ? (
-        <div className="mt-6">
+        // A form is read one field at a time. Letting it span the full page
+        // just moves the labels away from the boxes.
+        <div className="mt-6 max-w-2xl">
           <UploadForm campaigns={campaigns} currentVersion={currentVersion} />
         </div>
       ) : null}
@@ -53,7 +55,7 @@ export default async function AssetsPage() {
             detail="A screenshot of the real app beats a mockup every time, and the brand rules say so out loud. Add one and it becomes available to every campaign."
           />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {library.map((asset) => (
               <AssetCard
                 key={asset.id}
@@ -66,7 +68,7 @@ export default async function AssetsPage() {
         )}
       </div>
 
-      <Card className="mt-8">
+      <Card className="mt-8 max-w-2xl">
         <h2 className="font-[family-name:var(--font-display)] text-base font-semibold">
           One rule worth repeating
         </h2>

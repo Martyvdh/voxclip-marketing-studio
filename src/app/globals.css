@@ -64,6 +64,21 @@ h3 {
   letter-spacing: -0.015em;
 }
 
+/*
+ * A row that can be swiped but does not show a bar.
+ *
+ * Only for navigation that already fits on the screens it is shown on. Hiding
+ * a scrollbar over content a person needs to find is how content goes missing.
+ */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Focus stays visible everywhere. Keyboard operators are first-class here. */
 :focus-visible {
   outline: 2px solid var(--teal-deep);

@@ -44,69 +44,75 @@ export default async function CalendarPage({
         <div className="flex items-center gap-2">
           <Link
             href={`/calendar?week=${shiftWeek(mondayKey, -1)}`}
-            className="rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+            aria-label="Previous week"
+            className="rounded-lg border border-line bg-surface px-3 py-2 text-sm hover:border-ink"
           >
-            Previous week
+            <span aria-hidden="true">←</span>
+            <span className="ml-1.5 hidden sm:inline">Previous</span>
           </Link>
           <Link
             href={`/calendar?week=${shiftWeek(mondayKey, 1)}`}
-            className="rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+            aria-label="Next week"
+            className="rounded-lg border border-line bg-surface px-3 py-2 text-sm hover:border-ink"
           >
-            Next week
+            <span className="mr-1.5 hidden sm:inline">Next</span>
+            <span aria-hidden="true">→</span>
           </Link>
           <Link
             href="/calendar"
-            className="px-2 py-2 text-sm text-ink-muted underline"
+            className="px-2 py-2 text-sm text-ink-muted underline hover:text-ink"
           >
             This week
           </Link>
         </div>
         <p className="font-[family-name:var(--font-mono)] text-sm text-ink-muted">
-          {formatDayKey(week.days[0])} to {formatDayKey(week.days[6])}
+          {formatDayKey(week.days[0])} — {formatDayKey(week.days[6])}
         </p>
       </div>
 
-      <div className="mt-6 -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <div className="grid min-w-[900px] grid-cols-7 gap-3">
-          {week.days.map((day) => (
-            <section
-              key={day}
-              aria-label={formatDayKey(day)}
-              className={`rounded-xl border p-3 ${
-                day === week.todayKey
-                  ? "border-teal-deep bg-surface"
-                  : "border-line bg-surface"
-              }`}
-            >
-              <h2 className="text-xs font-medium text-ink-muted">
-                {formatDayKey(day)}
-                {day === week.todayKey ? (
-                  <span className="ml-1 text-teal-deep">today</span>
-                ) : null}
-              </h2>
+      {/*
+        Seven columns on a wide screen, a plain list on a phone. Squeezing a
+        week into seven 45-pixel columns makes it unreadable, and a sideways
+        scroll hides half the week behind an edge, so below the breakpoint the
+        empty days step aside and the days with something in them stack.
+      */}
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
+        {week.days.map((day) => (
+          <section
+            key={day}
+            aria-label={formatDayKey(day)}
+            className={`rounded-xl border bg-surface p-3 ${
+              day === week.todayKey ? "border-teal-deep" : "border-line"
+            } ${week.byDay[day].length === 0 ? "max-lg:hidden" : ""}`}
+          >
+            <h2 className="flex items-baseline justify-between gap-2 text-xs font-medium text-ink-muted">
+              <span>{formatDayKey(day)}</span>
+              {day === week.todayKey ? (
+                <span className="text-teal-deep">today</span>
+              ) : null}
+            </h2>
 
-              <div className="mt-2 space-y-2">
-                {week.byDay[day].length === 0 ? (
-                  <p className="text-xs text-ink-faint">—</p>
-                ) : (
-                  week.byDay[day].map((post) => (
-                    <PlannedCard
-                      key={post.id}
-                      post={post}
-                      canSchedule={canSchedule}
-                    />
-                  ))
-                )}
-              </div>
-            </section>
-          ))}
-        </div>
+            <div className="mt-2 space-y-2">
+              {week.byDay[day].length === 0 ? (
+                <p className="text-xs text-ink-faint" aria-label="nothing planned">
+                  —
+                </p>
+              ) : (
+                week.byDay[day].map((post) => (
+                  <PlannedCard
+                    key={post.id}
+                    post={post}
+                    canSchedule={canSchedule}
+                  />
+                ))
+              )}
+            </div>
+          </section>
+        ))}
       </div>
 
       {planned.length === 0 ? (
-        <p className="mt-4 text-sm text-ink-muted">
-          Nothing planned this week.
-        </p>
+        <p className="mt-4 text-sm text-ink-muted">Nothing planned this week.</p>
       ) : null}
 
       <div className="mt-8">
