@@ -1,18 +1,13 @@
 import { desc, eq } from "drizzle-orm";
 
 import { getDb } from "@/db";
-import { productClaims, productTruth } from "@/db/schema";
+import { productClaims, productTruth, sources, users } from "@/db/schema";
 import { Card, EmptyState } from "@/components/brand";
-import { requireUser } from "@/lib/auth";
+import { can, requireUser } from "@/lib/auth";
+import { isDue } from "@/lib/truth/verify";
+import { ClaimCard, type ClaimView } from "./claim-card";
 
 export const dynamic = "force-dynamic";
-
-const STATUS_STYLE: Record<string, { label: string; className: string }> = {
-  VERIFIED: { label: "Verified", className: "bg-teal-wash text-teal-deep" },
-  UNVERIFIED: { label: "Not verified", className: "bg-amber-wash text-amber" },
-  STALE: { label: "Stale", className: "bg-amber-wash text-amber" },
-  RETIRED: { label: "Retired", className: "bg-paper text-ink-faint" },
-};
 
 const KIND_LABEL: Record<string, string> = {
   PLATFORM: "Platforms",
@@ -28,8 +23,9 @@ const KIND_LABEL: Record<string, string> = {
 };
 
 export default async function TruthPage() {
-  await requireUser();
+  const user = await requireUser();
   const db = getDb();
+  const canVerify = can(user.role, "truth:verify");
 
   const [current] = await db
     .select()
@@ -52,19 +48,38 @@ export default async function TruthPage() {
     );
   }
 
-  const claims = await db
-    .select()
+  const rows = await db
+    .select({
+      claim: productClaims,
+      verifiedBy: users.name,
+      checkedAgainst: sources.title,
+    })
     .from(productClaims)
+    .leftJoin(users, eq(users.id, productClaims.verifiedById))
+    .leftJoin(sources, eq(sources.id, productClaims.sourceId))
     .where(eq(productClaims.productTruthId, current.id));
 
   const now = new Date();
-  const unreliable = claims.filter(
-    (c) =>
-      c.status !== "VERIFIED" ||
-      (c.nextReviewAt !== null && c.nextReviewAt < now),
+  const claims: ClaimView[] = rows.map((row) => ({
+    id: row.claim.id,
+    key: row.claim.key,
+    kind: row.claim.kind,
+    statement: row.claim.statement,
+    value: row.claim.value,
+    status: row.claim.status,
+    nextReviewAt: row.claim.nextReviewAt?.toISOString().slice(0, 10) ?? null,
+    verifiedBy: row.verifiedBy,
+    checkedAgainst: row.checkedAgainst,
+  }));
+
+  const unreliable = rows.filter((row) =>
+    isDue(
+      { status: row.claim.status, nextReviewAt: row.claim.nextReviewAt },
+      now,
+    ),
   );
 
-  const byKind = new Map<string, typeof claims>();
+  const byKind = new Map<string, ClaimView[]>();
   for (const claim of claims) {
     byKind.set(claim.kind, [...(byKind.get(claim.kind) ?? []), claim]);
   }
@@ -117,9 +132,9 @@ export default async function TruthPage() {
             {unreliable.length === 1 ? "" : "s"} cannot be used yet
           </p>
           <p className="mt-2 text-sm text-ink-muted">
-            Verify each one against the shipping build or the release repository,
-            then mark it verified. Anything that relies on these facts is blocked
-            in the meantime, which is deliberate.
+            {canVerify
+              ? "Open the app or the release, check what it actually says, and fill it in below. Every verification records where you looked, so a later reader can see it too."
+              : "Verifying a fact is a reviewer or admin job. Ask one of them to look at these."}
           </p>
         </div>
       ) : null}
@@ -130,31 +145,11 @@ export default async function TruthPage() {
             {KIND_LABEL[kind] ?? kind}
           </h2>
           <ul className="grid gap-2 lg:grid-cols-2">
-            {group.map((claim) => {
-              const style = STATUS_STYLE[claim.status] ?? STATUS_STYLE.RETIRED;
-              return (
-                <li key={claim.id}>
-                  <Card className="py-3">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm">{claim.statement}</p>
-                        <p className="mt-1 font-[family-name:var(--font-mono)] text-xs text-ink-faint">
-                          {claim.key}
-                          {claim.nextReviewAt
-                            ? ` · review by ${claim.nextReviewAt.toISOString().slice(0, 10)}`
-                            : " · no review date"}
-                        </p>
-                      </div>
-                      <span
-                        className={`shrink-0 rounded-full border border-line px-2.5 py-1 text-xs font-medium ${style.className}`}
-                      >
-                        {style.label}
-                      </span>
-                    </div>
-                  </Card>
-                </li>
-              );
-            })}
+            {group.map((claim) => (
+              <li key={claim.id}>
+                <ClaimCard claim={claim} canVerify={canVerify} />
+              </li>
+            ))}
           </ul>
         </section>
       ))}
