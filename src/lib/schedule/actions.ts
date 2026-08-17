@@ -13,6 +13,7 @@ import {
 } from "@/db/schema";
 import { NotAuthorisedError, requireCapability } from "@/lib/auth";
 import type { FormState } from "@/lib/campaign/actions";
+import { syncCampaignStatus } from "@/lib/campaign/sync-status";
 import {
   canSchedule,
   formatInZone,
@@ -118,7 +119,10 @@ export async function schedulePost(
     detail: { runAt: runAt.toISOString(), versionId },
   });
 
+  await syncCampaignStatus(row.campaign.id);
   revalidatePath("/calendar");
+  revalidatePath("/campaigns");
+  revalidatePath("/");
   revalidatePath(`/campaigns/${row.campaign.slug}`);
   return { ok: true };
 }
@@ -183,7 +187,10 @@ export async function cancelSchedule(
     summary: `${user.name} took a plan off the calendar.`,
   });
 
+  await syncCampaignStatus(row.campaign.id);
   revalidatePath("/calendar");
+  revalidatePath("/campaigns");
+  revalidatePath("/");
   revalidatePath(`/campaigns/${row.campaign.slug}`);
   return { ok: true };
 }

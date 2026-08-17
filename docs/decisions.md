@@ -502,3 +502,30 @@ keuze op een plek waar hij niet meer klopt.
 
 **Regel die eruit volgt:** wat in de layout staat telt in de database. Wat op één pagina staat mag
 in TypeScript aggregeren zolang de tabellen klein zijn.
+
+---
+
+## D-025 — De campagnestatus volgt de teksten
+
+**Datum:** 2026-08-17 · **Status:** accepted · **Herziet D-001**
+
+`syncCampaignStatus` zet de campagnestatus na elke handeling gelijk aan wat de teksten zeggen. De
+knoppen om hem met de hand door te zetten blijven bestaan voor de statussen die geen tekst kennen:
+annuleren en archiveren.
+
+**Waarom:** de statemachine was bedoeld als bewaking, maar hij werd een tweede administratie die je
+naast het werk moest bijhouden. Het gevolg was de staat waar dit in de praktijk op stukliep:
+teksten goedgekeurd en ingepland, campagne officieel nog een idee. Alles wat naar de status keek,
+inclusief het hulpbandje, zei dan iets anders dan wat er op het scherm stond.
+
+**De teksten zijn de waarheid, de status is de samenvatting.** Eén ingeplande tekst maakt de
+campagne ingepland, ook als er nog een concept naast ligt, want er staat dan echt iets in de
+agenda.
+
+**Wat de samenvatting niet aanraakt:** CANCELLED, ARCHIVED, PUBLISHING, PUBLISHED en FAILED. Die
+zijn door een mens gezet en betekenen iets wat je uit de teksten niet kunt aflezen. Een
+geannuleerde campagne met een goedgekeurde tekst erin is nog steeds geannuleerd; dat is precies wat
+annuleren betekent.
+
+**Geen auditregel bij het bijtrekken.** Dit is geen besluit van iemand. De besluiten staan al
+vastgelegd bij de tekst zelf.

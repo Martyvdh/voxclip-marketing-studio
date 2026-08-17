@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { getDb } from "@/db";
+import { syncCampaignStatus } from "@/lib/campaign/sync-status";
 import {
   auditEvents,
   campaignBriefs,
@@ -238,6 +239,7 @@ export async function generateVariants(
 
     created += 1;
   }
+  await syncCampaignStatus(campaign.id);
 
   revalidatePath(`/campaigns/${slug}`);
   revalidatePath("/");

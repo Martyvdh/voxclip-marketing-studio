@@ -161,6 +161,13 @@ export async function loadCoachStep(now = new Date()): Promise<Step | null> {
           variantsFailingGate: sum(
             forFocus.filter((row) => row.passed === false),
           ),
+          variantsPastReview: sum(
+            forFocus.filter((row) =>
+              ["APPROVED", "SCHEDULED", "PUBLISHING", "PUBLISHED"].includes(
+                row.status,
+              ),
+            ),
+          ),
         }
       : undefined,
     awaitingReview: sum(

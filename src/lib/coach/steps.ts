@@ -42,6 +42,8 @@ export interface CoachState {
         briefComplete: boolean;
         variantCount: number;
         variantsFailingGate: number;
+        /** Teksten die goedgekeurd, ingepland of gepost zijn. */
+        variantsPastReview: number;
       }
     | undefined;
   /** Teksten die op een beslissing wachten. */
@@ -182,6 +184,18 @@ export function nextStep(state: CoachState): Step | null {
         body: "De brief staat. Vink de kanalen aan op de campagnepagina en je krijgt per kanaal een tekst, met de campagnecode en een getagde link er al in.",
         href: `/campaigns/${focus.slug}`,
         linkLabel: "Open de campagne",
+      };
+    }
+
+    // Alles al voorbij review: dan ligt het werk op de kalender, niet hier.
+    if (variantCount > 0 && focus.variantsPastReview >= variantCount) {
+      return {
+        number: 8,
+        total: TOTAL_STEPS,
+        title: `${naam} staat klaar op de kalender`,
+        body: "Alle teksten zijn goedgekeurd en ingepland. Op de dag zelf open je de handoff, plak je het op het platform en vink je het hier af.",
+        href: "/calendar",
+        linkLabel: "Naar de kalender",
       };
     }
 

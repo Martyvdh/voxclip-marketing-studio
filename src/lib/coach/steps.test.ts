@@ -23,6 +23,7 @@ const focus = (over: Partial<NonNullable<CoachState["focus"]>> = {}) => ({
   briefComplete: true,
   variantCount: 2,
   variantsFailingGate: 0,
+  variantsPastReview: 0,
   ...over,
 });
 
@@ -94,6 +95,29 @@ describe("de stappen in een campagne", () => {
       }),
     );
     expect(step?.number).toBe(3);
+  });
+
+  it("stuurt naar de kalender als alles al voorbij review is", () => {
+    // Dit ging mis: teksten stonden ingepland terwijl de campagnestatus nog op
+    // IDEA stond, en dan zei het bandje "stuur naar review".
+    const step = nextStep(
+      state({
+        focus: focus({
+          status: "IDEA",
+          variantCount: 3,
+          variantsPastReview: 3,
+        }),
+      }),
+    );
+    expect(step?.number).toBe(8);
+    expect(step?.href).toBe("/calendar");
+  });
+
+  it("blijft bij review als er nog iets niet doorheen is", () => {
+    const step = nextStep(
+      state({ focus: focus({ variantCount: 3, variantsPastReview: 2 }) }),
+    );
+    expect(step?.number).toBe(5);
   });
 
   it("gebruikt de tekst van de statemachine voor statussen die het niet kent", () => {

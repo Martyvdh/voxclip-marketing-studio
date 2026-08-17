@@ -17,6 +17,7 @@ import {
 } from "@/db/schema";
 import { can, NotAuthorisedError, requireCapability } from "@/lib/auth";
 import type { FormState } from "@/lib/campaign/actions";
+import { syncCampaignStatus } from "@/lib/campaign/sync-status";
 import { RULE_SET_VERSION, runQualityGate } from "@/lib/quality";
 import { loadGateContext } from "@/lib/quality/context";
 import { canApprove, canSendForReview } from "./rules";
@@ -54,6 +55,9 @@ async function loadContext(variantId: string) {
 
 function paths(slug: string) {
   revalidatePath("/review");
+  revalidatePath("/calendar");
+  revalidatePath("/campaigns");
+  revalidatePath("/");
   revalidatePath(`/campaigns/${slug}`);
 }
 
@@ -102,6 +106,7 @@ export async function sendForReview(
     summary: `${user.name} sent ${context.variant.variantCode} v${context.version.versionNo} for review.`,
   });
 
+  await syncCampaignStatus(context.variant.campaignId);
   paths(context.campaign.slug);
   return { ok: true };
 }
@@ -186,6 +191,7 @@ export async function requestChanges(
     detail: { comment },
   });
 
+  await syncCampaignStatus(context.variant.campaignId);
   paths(context.campaign.slug);
   return { ok: true };
 }
@@ -269,6 +275,7 @@ export async function approveVersion(
     },
   });
 
+  await syncCampaignStatus(context.variant.campaignId);
   paths(context.campaign.slug);
   return { ok: true };
 }
@@ -384,6 +391,7 @@ export async function reviseVariant(
     detail: { passed: result.passed, versionId: version.id },
   });
 
+  await syncCampaignStatus(context.variant.campaignId);
   paths(context.campaign.slug);
   return { ok: true };
 }
