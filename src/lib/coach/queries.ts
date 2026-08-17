@@ -1,123 +1,175 @@
-import { and, eq, inArray, isNull, lte, ne } from "drizzle-orm";
+import { and, count, desc, eq, isNull, lte, ne, or, sql } from "drizzle-orm";
 
 import { getDb } from "@/db";
 import {
+  campaignBriefs,
   campaigns,
   channelVariants,
+  contentVersions,
   metricObservations,
   productClaims,
   productTruth,
   publicationAttempts,
+  qualityRuns,
   schedules,
 } from "@/db/schema";
-import { loadCampaignBoard } from "@/lib/campaign/queries";
-import { isDue } from "@/lib/truth/verify";
 import { nextStep, type CoachState, type Step } from "./steps";
 
 /**
- * Leest de stand en bepaalt de stap.
+ * De stand, in tellingen.
  *
- * Draait op elke pagina, dus het zijn kleine tellingen naast het bord dat er
- * toch al opgehaald wordt voor Home.
+ * Dit draait op elke pagina, dus het mag niet zijn wat het eerst was: een
+ * volledig campagnebord ophalen met vijf tabellen erbij. Dat was geschreven
+ * voor Home, waar het één keer gebeurt en de aggregatie in TypeScript
+ * makkelijker leesbaar is dan in SQL. Op elke pagina, met de database in
+ * Frankfurt, is diezelfde keuze een seconde wachten.
+ *
+ * Dus: tellingen in de database, en van de campagnes precies één rij, namelijk
+ * die waar de eerstvolgende handeling ligt.
  */
 export async function loadCoachStep(now = new Date()): Promise<Step | null> {
   const db = getDb();
 
-  const [current] = await db
-    .select({ id: productTruth.id })
-    .from(productTruth)
-    .where(eq(productTruth.isCurrent, true))
-    .limit(1);
-
-  const claims = current
-    ? await db
-        .select({
-          status: productClaims.status,
-          nextReviewAt: productClaims.nextReviewAt,
-        })
+  const [claimRows, campaignCountRows, focusRows, variantStateRows] =
+    await Promise.all([
+      db
+        .select({ total: count() })
         .from(productClaims)
-        .where(eq(productClaims.productTruthId, current.id))
+        .innerJoin(
+          productTruth,
+          and(
+            eq(productTruth.id, productClaims.productTruthId),
+            eq(productTruth.isCurrent, true),
+          ),
+        )
+        .where(
+          or(
+            ne(productClaims.status, "VERIFIED"),
+            isNull(productClaims.nextReviewAt),
+            lte(productClaims.nextReviewAt, now),
+          ),
+        ),
+
+      db
+        .select({ total: count() })
+        .from(campaigns)
+        .where(isNull(campaigns.archivedAt)),
+
+      // Eén campagne: de laatst aangeraakte die nog niet gepubliceerd is.
+      db
+        .select({
+          slug: campaigns.slug,
+          title: campaigns.title,
+          status: campaigns.status,
+          briefId: campaignBriefs.id,
+          problem: campaignBriefs.problem,
+          promise: campaignBriefs.promise,
+          proof: campaignBriefs.proof,
+          primaryCta: campaignBriefs.primaryCta,
+          ctaUrl: campaignBriefs.ctaUrl,
+        })
+        .from(campaigns)
+        .leftJoin(campaignBriefs, eq(campaignBriefs.campaignId, campaigns.id))
+        .where(
+          and(
+            isNull(campaigns.archivedAt),
+            sql`${campaigns.status} not in ('PUBLISHED', 'ARCHIVED', 'CANCELLED')`,
+          ),
+        )
+        .orderBy(desc(campaigns.updatedAt))
+        .limit(1),
+
+      // Alle variantstanden in één keer, gegroepeerd. Zeven tellingen die
+      // anders zeven ritjes naar Frankfurt waren.
+      db
+        .select({
+          campaignSlug: campaigns.slug,
+          status: channelVariants.status,
+          passed: qualityRuns.passed,
+          total: count(),
+        })
+        .from(channelVariants)
+        .innerJoin(campaigns, eq(campaigns.id, channelVariants.campaignId))
+        .leftJoin(
+          contentVersions,
+          eq(contentVersions.id, channelVariants.currentVersionId),
+        )
+        .leftJoin(qualityRuns, eq(qualityRuns.versionId, contentVersions.id))
+        .where(
+          and(isNull(channelVariants.archivedAt), isNull(campaigns.archivedAt)),
+        )
+        .groupBy(campaigns.slug, channelVariants.status, qualityRuns.passed),
+    ]);
+
+  const focusRow = focusRows[0];
+
+  const forFocus = focusRow
+    ? variantStateRows.filter((row) => row.campaignSlug === focusRow.slug)
     : [];
 
-  const board = await loadCampaignBoard();
+  const sum = (rows: typeof variantStateRows) =>
+    rows.reduce((total, row) => total + Number(row.total), 0);
 
-  // De campagne waar de eerstvolgende handeling ligt: de bovenste met een
-  // volgende stap die je zelf kunt zetten.
-  const focusRow =
-    board.find(
-      (row) => row.action.target !== undefined || row.readiness.variantsFailingGate > 0,
-    ) ?? board[0];
-
-  const [awaiting, approvedNotPlanned, due, logged] = await Promise.all([
-    db
-      .select({ id: channelVariants.id })
-      .from(channelVariants)
-      .innerJoin(campaigns, eq(campaigns.id, channelVariants.campaignId))
-      .where(
-        and(
-          isNull(channelVariants.archivedAt),
-          isNull(campaigns.archivedAt),
-          eq(channelVariants.status, "IN_REVIEW"),
-        ),
-      ),
-    db
-      .select({ id: channelVariants.id })
-      .from(channelVariants)
-      .innerJoin(campaigns, eq(campaigns.id, channelVariants.campaignId))
-      .where(
-        and(
-          isNull(channelVariants.archivedAt),
-          isNull(campaigns.archivedAt),
-          eq(channelVariants.status, "APPROVED"),
-        ),
-      ),
+  // Posten en cijfers hebben de datum nodig, dus die twee blijven apart.
+  const [due, logged] = await Promise.all([
     db
       .select({ variantId: schedules.variantId })
       .from(schedules)
-      .where(
-        and(
-          eq(schedules.status, "PENDING"),
-          lte(schedules.runAt, now),
-        ),
-      ),
+      .where(and(eq(schedules.status, "PENDING"), lte(schedules.runAt, now))),
     db
       .select({ variantId: publicationAttempts.variantId })
       .from(publicationAttempts)
       .where(ne(publicationAttempts.status, "FAILED")),
   ]);
 
-  // Een geplande post die al is afgevinkt hoeft niet meer.
   const postedIds = new Set(logged.map((row) => row.variantId));
   const duePosts = due.filter((row) => !postedIds.has(row.variantId)).length;
 
-  const withMetrics = postedIds.size
-    ? await db
-        .select({ variantId: metricObservations.variantId })
-        .from(metricObservations)
-        .where(inArray(metricObservations.variantId, [...postedIds]))
-    : [];
+  const measured = postedIds.size
+    ? new Set(
+        (
+          await db
+            .selectDistinct({ variantId: metricObservations.variantId })
+            .from(metricObservations)
+        ).map((row) => row.variantId),
+      )
+    : new Set<string>();
 
-  const measured = new Set(withMetrics.map((row) => row.variantId));
+  const briefComplete = Boolean(
+    focusRow?.briefId &&
+      focusRow.problem?.trim() &&
+      focusRow.promise?.trim() &&
+      focusRow.proof?.trim() &&
+      focusRow.primaryCta?.trim() &&
+      focusRow.ctaUrl?.trim(),
+  );
 
   const state: CoachState = {
-    unverifiedFacts: claims.filter((claim) => isDue(claim, now)).length,
-    campaignCount: board.length,
+    unverifiedFacts: Number(claimRows[0]?.total ?? 0),
+    campaignCount: Number(campaignCountRows[0]?.total ?? 0),
     focus: focusRow
       ? {
-          slug: focusRow.campaign.slug,
-          title: focusRow.campaign.title,
-          actionLabel: focusRow.action.label,
-          actionDetail: focusRow.action.detail,
-          status: focusRow.campaign.status,
-          briefComplete: focusRow.readiness.briefMissingFields.length === 0,
-          variantCount: focusRow.readiness.variantCount,
-          variantsFailingGate: focusRow.readiness.variantsFailingGate,
+          slug: focusRow.slug,
+          title: focusRow.title,
+          actionLabel: "Open de campagne",
+          actionDetail: "Er ligt hier nog werk.",
+          status: focusRow.status,
+          briefComplete,
+          variantCount: sum(forFocus),
+          variantsFailingGate: sum(
+            forFocus.filter((row) => row.passed === false),
+          ),
         }
       : undefined,
-    awaitingReview: awaiting.length,
-    approvedNotPlanned: approvedNotPlanned.length,
+    awaitingReview: sum(
+      variantStateRows.filter((row) => row.status === "IN_REVIEW"),
+    ),
+    approvedNotPlanned: sum(
+      variantStateRows.filter((row) => row.status === "APPROVED"),
+    ),
     duePosts,
-    postedWithoutResults: [...postedIds].filter((id) => !measured.has(id)).length,
+    postedWithoutResults: [...postedIds].filter((id) => !measured.has(id))
+      .length,
   };
 
   return nextStep(state);

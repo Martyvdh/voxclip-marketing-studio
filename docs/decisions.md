@@ -465,3 +465,40 @@ uitzetten. Aanzetten kan weer op de uitlegpagina, zodat het geen eenrichtingsdeu
 
 **De volgorde is een keuze:** ontbrekende cijfers staan bovenaan, boven al het nieuwe werk. Cijfers
 invullen is het enige dat echt vergeten wordt, en zonder cijfers heeft de rest geen zin gehad.
+
+---
+
+## D-023 — De applicatie draait in Frankfurt, naast de database
+
+**Datum:** 2026-08-17 · **Status:** accepted
+
+`vercel.json` zet `regions: ["fra1"]`. Zonder die regel draait Vercel in Washington terwijl
+Supabase in Frankfurt staat.
+
+**Waarom dit zoveel uitmaakt:** elke query is dan een rit over de oceaan van ongeveer negentig
+milliseconden. Een pagina die tien queries doet wacht dus een seconde, en dat merk je op elke
+klik, ook op inloggen. Naast elkaar zetten kost een regel configuratie en haalt vrijwel al die
+tijd weg.
+
+**Ook aangepast:** `DATABASE_URL` gaat van poort 5432 naar 6543, de transactiepooler van Supabase.
+Die is gebouwd voor veel korte verbindingen, wat precies is wat serverless functies doen.
+`prepare: false` stond er al, en dat is de voorwaarde om die poort te mogen gebruiken.
+
+**Kosten:** de applicatie staat nu op één continent. Voor twee gebruikers in Nederland is dat
+eerder een voordeel dan een beperking.
+
+---
+
+## D-024 — Het hulpbandje telt in de database, niet in TypeScript
+
+**Datum:** 2026-08-17 · **Status:** accepted · **Uitzondering op D-010**
+
+`loadCoachStep` gebruikt aggregaties en haalt van de campagnes precies één rij op.
+
+**Waarom een uitzondering:** D-010 zegt dat het bord in TypeScript aggregeert, en dat is een goede
+afweging voor Home, waar het één keer per bezoek gebeurt. Het hulpbandje staat in de layout en
+draait dus op elke pagina. Dezelfde vijf volledige tabellen ophalen bij elke klik is dezelfde
+keuze op een plek waar hij niet meer klopt.
+
+**Regel die eruit volgt:** wat in de layout staat telt in de database. Wat op één pagina staat mag
+in TypeScript aggregeren zolang de tabellen klein zijn.
