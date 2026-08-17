@@ -167,6 +167,8 @@ export function canSchedule(input: {
   currentVersionId: string | null;
   runAt: Date | null;
   now?: Date;
+  /** Gezet als het kanaal beeld nodig heeft en dat er niet goedgekeurd is. */
+  mediaMissing?: string;
 }): Verdict {
   if (input.status !== "APPROVED" && input.status !== "SCHEDULED") {
     return {
@@ -186,6 +188,10 @@ export function canSchedule(input: {
       reason:
         "This was rewritten after it was approved. It needs reading again before it can be planned.",
     };
+  }
+
+  if (input.mediaMissing) {
+    return { allowed: false, reason: input.mediaMissing };
   }
 
   if (!input.runAt) {

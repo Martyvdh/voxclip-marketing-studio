@@ -20,7 +20,23 @@ import type { FormState } from "@/lib/campaign/actions";
 import { syncCampaignStatus } from "@/lib/campaign/sync-status";
 import { RULE_SET_VERSION, runQualityGate } from "@/lib/quality";
 import { loadGateContext } from "@/lib/quality/context";
+import { loadAttachedMedia } from "@/lib/content/attach";
+import { mediaVerdict } from "@/lib/content/media";
 import { canApprove, canSendForReview } from "./rules";
+
+/** Geen beeld bij een verticaal kanaal is een weigering, geen waarschuwing. */
+async function mediaMissingFor(
+  channel: Parameters<typeof mediaVerdict>[0]["channel"],
+  versionId: string,
+): Promise<string | undefined> {
+  const media = (await loadAttachedMedia([versionId])).get(versionId) ?? {
+    attachedAssetCount: 0,
+    approvedAssetCount: 0,
+  };
+
+  const verdict = mediaVerdict({ channel, ...media });
+  return verdict.ok ? undefined : verdict.reason;
+}
 
 /** The variant, its current version, its campaign, and the latest gate result. */
 async function loadContext(variantId: string) {
@@ -227,6 +243,10 @@ export async function approveVersion(
     isOwner: context.campaign.ownerId === user.id,
     hasCapability: can(user.role, "campaign:approve"),
     isAdmin: user.role === "ADMIN",
+    mediaMissing: await mediaMissingFor(
+      context.variant.channel,
+      context.version.id,
+    ),
   });
   if (!verdict.allowed) return { message: verdict.reason };
 

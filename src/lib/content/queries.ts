@@ -1,6 +1,7 @@
 import { desc, eq, inArray } from "drizzle-orm";
 
 import { getDb } from "@/db";
+import { loadAttachedMedia } from "./attach";
 import {
   channelVariants,
   contentVersions,
@@ -22,6 +23,9 @@ export interface VariantView {
   ctaLabel: string | null;
   ctaUrl: string | null;
   passed: boolean;
+  /** Hoeveel beeld eraan hangt, en hoeveel daarvan goedgekeurd is. */
+  attachedAssetCount: number;
+  approvedAssetCount: number;
   findings: {
     ruleId: string;
     severity: string;
@@ -63,6 +67,8 @@ export async function loadVariants(campaignId: string): Promise<VariantView[]> {
     ? await db.select().from(qualityFindings).where(inArray(qualityFindings.runId, runIds))
     : [];
 
+  const media = await loadAttachedMedia(versionIds);
+
   const latestRunByVersion = new Map<string, (typeof runs)[number]>();
   for (const run of runs) {
     if (!latestRunByVersion.has(run.versionId)) latestRunByVersion.set(run.versionId, run);
@@ -86,6 +92,8 @@ export async function loadVariants(campaignId: string): Promise<VariantView[]> {
       ctaLabel: version?.ctaLabel ?? null,
       ctaUrl: version?.ctaUrl ?? null,
       passed: run?.passed ?? false,
+      attachedAssetCount: media.get(version?.id ?? "")?.attachedAssetCount ?? 0,
+      approvedAssetCount: media.get(version?.id ?? "")?.approvedAssetCount ?? 0,
       findings: findings
         .filter((f) => f.runId === run?.id)
         .map((f) => ({

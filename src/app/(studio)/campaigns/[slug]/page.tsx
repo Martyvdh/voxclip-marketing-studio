@@ -11,6 +11,7 @@ import {
   LEGAL_TRANSITIONS,
   evaluateTransition,
 } from "@/lib/campaign/state-machine";
+import { loadAttachableAssets } from "@/lib/content/attach";
 import { loadVariants } from "@/lib/content/queries";
 import { Transitions, type TransitionOption } from "./transitions";
 import { Variants } from "./variants";
@@ -57,7 +58,7 @@ export default async function CampaignPage({
     },
   );
 
-  const [history, variants] = await Promise.all([
+  const [history, variants, assets] = await Promise.all([
     getDb()
       .select()
       .from(campaignTransitions)
@@ -65,6 +66,7 @@ export default async function CampaignPage({
       .orderBy(desc(campaignTransitions.createdAt))
       .limit(20),
     loadVariants(campaign.id),
+    loadAttachableAssets(),
   ]);
 
   return (
@@ -114,7 +116,7 @@ export default async function CampaignPage({
         <h2 id="variants-heading" className="mb-3 text-lg font-semibold">
           Channel variants
         </h2>
-        <Variants slug={slug} variants={variants} />
+        <Variants slug={slug} variants={variants} assets={assets} />
       </section>
 
       <section className="mt-10" aria-labelledby="transitions-heading">

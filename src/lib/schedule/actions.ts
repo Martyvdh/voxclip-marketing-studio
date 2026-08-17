@@ -14,6 +14,8 @@ import {
 import { NotAuthorisedError, requireCapability } from "@/lib/auth";
 import type { FormState } from "@/lib/campaign/actions";
 import { syncCampaignStatus } from "@/lib/campaign/sync-status";
+import { loadAttachedMedia } from "@/lib/content/attach";
+import { mediaVerdict } from "@/lib/content/media";
 import {
   canSchedule,
   formatInZone,
@@ -64,11 +66,24 @@ export async function schedulePost(
 
   const runAt = zonedToUtc(date, time);
 
+  const media = row.variant.currentVersionId
+    ? (await loadAttachedMedia([row.variant.currentVersionId])).get(
+        row.variant.currentVersionId,
+      )
+    : undefined;
+
+  const mediaCheck = mediaVerdict({
+    channel: row.variant.channel,
+    attachedAssetCount: media?.attachedAssetCount ?? 0,
+    approvedAssetCount: media?.approvedAssetCount ?? 0,
+  });
+
   const verdict = canSchedule({
     status: row.variant.status,
     approvedVersionId: approval?.versionId ?? null,
     currentVersionId: row.variant.currentVersionId,
     runAt,
+    mediaMissing: mediaCheck.ok ? undefined : mediaCheck.reason,
   });
 
   if (!verdict.allowed || !runAt) {

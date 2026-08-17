@@ -529,3 +529,27 @@ annuleren betekent.
 
 **Geen auditregel bij het bijtrekken.** Dit is geen besluit van iemand. De besluiten staan al
 vastgelegd bij de tekst zelf.
+
+---
+
+## D-026 — Een verticaal kanaal komt de kalender niet op zonder goedgekeurd beeld
+
+**Datum:** 2026-08-17 · **Status:** accepted
+
+TikTok, Instagram Reels, YouTube Shorts en YouTube long-form kunnen niet goedgekeurd en niet
+ingepland worden zolang er geen goedgekeurde asset aan de huidige versie hangt.
+
+**Wat er misging:** die kanalen kregen bij het aanmaken wel de stand NEEDS_ASSET, maar niets hield
+tegen dat ze daarna werden goedgekeurd en ingepland. Op de dag zelf stond je met een caption en
+geen beeld, op het moment dat je er niets meer aan kunt doen.
+
+**Waarom goedgekeurd beeld en niet alleen beeld:** anders verschuift het probleem van "geen beeld"
+naar "beeld waarvan niemand weet of het klopt". De assetbibliotheek houdt bij welke appversie
+erop te zien is; dat is precies wat je bij een screenshot van drie maanden oud wilt weten.
+
+**Het beeld hangt aan de versie, niet aan de tekst.** De goedkeuring hangt ook aan een versie, dus
+bij elke goedgekeurde versie hoort precies het beeld dat erbij zat toen iemand ja zei. Beeld
+wisselen op iets dat al goedgekeurd was zet het terug naar concept.
+
+**Wat de woorden betreft blijft NEEDS_ASSET reviewbaar:** je mag de tekst laten lezen voordat de
+opname bestaat. Alleen goedkeuren en inplannen wachten op beeld.

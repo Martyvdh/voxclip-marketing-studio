@@ -9,8 +9,90 @@ import { SubmitButton } from "@/components/form";
 import type { FormState } from "@/lib/campaign/actions";
 import { generateVariants } from "@/lib/content/actions";
 import type { VariantView } from "@/lib/content/queries";
+import { attachAsset } from "@/lib/content/attach";
+import { describeMedia, mediaVerdict, needsMedia } from "@/lib/content/media";
 import { sendForReview } from "@/lib/review/actions";
 import { canSendForReview } from "@/lib/review/rules";
+
+export interface AttachableAsset {
+  id: string;
+  altText: string | null;
+  kind: string;
+  approved: boolean;
+}
+
+/**
+ * Het beeld bij een verticale post.
+ *
+ * Staat alleen bij de kanalen waar beeld de post ís. Bij LinkedIn en X zou een
+ * leeg vak met "geen beeld" alleen maar suggereren dat er iets ontbreekt.
+ */
+function Media({
+  variant,
+  assets,
+}: {
+  variant: VariantView;
+  assets: AttachableAsset[];
+}) {
+  const [state, action] = useActionState<FormState, FormData>(attachAsset, {});
+
+  if (!needsMedia(variant.channel)) return null;
+
+  const verdict = mediaVerdict({
+    channel: variant.channel,
+    attachedAssetCount: variant.attachedAssetCount,
+    approvedAssetCount: variant.approvedAssetCount,
+  });
+
+  const label = describeMedia({
+    channel: variant.channel,
+    attachedAssetCount: variant.attachedAssetCount,
+    approvedAssetCount: variant.approvedAssetCount,
+  });
+
+  return (
+    <div className="mt-4 border-t border-line pt-3">
+      <p className="text-xs font-medium text-ink-muted">
+        Beeld · {label}
+      </p>
+
+      {verdict.ok ? null : (
+        <p className="mt-1 text-sm text-amber">{verdict.reason}</p>
+      )}
+
+      <FormMessage message={state.message} />
+
+      {assets.length === 0 ? (
+        <p className="mt-2 text-xs text-ink-muted">
+          Er staat nog geen video of opname in de bibliotheek. Maak er een met
+          Make a video, exporteer hem en zet hem in Assets.
+        </p>
+      ) : (
+        <form action={action} className="mt-2 flex flex-wrap items-end gap-2">
+          <input type="hidden" name="variantId" value={variant.id} />
+          <label htmlFor={`asset-${variant.id}`} className="sr-only">
+            Kies beeld voor {variant.channel}
+          </label>
+          <select
+            id={`asset-${variant.id}`}
+            name="assetId"
+            className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+          >
+            {assets.map((asset) => (
+              <option key={asset.id} value={asset.id}>
+                {asset.approved ? "" : "(nog niet goedgekeurd) "}
+                {asset.altText ?? asset.kind}
+              </option>
+            ))}
+          </select>
+          <SubmitButton variant="quiet" pendingLabel="Koppelen">
+            Hang dit eraan
+          </SubmitButton>
+        </form>
+      )}
+    </div>
+  );
+}
 
 const CHANNELS: { value: string; label: string; note: string }[] = [
   { value: "TIKTOK", label: "TikTok", note: "vertical, needs a real recording" },
@@ -72,9 +154,11 @@ function SendForReview({ variant }: { variant: VariantView }) {
 export function Variants({
   slug,
   variants,
+  assets,
 }: {
   slug: string;
   variants: VariantView[];
+  assets: AttachableAsset[];
 }) {
   const [state, action] = useActionState<FormState, FormData>(generateVariants, {});
 
@@ -209,6 +293,7 @@ export function Variants({
                   </div>
                 ) : null}
 
+                <Media variant={v} assets={assets} />
                 <SendForReview variant={v} />
               </Card>
             </li>

@@ -86,6 +86,12 @@ export function canApprove(input: {
   hasCapability: boolean;
   /** Admins carry the exception. A reviewer does not. */
   isAdmin?: boolean;
+  /**
+   * Waarom dit hier staat: een TikTok zonder video is geen post. Het kanaal
+   * markeerde dat wel bij het aanmaken, maar niets hield tegen dat hij daarna
+   * werd goedgekeurd en ingepland.
+   */
+  mediaMissing?: string;
 }): Verdict {
   if (!input.hasCapability) {
     return refuse("Your role can read this but not approve it.");
@@ -104,6 +110,8 @@ export function canApprove(input: {
   if (!input.gatePassed) {
     return refuse("This version fails the quality gate and cannot be approved.");
   }
+
+  if (input.mediaMissing) return refuse(input.mediaMissing);
 
   return input.isOwner ? { allowed: true, selfApproval: true } : ALLOWED;
 }
