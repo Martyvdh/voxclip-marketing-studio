@@ -9,6 +9,7 @@ export default async function ReviewPage() {
   const user = await requireUser();
   const queue = await loadReviewQueue(user.id);
   const canApproveByRole = can(user.role, "campaign:approve");
+  const isAdmin = user.role === "ADMIN";
 
   const waiting = queue.filter((item) => item.status === "IN_REVIEW");
   const backWithAuthor = queue.filter(
@@ -53,6 +54,7 @@ export default async function ReviewPage() {
                     key={item.variantId}
                     item={item}
                     canApproveByRole={canApproveByRole}
+                    isAdmin={isAdmin}
                   />
                 ))}
               </div>
@@ -74,6 +76,7 @@ export default async function ReviewPage() {
                     key={item.variantId}
                     item={item}
                     canApproveByRole={canApproveByRole}
+                    isAdmin={isAdmin}
                   />
                 ))}
               </div>

@@ -220,11 +220,18 @@ export async function approveVersion(
     gatePassed: context.gatePassed,
     isOwner: context.campaign.ownerId === user.id,
     hasCapability: can(user.role, "campaign:approve"),
+    isAdmin: user.role === "ADMIN",
   });
   if (!verdict.allowed) return { message: verdict.reason };
 
   const db = getDb();
-  const note = String(formData.get("note") ?? "").trim();
+  const typed = String(formData.get("note") ?? "").trim();
+
+  // Een goedkeuring die niemand anders gelezen heeft wordt als zodanig
+  // opgeslagen. Toegestaan, maar niet stil.
+  const note = verdict.selfApproval
+    ? ["Eigen campagne, zelf goedgekeurd.", typed].filter(Boolean).join(" ")
+    : typed || null;
 
   await db
     .insert(approvals)
@@ -252,8 +259,14 @@ export async function approveVersion(
     subjectType: "ChannelVariant",
     subjectId: variantId,
     campaignId: context.variant.campaignId,
-    summary: `${user.name} approved ${context.variant.variantCode} v${context.version.versionNo}.`,
-    detail: { versionId: context.version.id, versionNo: context.version.versionNo },
+    summary: verdict.selfApproval
+      ? `${user.name} approved their own ${context.variant.variantCode} v${context.version.versionNo}. Nobody else read it.`
+      : `${user.name} approved ${context.variant.variantCode} v${context.version.versionNo}.`,
+    detail: {
+      versionId: context.version.id,
+      versionNo: context.version.versionNo,
+      selfApproval: verdict.selfApproval ?? false,
+    },
   });
 
   paths(context.campaign.slug);

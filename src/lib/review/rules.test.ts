@@ -87,6 +87,41 @@ describe("canApprove", () => {
     expect(verdict.reason).toMatch(/someone else/i);
   });
 
+  it("lets an admin approve their own campaign", () => {
+    // A rule that stops the work on a team of two gets worked around rather
+    // than followed. Allowed, and marked.
+    const verdict = canApprove({ ...base, isOwner: true, isAdmin: true });
+    expect(verdict.allowed).toBe(true);
+    expect(verdict.selfApproval).toBe(true);
+  });
+
+  it("does not mark it as self-approved when somebody else reads it", () => {
+    const verdict = canApprove({ ...base, isAdmin: true });
+    expect(verdict.allowed).toBe(true);
+    expect(verdict.selfApproval).toBeFalsy();
+  });
+
+  it("does not give a reviewer the exception", () => {
+    expect(
+      canApprove({ ...base, isOwner: true, isAdmin: false }).allowed,
+    ).toBe(false);
+  });
+
+  it("still refuses an admin whose own version fails the gate", () => {
+    // The exception is about who reads it, not about what may go out.
+    expect(
+      canApprove({ ...base, isOwner: true, isAdmin: true, gatePassed: false })
+        .allowed,
+    ).toBe(false);
+  });
+
+  it("still refuses an admin when nothing was sent for review", () => {
+    expect(
+      canApprove({ ...base, isOwner: true, isAdmin: true, status: "DRAFT" })
+        .allowed,
+    ).toBe(false);
+  });
+
   it("refuses without the capability", () => {
     expect(canApprove({ ...base, hasCapability: false }).allowed).toBe(false);
   });
@@ -97,6 +132,18 @@ describe("canApprove", () => {
 
   it("refuses when nothing was sent for review", () => {
     expect(canApprove({ ...base, status: "DRAFT" }).allowed).toBe(false);
+  });
+
+  it("checks the capability before the admin exception", () => {
+    // An admin flag on a role without the capability is not a way in.
+    expect(
+      canApprove({
+        ...base,
+        isOwner: true,
+        isAdmin: true,
+        hasCapability: false,
+      }).allowed,
+    ).toBe(false);
   });
 
   it("checks the capability before it mentions ownership", () => {

@@ -7,7 +7,7 @@
  * before.
  */
 
-import { desc, isNotNull, isNull } from "drizzle-orm";
+import { desc, eq, isNotNull, isNull } from "drizzle-orm";
 
 import { getDb } from "@/db";
 import {
@@ -17,6 +17,7 @@ import {
   channelVariants,
   publicationAttempts,
   qualityRuns,
+  users,
   type Campaign,
   type CampaignBrief,
 } from "@/db/schema";
@@ -59,6 +60,7 @@ export async function loadCampaignBoard(
     approvalRows,
     runRows,
     attemptRows,
+    adminRows,
   ] = await Promise.all([
     includeArchived
       ? db.select().from(campaigns).orderBy(desc(campaigns.updatedAt))
@@ -72,7 +74,10 @@ export async function loadCampaignBoard(
     db.select().from(approvals),
     db.select().from(qualityRuns).orderBy(desc(qualityRuns.createdAt)),
     db.select().from(publicationAttempts),
+    db.select({ id: users.id }).from(users).where(eq(users.role, "ADMIN")),
   ]);
+
+  const adminIds = new Set(adminRows.map((row) => row.id));
 
   const briefByCampaign = new Map(briefRows.map((b) => [b.campaignId, b]));
 
@@ -113,10 +118,17 @@ export async function loadCampaignBoard(
             v.currentVersionId !== null && approvedVersions.has(v.currentVersionId),
         ),
       // An author cannot approve their own work, so an approval by anyone other
-      // than the campaign owner satisfies this.
+      // than the campaign owner satisfies this. One exception: an admin may
+      // approve their own campaign, because on a team of two a rule that stops
+      // the work gets worked around rather than followed. The approval records
+      // that nobody else read it.
       approverIsNotAuthor:
         liveApprovals.length === 0 ||
-        liveApprovals.some((a) => a.approverId !== campaign.ownerId),
+        liveApprovals.some(
+          (a) =>
+            a.approverId !== campaign.ownerId ||
+            (a.approverId !== null && adminIds.has(a.approverId)),
+        ),
       scheduledCount: variants.filter((v) => v.status === "SCHEDULED").length,
       successfulPublications: attempts.filter((a) => a.status === "SUCCEEDED")
         .length,

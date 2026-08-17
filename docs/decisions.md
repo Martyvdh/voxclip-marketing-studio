@@ -419,6 +419,31 @@ een poging, dan is er iets naar buiten gegaan, wat de status ook zegt.
 
 ---
 
+## D-022 — Een beheerder mag zijn eigen campagne goedkeuren
+
+**Datum:** 2026-08-17 · **Status:** accepted · **Vervangt deels D-005 en D-013**
+
+`canApprove` staat zelfgoedkeuring toe als de rol ADMIN is. Voor elke andere rol blijft het
+verboden. De goedkeuring krijgt de aantekening dat niemand anders hem gelezen heeft, de auditregel
+zegt het letterlijk, en de reviewkaart waarschuwt vooraf.
+
+**Waarom:** het team is twee mensen. Een regel die het werk stillegt zodra de ander niet wakker is
+wordt niet gevolgd maar omzeild, en omzeild betekent hier: goedkeuren via het andere account, of de
+regel helemaal weghalen. Dan is er geen spoor meer. Dit is de variant die werkt en die zichtbaar
+blijft.
+
+**Wat niet meebeweegt:** de kwaliteitscontrole en de versiebinding. Een beheerder kan zijn eigen
+tekst goedkeuren, niet een tekst die de controle niet haalt, en niet een versie die inmiddels
+herschreven is.
+
+**Ook aangepast:** `approverIsNotAuthor` in de readiness, anders bleef de campagnestatus hangen op
+IN_REVIEW terwijl de tekst wel goedgekeurd was. Die telt nu een goedkeuring door een beheerder mee.
+
+**Herzien wanneer:** het team groter is dan twee. Dan is de uitzondering luxe in plaats van
+noodzaak.
+
+---
+
 ## D-021 — De hulp leest de stand af, het is geen tour
 
 **Datum:** 2026-08-17 · **Status:** accepted

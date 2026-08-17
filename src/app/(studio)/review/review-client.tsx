@@ -29,9 +29,11 @@ function waitedSince(date: Date): string {
 export function ReviewCard({
   item,
   canApproveByRole,
+  isAdmin,
 }: {
   item: ReviewItem;
   canApproveByRole: boolean;
+  isAdmin: boolean;
 }) {
   const [approveState, approveAction] = useActionState<FormState, FormData>(
     approveVersion,
@@ -56,6 +58,7 @@ export function ReviewCard({
     gatePassed: item.gatePassed,
     isOwner: item.ownedByMe,
     hasCapability: canApproveByRole,
+    isAdmin,
   });
 
   return (
@@ -163,6 +166,13 @@ export function ReviewCard({
           }
         />
 
+        {verdict.selfApproval && !revising ? (
+          <p className="rounded-lg bg-amber-wash px-3 py-2 text-sm text-amber">
+            Dit is je eigen campagne. Je mag hem als beheerder zelf goedkeuren,
+            en er komt bij te staan dat niemand anders hem gelezen heeft.
+          </p>
+        ) : null}
+
         {revising ? (
           <form action={reviseAction} className="space-y-2">
             <input type="hidden" name="variantId" value={item.variantId} />
@@ -207,7 +217,9 @@ export function ReviewCard({
                 <form action={approveAction}>
                   <input type="hidden" name="variantId" value={item.variantId} />
                   <SubmitButton pendingLabel="Approving">
-                    Approve version {item.versionNo}
+                    {verdict.selfApproval
+                      ? `Zelf goedkeuren, v${item.versionNo}`
+                      : `Approve version ${item.versionNo}`}
                   </SubmitButton>
                 </form>
               ) : (
