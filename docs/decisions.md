@@ -368,3 +368,29 @@ it passes a few hundred files, and move `storageKey` to point at an object store
 claim about the product. Designed graphics are fine as long as they are not pretending.
 
 **Cost:** none worth naming.
+
+---
+
+## D-019 — De brief krijgt een voorstel, geen AI
+
+**Datum:** 2026-08-17 · **Status:** accepted
+
+Op een lege brief staat een knop die de velden vult uit `pillar_defaults`, de hookbibliotheek,
+`cta_lines` en de geverifieerde claims in Product Truth. Er is geen taalmodel bij betrokken.
+
+**Waarom niet met een model:** dat vraagt een externe API met een sleutel en kosten, en Marty
+koos daar bewust tegen. Maar er is een tweede reden die blijft staan als die sleutel er ooit komt.
+De brief is de enige plek waar zijn oordeel het systeem binnenkomt. Alles daarna is afgeleid:
+teksten uit de brief, controle tegen Product Truth, review op wat er staat. Wordt de brief ook
+machinaal geschreven, dan controleert het systeem alleen nog zichzelf.
+
+**Waarom dit wel mag:** het voorstel is zichtbaar in elkaar geknipt en zegt per veld waar het
+vandaan komt. Dat nodigt uit tot herschrijven. Een vloeiende gegenereerde brief nodigt uit tot
+opslaan.
+
+**Twee regels in de implementatie:** het voorstel is deterministisch, zodat twee keer klikken niet
+iets anders geeft en je niet doorklikt tot het goed klinkt. En het bewijsveld pakt alleen een
+claim met status VERIFIED; is die er niet, dan blijft het veld leeg en zegt de kaart waarom.
+
+**Kosten:** de zinnen zijn hergebruikt, dus twee campagnes op dezelfde pijler beginnen identiek.
+Dat is zichtbaar, en zichtbaar saai werkt hier beter dan onzichtbaar plausibel.

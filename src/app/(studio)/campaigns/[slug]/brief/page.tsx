@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/db";
 import { campaignBriefs } from "@/db/schema";
 import { requireUser } from "@/lib/auth";
+import { buildSuggestion } from "@/lib/brief/queries";
 import { loadCampaignBySlug } from "@/lib/campaign/queries";
 import { BriefForm } from "./brief-form";
 
@@ -39,11 +40,14 @@ export default async function BriefPage({
   const row = await loadCampaignBySlug(slug);
   if (!row) notFound();
 
-  const [brief] = await getDb()
-    .select()
-    .from(campaignBriefs)
-    .where(eq(campaignBriefs.campaignId, row.campaign.id))
-    .limit(1);
+  const [[brief], suggestion] = await Promise.all([
+    getDb()
+      .select()
+      .from(campaignBriefs)
+      .where(eq(campaignBriefs.campaignId, row.campaign.id))
+      .limit(1),
+    buildSuggestion(row.campaign.pillar),
+  ]);
 
   return (
     <>
@@ -63,6 +67,7 @@ export default async function BriefPage({
 
       <BriefForm
         slug={slug}
+        suggestion={suggestion}
         values={{
           problem: brief?.problem,
           desiredOutcome: brief?.desiredOutcome,
