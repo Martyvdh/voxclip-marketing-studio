@@ -416,3 +416,27 @@ vóór de verwijdering, anders zou die regel met de campagne meegaan.
 
 **Waarom de publicatiepogingen tellen en niet de status:** de statuskolom kan achterlopen. Ligt er
 een poging, dan is er iets naar buiten gegaan, wat de status ook zegt.
+
+---
+
+## D-021 — De hulp leest de stand af, het is geen tour
+
+**Datum:** 2026-08-17 · **Status:** accepted
+
+Onder de header staat een bandje met de eerstvolgende stap, bepaald door `nextStep` op basis van
+wat er in de database staat: onbruikbare feiten, campagnes, teksten die vastlopen op de controle,
+wat op review wacht, wat ingepland staat, wat nog geen cijfers heeft.
+
+**Waarom geen genummerde tour:** een tour ken je één keer en dan is hij weg. Dit klopt ook als je
+halverwege stopt, morgen terugkomt of met twee campagnes tegelijk bezig bent, want het onthoudt
+niks; het kijkt.
+
+**Waarom in de paginastroom en niet zwevend:** een popup over je werk drukt iedereen binnen een dag
+weg, ook als de inhoud klopt. Dit schuift de pagina een stukje op.
+
+**Uitzetten is een cookie, niet localStorage,** zodat de server het weet vóór het renderen. Anders
+flitst het bandje bij elke navigatie op voordat het zichzelf wegdrukt, en dan is uitzetten geen
+uitzetten. Aanzetten kan weer op de uitlegpagina, zodat het geen eenrichtingsdeur is.
+
+**De volgorde is een keuze:** ontbrekende cijfers staan bovenaan, boven al het nieuwe werk. Cijfers
+invullen is het enige dat echt vergeten wordt, en zonder cijfers heeft de rest geen zin gehad.

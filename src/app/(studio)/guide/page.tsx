@@ -1,7 +1,9 @@
 import Link from "next/link";
 
 import { Card } from "@/components/brand";
+import { CoachSwitchedOff } from "@/components/coach";
 import { requireUser } from "@/lib/auth";
+import { isCoachHidden } from "@/lib/coach/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -119,6 +121,7 @@ const SECTIONS: { name: string; href: string; body: string }[] = [
 
 export default async function GuidePage() {
   await requireUser();
+  const coachHidden = await isCoachHidden();
 
   return (
     <div className="max-w-3xl">
@@ -126,6 +129,8 @@ export default async function GuidePage() {
       <p className="mt-2 text-ink-muted">
         Eén campagne van begin tot eind. Negen stappen, geen ervan lang.
       </p>
+
+      {coachHidden ? <CoachSwitchedOff /> : null}
 
       <Card className="mt-6">
         <h2 className="font-[family-name:var(--font-display)] text-base font-semibold">

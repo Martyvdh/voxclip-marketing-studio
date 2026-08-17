@@ -3,7 +3,10 @@ import Link from "next/link";
 import { signOut } from "@/app/login/actions";
 import { VoxClipMark, Wordmark } from "@/components/brand";
 import { StudioNav, type NavItem } from "@/components/nav";
+import { Coach } from "@/components/coach";
 import { requireUser } from "@/lib/auth";
+import { isCoachHidden } from "@/lib/coach/actions";
+import { loadCoachStep } from "@/lib/coach/queries";
 import { countWaitingForReview } from "@/lib/review/queries";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +39,12 @@ export default async function StudioLayout({
   children: React.ReactNode;
 }) {
   const user = await requireUser();
-  const nav = navFor(await countWaitingForReview());
+  const [waiting, coachHidden] = await Promise.all([
+    countWaitingForReview(),
+    isCoachHidden(),
+  ]);
+  const nav = navFor(waiting);
+  const step = coachHidden ? null : await loadCoachStep();
 
   const account = (
     <>
@@ -99,6 +107,8 @@ export default async function StudioLayout({
           </div>
         </div>
       </header>
+
+      <Coach step={step} />
 
       <main
         id="main"
