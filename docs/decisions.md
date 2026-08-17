@@ -394,3 +394,25 @@ claim met status VERIFIED; is die er niet, dan blijft het veld leeg en zegt de k
 
 **Kosten:** de zinnen zijn hergebruikt, dus twee campagnes op dezelfde pijler beginnen identiek.
 Dat is zichtbaar, en zichtbaar saai werkt hier beter dan onzichtbaar plausibel.
+
+---
+
+## D-020 — Een campagne die nooit iets postte mag echt weg
+
+**Datum:** 2026-08-17 · **Status:** accepted
+
+`deleteCampaign` verwijdert de rij, met cascade naar brief, teksten, versies, planning en
+videoprojecten. Toegestaan zolang er geen enkele `publicationAttempt` aan hangt en de status niet
+SCHEDULED, PUBLISHING of PUBLISHED is. Bevestigen vraagt om de titel over te typen.
+
+**Waarom dit de regel uit AGENTS.md niet breekt:** die regel beschermt het dossier van wat er naar
+buiten ging. Wie keurde wat goed, welke versie ging de deur uit. Een proefcampagne heeft dat
+dossier niet, er is niets om te beschermen, en een archief dat na een week vol testrommel staat
+wordt niet meer gelezen. Dan beschermt de regel niets meer, hij verstopt alleen.
+
+**Wat blijft staan:** `audit_events.campaign_id` is `ON DELETE SET NULL`, dus de auditregels houden
+hun beschrijving en verliezen alleen de verwijzing. Er wordt een DATA_DELETED-regel geschreven
+vóór de verwijdering, anders zou die regel met de campagne meegaan.
+
+**Waarom de publicatiepogingen tellen en niet de status:** de statuskolom kan achterlopen. Ligt er
+een poging, dan is er iets naar buiten gegaan, wat de status ook zegt.

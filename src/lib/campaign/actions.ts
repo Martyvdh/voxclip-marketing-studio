@@ -10,12 +10,15 @@ import {
   campaignBriefs,
   campaignTransitions,
   campaigns,
+  channelVariants,
+  publicationAttempts,
   type CampaignStatus,
 } from "@/db/schema";
 import { NotAuthorisedError, requireCapability } from "@/lib/auth";
 import { getEnv } from "@/lib/env";
 import { buildCampaignCode, buildTaggedUrl, nextAvailableCode, slugify } from "./codes";
 import { loadCampaignBySlug } from "./queries";
+import { canDeleteCampaign } from "./delete";
 import { evaluateTransition } from "./state-machine";
 import { briefSchema, firstErrors, newCampaignSchema } from "./validation";
 
@@ -396,4 +399,73 @@ export async function transitionCampaign(
   revalidatePath("/campaigns");
   revalidatePath("/");
   return { ok: true };
+}
+
+/**
+ * Verwijdert een campagne waar nooit iets van naar buiten is gegaan.
+ *
+ * Bedoeld voor proefcampagnes. De regel dat er niets hard verwijderd wordt gaat
+ * over het dossier van wat er gepost is; die controle staat in `canDelete` en
+ * gebeurt hier op de server, niet in het formulier. De auditregels blijven
+ * staan: hun verwijzing naar de campagne wordt leeg, hun beschrijving niet.
+ */
+export async function deleteCampaign(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  let user;
+  try {
+    user = await requireCapability("campaign:edit");
+  } catch (error) {
+    if (error instanceof NotAuthorisedError) return { message: error.message };
+    throw error;
+  }
+
+  const slug = String(formData.get("slug") ?? "");
+  const typedTitle = String(formData.get("confirm") ?? "");
+
+  const db = getDb();
+  const [campaign] = await db
+    .select()
+    .from(campaigns)
+    .where(eq(campaigns.slug, slug))
+    .limit(1);
+
+  if (!campaign) return { message: "Die campagne bestaat niet meer." };
+
+  const attempts = await db
+    .select({ id: publicationAttempts.id })
+    .from(publicationAttempts)
+    .innerJoin(
+      channelVariants,
+      eq(channelVariants.id, publicationAttempts.variantId),
+    )
+    .where(eq(channelVariants.campaignId, campaign.id))
+    .limit(1);
+
+  const verdict = canDeleteCampaign({
+    status: campaign.status,
+    hasPublications: attempts.length > 0,
+    typedTitle,
+    title: campaign.title,
+  });
+
+  if (!verdict.allowed) return { message: verdict.reason };
+
+  // Eerst het spoor, dan pas de rij. Andersom zou de regel zelf meegaan.
+  await db.insert(auditEvents).values({
+    action: "DATA_DELETED",
+    actorId: user.id,
+    subjectType: "Campaign",
+    subjectId: campaign.id,
+    summary: `${user.name} verwijderde de campagne ${campaign.title} (${campaign.campaignCode}). Er was nooit iets van gepost.`,
+    detail: { campaignCode: campaign.campaignCode, status: campaign.status },
+  });
+
+  await db.delete(campaigns).where(eq(campaigns.id, campaign.id));
+
+  revalidatePath("/campaigns");
+  revalidatePath("/calendar");
+  revalidatePath("/review");
+  redirect("/campaigns");
 }

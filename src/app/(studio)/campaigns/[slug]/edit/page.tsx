@@ -3,9 +3,17 @@ import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 
 import { getDb } from "@/db";
-import { audiences as audiencesTable } from "@/db/schema";
+import {
+  audiences as audiencesTable,
+  channelVariants,
+  contentVersions,
+  publicationAttempts,
+  schedules,
+  videoProjects,
+} from "@/db/schema";
 import { Card } from "@/components/brand";
 import { can, requireUser } from "@/lib/auth";
+import { canDeleteCampaign, whatGoesWithIt } from "@/lib/campaign/delete";
 import { loadCampaignBySlug } from "@/lib/campaign/queries";
 import { ArchiveCampaign, EditCampaignForm } from "./edit-form";
 
@@ -32,10 +40,52 @@ export default async function EditCampaignPage({
     );
   }
 
-  const rows = await getDb()
-    .select({ id: audiencesTable.id, name: audiencesTable.name })
-    .from(audiencesTable)
-    .where(eq(audiencesTable.isActive, true));
+  const db = getDb();
+
+  const [rows, variants, versions, planned, videos, attempts] = await Promise.all([
+    db
+      .select({ id: audiencesTable.id, name: audiencesTable.name })
+      .from(audiencesTable)
+      .where(eq(audiencesTable.isActive, true)),
+    db
+      .select({ id: channelVariants.id })
+      .from(channelVariants)
+      .where(eq(channelVariants.campaignId, row.campaign.id)),
+    db
+      .select({ id: contentVersions.id })
+      .from(contentVersions)
+      .innerJoin(
+        channelVariants,
+        eq(channelVariants.id, contentVersions.variantId),
+      )
+      .where(eq(channelVariants.campaignId, row.campaign.id)),
+    db
+      .select({ id: schedules.id })
+      .from(schedules)
+      .where(eq(schedules.campaignId, row.campaign.id)),
+    db
+      .select({ id: videoProjects.id })
+      .from(videoProjects)
+      .where(eq(videoProjects.campaignId, row.campaign.id)),
+    db
+      .select({ id: publicationAttempts.id })
+      .from(publicationAttempts)
+      .innerJoin(
+        channelVariants,
+        eq(channelVariants.id, publicationAttempts.variantId),
+      )
+      .where(eq(channelVariants.campaignId, row.campaign.id))
+      .limit(1),
+  ]);
+
+  // Dezelfde functie die de server-actie gebruikt, met de titel al ingevuld,
+  // zodat het scherm nooit een knop aanbiedt die daarna geweigerd wordt.
+  const deletable = canDeleteCampaign({
+    status: row.campaign.status,
+    hasPublications: attempts.length > 0,
+    typedTitle: row.campaign.title,
+    title: row.campaign.title,
+  }).allowed;
 
   return (
     <>
@@ -86,6 +136,13 @@ export default async function EditCampaignPage({
         slug={slug}
         title={row.campaign.title}
         archived={row.campaign.archivedAt !== null}
+        deletable={deletable}
+        goesWithIt={whatGoesWithIt({
+          variants: variants.length,
+          versions: versions.length,
+          schedules: planned.length,
+          videoProjects: videos.length,
+        })}
       />
     </>
   );

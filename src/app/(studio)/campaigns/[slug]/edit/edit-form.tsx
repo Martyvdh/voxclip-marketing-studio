@@ -6,6 +6,7 @@ import { Card, FormMessage } from "@/components/brand-client";
 import { Field, Select, SubmitButton, TextArea } from "@/components/form";
 import {
   archiveCampaign,
+  deleteCampaign,
   updateCampaign,
   type FormState,
 } from "@/lib/campaign/actions";
@@ -82,13 +83,23 @@ export function ArchiveCampaign({
   slug,
   title,
   archived,
+  deletable,
+  goesWithIt,
 }: {
   slug: string;
   title: string;
   archived: boolean;
+  /** Weg mag alleen als er nooit iets van gepost is. */
+  deletable: boolean;
+  goesWithIt: string[];
 }) {
   const [state, action] = useActionState<FormState, FormData>(archiveCampaign, {});
+  const [deleteState, deleteAction] = useActionState<FormState, FormData>(
+    deleteCampaign,
+    {},
+  );
   const [confirm, setConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   if (archived) {
     return (
@@ -116,13 +127,12 @@ export function ArchiveCampaign({
         Archive this campaign
       </h2>
       <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-        It leaves the board and stops appearing in your next actions. Nothing is
-        deleted: who approved what, what went out, and what it brought in stay
-        recorded, and you can bring it back. There is no permanent delete, because
-        that would take the record of anything already published with it.
+        It leaves the board and stops appearing in your next actions. Who
+        approved what, what went out, and what it brought in stay recorded, and
+        you can bring it back.
       </p>
 
-      <FormMessage message={state.message} />
+      <FormMessage message={state.message ?? deleteState.message} />
 
       <form action={action} className="mt-4 space-y-3">
         <input type="hidden" name="slug" value={slug} />
@@ -148,6 +158,63 @@ export function ArchiveCampaign({
           Archive it
         </button>
       </form>
+
+      <div className="mt-6 border-t border-line pt-4">
+        {deletable ? (
+          deleting ? (
+            <form action={deleteAction} className="space-y-3">
+              <input type="hidden" name="slug" value={slug} />
+              <input type="hidden" name="confirm" value={confirm} />
+              <p className="text-sm text-ink">
+                Dit verdwijnt echt, en dat kan niet ongedaan gemaakt worden:{" "}
+                {goesWithIt.join(", ")}.
+              </p>
+              <p className="text-sm text-ink-muted">
+                De auditregels blijven staan. Die houden hun beschrijving en
+                verliezen alleen de verwijzing naar deze campagne.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="submit"
+                  disabled={confirm.trim() !== title.trim()}
+                  className="rounded-lg bg-alert px-4 py-2.5 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {confirm.trim() === title.trim()
+                    ? "Definitief verwijderen"
+                    : "Typ eerst de titel hierboven"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeleting(false)}
+                  className="rounded-lg border border-line px-4 py-2.5 text-sm"
+                >
+                  Toch niet
+                </button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <p className="text-sm text-ink-muted">
+                Was dit een proefcampagne? Er is nooit iets van gepost, dus er is
+                geen dossier om te bewaren. Hij mag echt weg.
+              </p>
+              <button
+                type="button"
+                onClick={() => setDeleting(true)}
+                className="mt-2 text-sm text-alert underline"
+              >
+                Definitief verwijderen
+              </button>
+            </>
+          )
+        ) : (
+          <p className="text-sm text-ink-muted">
+            Definitief verwijderen kan hier niet: er is van deze campagne al iets
+            gepost of ingepland. Dat dossier blijft staan. Archiveren haalt hem
+            wel van het bord.
+          </p>
+        )}
+      </div>
     </Card>
   );
 }
