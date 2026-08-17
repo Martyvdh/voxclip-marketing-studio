@@ -26,21 +26,30 @@ export function PlannedCard({
       <p className="font-[family-name:var(--font-mono)] text-xs text-ink-faint">
         {time} · {post.channel.replace(/_/g, " ").toLowerCase()}
       </p>
-      <Link
-        href={`/campaigns/${post.campaignSlug}/handoff/${post.variantCode}`}
-        className="mt-1 block text-sm font-medium hover:underline"
-      >
-        {post.campaignTitle}
-      </Link>
+      <p className="mt-1 text-sm font-medium">{post.campaignTitle}</p>
       <p className="mt-1 line-clamp-3 text-xs text-ink-muted">{post.excerpt}</p>
 
       <p className="mt-2 text-xs">
         {post.posted ? (
-          <span className="text-teal-deep">Logged as posted</span>
+          <span className="text-teal-deep">Al afgevinkt als gepost</span>
         ) : (
           <span className="text-ink-muted">{describeDue(post.runAt)}</span>
         )}
       </p>
+
+      {/*
+        De handoff is de enige weg vooruit vanaf hier, dus het is een knop en
+        niet de titel met een onderstreping. Dat was het: de enige uitgang zat
+        verstopt in de naam van de campagne.
+      */}
+      {!post.posted ? (
+        <Link
+          href={`/campaigns/${post.campaignSlug}/handoff/${post.variantCode}`}
+          className="mt-2 block rounded-lg bg-ink px-3 py-2 text-center text-xs font-medium text-white"
+        >
+          Open de handoff
+        </Link>
+      ) : null}
 
       {canSchedule && !post.posted ? (
         <form action={action} className="mt-2">
@@ -50,7 +59,7 @@ export function PlannedCard({
             type="submit"
             className="text-xs text-ink-muted underline hover:text-ink"
           >
-            Take it off
+            Van de kalender halen
           </button>
         </form>
       ) : null}
