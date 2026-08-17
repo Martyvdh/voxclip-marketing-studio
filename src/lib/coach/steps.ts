@@ -20,6 +20,13 @@ export interface CoachState {
     | {
         slug: string;
         title: string;
+        /**
+         * De code erbij, want twee campagnes kunnen dezelfde titel hebben.
+         *
+         * Zonder dit staat het bandje over campagne A te praten terwijl je
+         * campagne B open hebt, en klopt alles wat het zegt behalve waarover.
+         */
+        campaignCode: string;
         /** Wat de statemachine als volgende stap ziet. */
         actionLabel: string;
         actionDetail: string;
@@ -135,12 +142,21 @@ export function nextStep(state: CoachState): Step | null {
 
   if (state.focus) {
     const focus = state.focus;
+    // Titel plus code, zodat je ziet welke campagne bedoeld wordt.
+    const naam = `${focus.title} (${focus.campaignCode})`;
+
+    // Een telling die geen getal is telt als nul. Anders valt hij door alle
+    // drempels heen en komt er een stap uit die verderop in het werk ligt dan
+    // waar je bent.
+    const variantCount = Number.isFinite(focus.variantCount)
+      ? focus.variantCount
+      : 0;
 
     if (focus.variantsFailingGate > 0) {
       return {
         number: 4,
         total: TOTAL_STEPS,
-        title: `Los de blokkades op in ${focus.title}`,
+        title: `Los de blokkades op in ${naam}`,
         body: `${focus.variantsFailingGate} tekst${focus.variantsFailingGate === 1 ? "" : "en"} komt niet door de controle. Er staat per regel bij waarom. Herschrijf en het wordt opnieuw gecontroleerd.`,
         href: `/campaigns/${focus.slug}`,
         linkLabel: "Open de campagne",
@@ -151,18 +167,18 @@ export function nextStep(state: CoachState): Step | null {
       return {
         number: 2,
         total: TOTAL_STEPS,
-        title: `Schrijf de brief van ${focus.title}`,
+        title: `Schrijf de brief van ${naam}`,
         body: "Wat je zegt, tegen wie, en wat ze daarna moeten doen. Op een lege brief staat een knop die een voorstel invult uit je eigen pijlerteksten en hooks.",
         href: `/campaigns/${focus.slug}/brief`,
         linkLabel: "Naar de brief",
       };
     }
 
-    if (focus.variantCount === 0) {
+    if (variantCount === 0) {
       return {
         number: 3,
         total: TOTAL_STEPS,
-        title: `Laat de teksten schrijven voor ${focus.title}`,
+        title: `Laat de teksten schrijven voor ${naam}`,
         body: "De brief staat. Vink de kanalen aan op de campagnepagina en je krijgt per kanaal een tekst, met de campagnecode en een getagde link er al in.",
         href: `/campaigns/${focus.slug}`,
         linkLabel: "Open de campagne",
@@ -177,7 +193,7 @@ export function nextStep(state: CoachState): Step | null {
       return {
         number: 5,
         total: TOTAL_STEPS,
-        title: `Stuur ${focus.title} naar review`,
+        title: `Stuur ${naam} naar review`,
         body: "Alles komt door de controle. Onderaan de campagnepagina staat de knop om hem door te zetten, en bij elke tekst staat Send for review.",
         href: `/campaigns/${focus.slug}`,
         linkLabel: "Open de campagne",
@@ -187,7 +203,7 @@ export function nextStep(state: CoachState): Step | null {
     return {
       number: 5,
       total: TOTAL_STEPS,
-      title: `${focus.actionLabel}: ${focus.title}`,
+      title: `${focus.actionLabel}: ${naam}`,
       body: focus.actionDetail,
       href: `/campaigns/${focus.slug}`,
       linkLabel: "Open de campagne",

@@ -16,6 +16,7 @@ const state = (over: Partial<CoachState> = {}): CoachState => ({
 const focus = (over: Partial<NonNullable<CoachState["focus"]>> = {}) => ({
   slug: "een-plek",
   title: "Eén plek",
+  campaignCode: "een-plek-1708",
   actionLabel: "Send for review",
   actionDetail: "Alles komt door de controle.",
   status: "DRAFT",
@@ -75,6 +76,24 @@ describe("de stappen in een campagne", () => {
     const step = nextStep(state({ focus: focus() }));
     expect(step?.number).toBe(5);
     expect(step?.title).toMatch(/naar review/i);
+  });
+
+  it("noemt de campagnecode, want twee campagnes kunnen dezelfde titel hebben", () => {
+    const step = nextStep(state({ focus: focus() }));
+    expect(step?.title).toContain("een-plek-1708");
+  });
+
+  it("zegt nooit review als er geen enkele tekst is", () => {
+    // Dit ging mis: met een telling die geen getal was viel hij door de
+    // drempel heen en kwam er een stap uit die verderop in het werk lag.
+    const step = nextStep(
+      state({
+        focus: focus({
+          variantCount: Number.NaN as unknown as number,
+        }),
+      }),
+    );
+    expect(step?.number).toBe(3);
   });
 
   it("gebruikt de tekst van de statemachine voor statussen die het niet kent", () => {

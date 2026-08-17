@@ -60,6 +60,7 @@ export async function loadCoachStep(now = new Date()): Promise<Step | null> {
         .select({
           slug: campaigns.slug,
           title: campaigns.title,
+          campaignCode: campaigns.campaignCode,
           status: campaigns.status,
           briefId: campaignBriefs.id,
           problem: campaignBriefs.problem,
@@ -151,6 +152,7 @@ export async function loadCoachStep(now = new Date()): Promise<Step | null> {
       ? {
           slug: focusRow.slug,
           title: focusRow.title,
+          campaignCode: focusRow.campaignCode,
           actionLabel: "Open de campagne",
           actionDetail: "Er ligt hier nog werk.",
           status: focusRow.status,
