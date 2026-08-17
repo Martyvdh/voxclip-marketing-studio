@@ -24,6 +24,15 @@ export interface CoachState {
         actionLabel: string;
         actionDetail: string;
         status: string;
+        /**
+         * Of de brief af is.
+         *
+         * Dit en niet de status. De status blijft IDEA tot iemand hem apart
+         * doorzet, en dat is boekhouding: teksten schrijven kan al zodra de
+         * brief er staat. Op de status kijken liet het bandje "schrijf de brief"
+         * blijven zeggen nadat de brief geschreven was.
+         */
+        briefComplete: boolean;
         variantCount: number;
         variantsFailingGate: number;
       }
@@ -138,7 +147,7 @@ export function nextStep(state: CoachState): Step | null {
       };
     }
 
-    if (focus.status === "IDEA") {
+    if (!focus.briefComplete) {
       return {
         number: 2,
         total: TOTAL_STEPS,
@@ -154,18 +163,22 @@ export function nextStep(state: CoachState): Step | null {
         number: 3,
         total: TOTAL_STEPS,
         title: `Laat de teksten schrijven voor ${focus.title}`,
-        body: "Vink de kanalen aan. Je krijgt per kanaal een tekst met de campagnecode en een getagde link er al in, en elke tekst wordt langs de merkregels en Product Truth gehaald.",
+        body: "De brief staat. Vink de kanalen aan op de campagnepagina en je krijgt per kanaal een tekst, met de campagnecode en een getagde link er al in.",
         href: `/campaigns/${focus.slug}`,
         linkLabel: "Open de campagne",
       };
     }
 
-    if (focus.status === "DRAFT" || focus.status === "BRIEF") {
+    if (
+      focus.status === "IDEA" ||
+      focus.status === "BRIEF" ||
+      focus.status === "DRAFT"
+    ) {
       return {
         number: 5,
         total: TOTAL_STEPS,
         title: `Stuur ${focus.title} naar review`,
-        body: focus.actionDetail,
+        body: "Alles komt door de controle. Onderaan de campagnepagina staat de knop om hem door te zetten, en bij elke tekst staat Send for review.",
         href: `/campaigns/${focus.slug}`,
         linkLabel: "Open de campagne",
       };

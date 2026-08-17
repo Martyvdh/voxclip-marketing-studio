@@ -109,6 +109,7 @@ export async function loadCoachStep(now = new Date()): Promise<Step | null> {
           actionLabel: focusRow.action.label,
           actionDetail: focusRow.action.detail,
           status: focusRow.campaign.status,
+          briefComplete: focusRow.readiness.briefMissingFields.length === 0,
           variantCount: focusRow.readiness.variantCount,
           variantsFailingGate: focusRow.readiness.variantsFailingGate,
         }

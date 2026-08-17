@@ -19,6 +19,7 @@ const focus = (over: Partial<NonNullable<CoachState["focus"]>> = {}) => ({
   actionLabel: "Send for review",
   actionDetail: "Alles komt door de controle.",
   status: "DRAFT",
+  briefComplete: true,
   variantCount: 2,
   variantsFailingGate: 0,
   ...over,
@@ -45,22 +46,26 @@ describe("de eerste keer", () => {
 });
 
 describe("de stappen in een campagne", () => {
-  it("wijst op de brief zolang de campagne een idee is", () => {
-    const step = nextStep(state({ focus: focus({ status: "IDEA" }) }));
+  it("wijst op de brief zolang die niet af is", () => {
+    const step = nextStep(state({ focus: focus({ briefComplete: false }) }));
     expect(step?.href).toBe("/campaigns/een-plek/brief");
     expect(step?.number).toBe(2);
   });
 
-  it("wijst op de teksten zodra de brief er is", () => {
+  it("wijst op de teksten zodra de brief er is, ook al staat de status nog op IDEA", () => {
+    // De status is boekhouding en loopt achter. Hierop kijken liet het bandje
+    // "schrijf de brief" blijven zeggen nadat de brief geschreven was.
     const step = nextStep(
-      state({ focus: focus({ status: "BRIEF", variantCount: 0 }) }),
+      state({ focus: focus({ status: "IDEA", variantCount: 0 }) }),
     );
     expect(step?.number).toBe(3);
   });
 
   it("zet blokkades vóór alles binnen die campagne", () => {
     const step = nextStep(
-      state({ focus: focus({ status: "IDEA", variantsFailingGate: 2 }) }),
+      state({
+        focus: focus({ briefComplete: false, variantsFailingGate: 2 }),
+      }),
     );
     expect(step?.number).toBe(4);
     expect(step?.title).toMatch(/blokkades/i);
@@ -137,8 +142,8 @@ describe("elke stap is bruikbaar", () => {
   const cases: CoachState[] = [
     state({ unverifiedFacts: 2, campaignCount: 0 }),
     state({ campaignCount: 0 }),
-    state({ focus: focus({ status: "IDEA" }) }),
-    state({ focus: focus({ status: "BRIEF", variantCount: 0 }) }),
+    state({ focus: focus({ briefComplete: false }) }),
+    state({ focus: focus({ variantCount: 0 }) }),
     state({ focus: focus({ variantsFailingGate: 1 }) }),
     state({ focus: focus() }),
     state({ awaitingReview: 1 }),
