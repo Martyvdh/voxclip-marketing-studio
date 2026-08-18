@@ -567,3 +567,102 @@ export const EXPLAINER_STARTERS: Starter[] = [
       ]),
   },
 ];
+
+/**
+ * De dertig-seconden-opbouw, in het eigen merk.
+ *
+ * Naar aanleiding van een voorbeeldfilmpje dat er goed uitzag en drie dingen
+ * fout deed: het verkocht een plakbordbeheerder met AI ervoor, het tekende een
+ * interface die niet bestaat, en het stond in kleuren die niet van ons zijn.
+ *
+ * De opbouw was wel raak, en die is hier overgenomen: het probleem, de
+ * herhaling die irriteert, de introductie, drie keer wat het doet, de opbrengst,
+ * de knop. Dat is een bewezen boog en er is geen reden hem opnieuw uit te
+ * vinden.
+ *
+ * Wat anders is: de belofte klopt met wat er ships, waar het scherm te zien moet
+ * zijn staat een opnamenotitie in plaats van een tekening, en de kleuren zijn
+ * Ink, Paper en één keer teal.
+ */
+export const THIRTY_SECOND: Starter[] = [
+  {
+    slug: "launch-thirty-seconds",
+    name: "Launch: the thirty second explainer",
+    intent:
+      "Problem, repetition, introduction, three things it does, payoff, button. The full arc, in our own colours.",
+    build: (s) =>
+      project("9:16", [
+        newClip({
+          text: "Tired of losing what you just had?",
+          animation: "fade-rise",
+          seconds: 3,
+          size: "l",
+          theme: "ink",
+        }),
+        newClip({
+          text: "You copy it.",
+          animation: "wipe-up",
+          seconds: 2.5,
+          elements: [el("chips-copied", 0.5, 0.7, { tone: "ink", delay: 0.2 })],
+        }),
+        newClip({
+          text: "You paste it somewhere else.",
+          animation: "wipe-up",
+          seconds: 2.5,
+          elements: [
+            el("arrow-right", 0.5, 0.7, { tone: "ink", delay: 0.2 }),
+          ],
+        }),
+        newClip({
+          text: "Then you need the first one again.",
+          secondary: "And it is gone.",
+          animation: "stack",
+          seconds: 3,
+          theme: "ink",
+          elements: [el("cross", 0.5, 0.74, { tone: "paper", delay: 0.5 }),],
+        }),
+        newClip({
+          text: "VoxClip",
+          secondary: "Everything you copy or say, one keystroke away.",
+          animation: "spotlight",
+          seconds: 3.5,
+          size: "l",
+          elements: [el("mark", 0.5, 0.34, { tone: "ink", delay: 0.1 })],
+        }),
+        newClip({
+          text: "It keeps what you copy.",
+          animation: "fade-rise",
+          seconds: 3.5,
+          note: "Record: the Timeline filling up as you copy two or three things. Three seconds is enough.",
+        }),
+        newClip({
+          text: "And what you say.",
+          animation: "fade-rise",
+          seconds: 3.5,
+          note: "Record: dictating one sentence and watching it land in the same list.",
+          elements: [el("waveform", 0.5, 0.78, { tone: "teal", delay: 0.2 })],
+        }),
+        newClip({
+          text: "Two keys to get it back.",
+          animation: "hold",
+          seconds: 4,
+          note: "Record: the Quick-picker opening and one item going in. This is the shot the whole video is for.",
+          elements: [
+            el("key-1", 0.38, 0.8, { tone: "ink", delay: 0.15 }),
+            el("key-wide", 0.62, 0.8, { tone: "teal", delay: 0.3 }),
+          ],
+        }),
+        newClip({
+          text: "It stays on your machine.",
+          secondary: "Free for Mac and Windows.",
+          animation: "letter-fade",
+          seconds: 3.5,
+          elements: [
+            el("badge-mac", 0.36, 0.78, { tone: "ink", delay: 0.2 }),
+            el("badge-win", 0.64, 0.78, { tone: "ink", delay: 0.35 }),
+          ],
+        }),
+        closer(s),
+      ]),
+  },
+];
