@@ -14,6 +14,13 @@ import {
   LAUNCH_STARTERS,
   THIRTY_SECOND,
 } from "./launch-starters";
+import {
+  AUDIENCE_LIBRARY,
+  DEMO_LIBRARY,
+  EXPLAINER_LIBRARY,
+  FEATURE_LIBRARY,
+  OBJECTION_LIBRARY,
+} from "./library";
 import { newClip, type Clip, type Project } from "./project";
 import { SHORT_STARTERS } from "./shorts";
 import type { RatioKey } from "./timeline";
@@ -339,28 +346,127 @@ export const DEMO_STARTERS: Starter[] = [
 export const ALL_STARTERS: Starter[] = [
   ...STARTERS,
   ...DEMO_STARTERS,
+  ...DEMO_LIBRARY,
   ...LAUNCH_STARTERS,
   ...EXPLAINER_STARTERS,
+  ...EXPLAINER_LIBRARY,
+  ...OBJECTION_LIBRARY,
+  ...AUDIENCE_LIBRARY,
+  ...FEATURE_LIBRARY,
   ...THIRTY_SECOND,
   ...SHORT_STARTERS,
 ];
 
 /**
- * The starting points in three families, for the picker.
+ * The starting points in families, for the picker.
  *
- * Order is the order you meet them: the plain shapes first, then the ones that
- * frame a real recording, then the launch set. Names are short because they sit
- * in a dropdown.
+ * Each family gets a sentence, because a label alone does not tell you when to
+ * reach for it. The picker shows these as columns rather than as one long list:
+ * at a hundred and fifty, a dropdown stops being a menu and becomes a haystack.
+ *
+ * Order is the order you need them. What is this and why does it exist come
+ * first, because that is the video nobody has made yet.
  */
-export const STARTER_GROUPS: { label: string; starters: Starter[] }[] = [
-  { label: "Shapes", starters: STARTERS },
-  { label: "Demos, needs your footage", starters: DEMO_STARTERS },
-  { label: "Launch, first weeks", starters: LAUNCH_STARTERS },
-  { label: "Explainers, no footage needed", starters: EXPLAINER_STARTERS },
-  { label: "The full arc", starters: THIRTY_SECOND },
-  { label: "Shorts, fourteen seconds", starters: SHORT_STARTERS },
+export interface StarterGroup {
+  label: string;
+  /** One line on when to reach for this family. */
+  blurb: string;
+  /** True when every starter here waits for a screen recording. */
+  needsFootage: boolean;
+  starters: Starter[];
+}
+
+export const STARTER_GROUPS: StarterGroup[] = [
+  {
+    label: "What it is",
+    blurb: "The plain answers. Nothing to record, nothing to film.",
+    needsFootage: false,
+    starters: [...EXPLAINER_LIBRARY, ...EXPLAINER_STARTERS],
+  },
+  {
+    label: "How it works",
+    blurb: "Each one frames one real recording. This is the set that converts.",
+    needsFootage: true,
+    starters: [...DEMO_LIBRARY, ...DEMO_STARTERS],
+  },
+  {
+    label: "Questions people ask",
+    blurb: "Answer the objection before anyone has to type it.",
+    needsFootage: false,
+    starters: OBJECTION_LIBRARY,
+  },
+  {
+    label: "Who it is for",
+    blurb: "One job, one moment they recognise.",
+    needsFootage: false,
+    starters: AUDIENCE_LIBRARY,
+  },
+  {
+    label: "One feature at a time",
+    blurb: "A single thing it does, held long enough to land.",
+    needsFootage: false,
+    starters: FEATURE_LIBRARY,
+  },
+  {
+    label: "Launch, first weeks",
+    blurb: "For an account with no followers and no reviews yet.",
+    needsFootage: false,
+    starters: LAUNCH_STARTERS,
+  },
+  {
+    label: "Shorts, fourteen seconds",
+    blurb: "Fifty in one shape. Post them daily without repeating yourself.",
+    needsFootage: false,
+    starters: SHORT_STARTERS,
+  },
+  {
+    label: "Shapes",
+    blurb: "Empty forms to pour your own brief into.",
+    needsFootage: false,
+    starters: STARTERS,
+  },
+  {
+    label: "The full arc",
+    blurb: "Thirty seconds, the whole story. For a pinned post.",
+    needsFootage: false,
+    starters: THIRTY_SECOND,
+  },
 ];
 
 export function starterBySlug(slug: string): Starter | undefined {
   return ALL_STARTERS.find((starter) => starter.slug === slug);
+}
+
+/**
+ * What the picker prints under a name.
+ *
+ * Built rather than declared: the length and the shape are properties of the
+ * clips, so asking the project is the only way they cannot drift from it.
+ */
+export interface StarterMeta {
+  seconds: number;
+  ratio: RatioKey;
+  clipCount: number;
+  /** How many clips wait for footage. Zero means you can export it today. */
+  shotsToRecord: number;
+}
+
+export function starterMeta(starter: Starter, source: StarterSource): StarterMeta {
+  const project = starter.build(source);
+  return {
+    seconds: project.clips.reduce((total, clip) => total + clip.seconds, 0),
+    ratio: project.ratio,
+    clipCount: project.clips.length,
+    shotsToRecord: project.clips.filter((clip) =>
+      (clip.note ?? "").toLowerCase().startsWith("record"),
+    ).length,
+  };
+}
+
+/** Free-text match over the name, the intent and the family. */
+export function matchesQuery(starter: Starter, family: string, query: string): boolean {
+  const needle = query.trim().toLowerCase();
+  if (needle.length === 0) return true;
+  const haystack = `${starter.name} ${starter.intent} ${family}`.toLowerCase();
+  return needle.split(/\s+/).every((word) => haystack.includes(word));
 }

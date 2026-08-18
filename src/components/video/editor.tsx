@@ -31,10 +31,11 @@ import {
 import { RATIOS, type RatioKey } from "@/lib/video/timeline";
 import {
   ALL_STARTERS,
-  STARTER_GROUPS,
   starterBySlug,
+  starterMeta,
   type StarterSource,
 } from "@/lib/video/starters";
+import { StarterBrowser } from "./starter-browser";
 
 const FPS = 30;
 
@@ -67,6 +68,7 @@ export function VideoEditor({
   const [openId, setOpenId] = useState<string>("");
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [paletteGroup, setPaletteGroup] = useState<string>(ELEMENT_GROUPS[0]);
+  const [browsing, setBrowsing] = useState(false);
 
   const timeline = useMemo(() => timelineOf(project), [project]);
   const totalMs = Math.round(totalSeconds(project) * 1000);
@@ -373,32 +375,27 @@ export function VideoEditor({
         {/* project settings */}
         <aside className="space-y-4">
           {/*
-            Twenty-three starting points as twenty-three buttons was a wall.
-            One list, grouped, with the description of the selected one below
-            it, and a separate button to apply. Separate on purpose: picking a
-            starting point throws away what is on the timeline, and that should
-            take two deliberate clicks rather than one stray one.
+            A dropdown held twenty-three. It cannot hold a hundred and fifty:
+            you only ever find what you already knew was in there. So the aside
+            shows the current choice and opens a browser with families, search
+            and cards. Applying stays a separate, deliberate click, because a
+            starting point throws away what is on the timeline.
           */}
           <div>
-            <label htmlFor="starter" className="block text-sm font-medium">
-              Start from
-            </label>
-            <select
-              id="starter"
-              value={starterSlug}
-              onChange={(e) => setStarterSlug(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+            <span className="block text-sm font-medium">Start from</span>
+
+            <button
+              type="button"
+              onClick={() => setBrowsing(true)}
+              className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-left text-sm hover:border-ink"
             >
-              {STARTER_GROUPS.map((group) => (
-                <optgroup key={group.label} label={group.label}>
-                  {group.starters.map((s) => (
-                    <option key={s.slug} value={s.slug}>
-                      {s.name}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+              <span className="block font-medium">
+                {selectedStarter ? selectedStarter.name : "Pick a starting point"}
+              </span>
+              <span className="mt-0.5 block text-xs text-ink-muted">
+                {ALL_STARTERS.length} to choose from — browse or search
+              </span>
+            </button>
 
             {selectedStarter ? (
               <p className="mt-1.5 text-xs text-ink-muted">
@@ -419,7 +416,14 @@ export function VideoEditor({
               Use this starting point
             </button>
             <p className="mt-1 text-xs text-ink-faint">
-              Replaces the timeline. Undo with ⌘Z.
+              {selectedStarter
+                ? (() => {
+                    const meta = starterMeta(selectedStarter, source);
+                    return meta.shotsToRecord > 0
+                      ? `${meta.shotsToRecord} clip${meta.shotsToRecord === 1 ? "" : "s"} wait for your recording.`
+                      : "No footage needed. Export it today.";
+                  })()
+                : "Replaces the timeline. Undo with ⌘Z."}
             </p>
           </div>
 
@@ -1036,6 +1040,23 @@ export function VideoEditor({
             </p>
           ) : null}
         </div>
+      ) : null}
+
+      {browsing ? (
+        <StarterBrowser
+          source={source}
+          selectedSlug={starterSlug}
+          onSelect={setStarterSlug}
+          onClose={() => setBrowsing(false)}
+          onApply={() => {
+            const starter = starterBySlug(starterSlug);
+            if (!starter) return;
+            edit(() => starter.build(source));
+            setMs(0);
+            setPlaying(false);
+            setBrowsing(false);
+          }}
+        />
       ) : null}
     </div>
   );
