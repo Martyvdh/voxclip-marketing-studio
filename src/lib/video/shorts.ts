@@ -18,6 +18,7 @@
  * downloadt controleert het meteen.
  */
 
+import { closerFor, hashSlug, showsMark } from "./closers";
 import { newClip, type Project } from "./project";
 import type { Starter, StarterSource } from "./starters";
 
@@ -32,51 +33,88 @@ export interface Short {
 }
 
 /**
- * De vorm. Veertien seconden, vijf clips.
+ * Vijf vormen, niet één.
  *
- * De afsluiter is overal woordelijk gelijk. Bij vijftig video's op één account
- * is die herhaling geen luiheid maar het enige dat ze tot één ding maakt.
+ * Dit was één vorm voor alle vijftig: haakje, kennismaking, reden, payoff,
+ * afsluiter, altijd op Ink, altijd dezelfde vier animaties. Vijftig video's die
+ * na de tweede niet meer te onderscheiden waren — en de laatste zes seconden
+ * waren woordelijk en beeldelijk gelijk.
+ *
+ * Nu bepaalt de slug welke van de vijf vormen je krijgt. Vast, niet willekeurig,
+ * zodat een export herhaalbaar blijft. Dezelfde woorden, ander beeld.
  */
 function buildShort(short: Short, s: StarterSource): Project {
+  const slug = `short-${short.slug}`;
+  const shape = hashSlug(slug) % 5;
+  const cta = closerFor(slug, s);
+
+  // 0 — de oorspronkelijke: opbouw in vier tellen, donker.
+  if (shape === 0) {
+    return {
+      ratio: "9:16",
+      showMark: showsMark(slug),
+      clips: [
+        newClip({ text: short.hook, animation: "fade-rise", seconds: 3, size: "l", theme: "ink" }),
+        newClip({ text: "Meet VoxClip.", secondary: short.meet, animation: "wipe-up", seconds: 2.5, theme: "ink" }),
+        newClip({ text: "Why you need it", secondary: short.why, animation: "stack", seconds: 3, theme: "ink" }),
+        newClip({ text: "One Timeline. Local.", animation: "letter-fade", seconds: 3, theme: "ink" }),
+        cta,
+      ],
+    };
+  }
+
+  // 1 — het haakje krijgt bijna alles. Eén lange stilte, dan de klap.
+  if (shape === 1) {
+    return {
+      ratio: "9:16",
+      showMark: showsMark(slug),
+      clips: [
+        newClip({ text: short.hook, animation: "typeline", seconds: 5, size: "l" }),
+        newClip({ text: short.meet, animation: "zoom-in", seconds: 2.5, size: "l", theme: "ink" }),
+        newClip({ text: short.why, animation: "wipe-up", seconds: 3 }),
+        cta,
+      ],
+    };
+  }
+
+  // 2 — snel lijstje, links, licht. Zes korte tellen.
+  if (shape === 2) {
+    return {
+      ratio: "9:16",
+      showMark: showsMark(slug),
+      clips: [
+        newClip({ text: short.hook, animation: "slide-left", seconds: 2.2, align: "left", size: "l" }),
+        newClip({ text: "So.", animation: "hold", seconds: 0.7, size: "s", align: "left" }),
+        newClip({ text: short.meet, animation: "slide-left", seconds: 2.2, align: "left", theme: "ink" }),
+        newClip({ text: short.why, animation: "slide-left", seconds: 2.4, align: "left" }),
+        newClip({ text: "Local. Free.", animation: "word-pop", seconds: 1.6, size: "l", theme: "ink" }),
+        cta,
+      ],
+    };
+  }
+
+  // 3 — vierkant, groot, twee tellen. Voor de tijdlijn, niet voor de For You.
+  if (shape === 3) {
+    return {
+      ratio: "1:1",
+      showMark: showsMark(slug),
+      clips: [
+        newClip({ text: short.hook, animation: "word-pop", seconds: 3.5, size: "l", theme: "ink" }),
+        newClip({ text: short.why, animation: "spotlight", seconds: 3.5, size: "l" }),
+        cta,
+      ],
+    };
+  }
+
+  // 4 — vraag en antwoord, heen en weer tussen donker en licht.
   return {
     ratio: "9:16",
-    showMark: true,
+    showMark: showsMark(slug),
     clips: [
-      newClip({
-        text: short.hook,
-        animation: "fade-rise",
-        seconds: 3,
-        size: "l",
-        theme: "ink",
-      }),
-      newClip({
-        text: "Meet VoxClip.",
-        secondary: short.meet,
-        animation: "wipe-up",
-        seconds: 2.5,
-        theme: "ink",
-      }),
-      newClip({
-        text: "Why you need it",
-        secondary: short.why,
-        animation: "stack",
-        seconds: 3,
-        theme: "ink",
-      }),
-      newClip({
-        text: "One Timeline. Local.",
-        secondary: "voxclip.it · Mac & Windows",
-        animation: "letter-fade",
-        seconds: 3,
-        theme: "ink",
-      }),
-      newClip({
-        text: s.ctaLabel,
-        secondary: "free · Mac & Windows · voxclip.it",
-        animation: "hold",
-        seconds: 2.5,
-        theme: "ink",
-      }),
+      newClip({ text: short.hook, animation: "stack", seconds: 3, theme: "ink", align: "left" }),
+      newClip({ text: short.meet, animation: "letter-fade", seconds: 2.5, size: "l" }),
+      newClip({ text: short.why, animation: "spotlight", seconds: 3, theme: "ink", align: "left" }),
+      cta,
     ],
   };
 }

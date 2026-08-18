@@ -21,6 +21,7 @@ import {
   FEATURE_LIBRARY,
   OBJECTION_LIBRARY,
 } from "./library";
+import { closerFor, showsMark } from "./closers";
 import { newClip, type Clip, type Project } from "./project";
 import { SHORT_STARTERS } from "./shorts";
 import type { RatioKey } from "./timeline";
@@ -343,6 +344,38 @@ export const DEMO_STARTERS: Starter[] = [
   },
 ];
 
+/**
+ * Zorgt dat het einde per startpunt verschilt.
+ *
+ * Twee exports naast elkaar waren vanaf seconde acht niet te onderscheiden:
+ * elke video sloot af met dezelfde mark, dezelfde regel en dezelfde knop. In een
+ * video van veertien seconden was dat bijna de helft.
+ *
+ * Dit staat hier en niet in elke familie apart, want dan vergeet de volgende
+ * familie het. Eén plek, en niemand kan eromheen.
+ *
+ * Idempotent: families die `closerFor` al zelf gebruiken krijgen exact dezelfde
+ * clip terug. Startpunten met één clip blijven ongemoeid — "Blank" is een leeg
+ * canvas en geen afsluiter.
+ */
+function withVariedEnding(starter: Starter): Starter {
+  return {
+    ...starter,
+    build: (source) => {
+      const project = starter.build(source);
+      if (project.clips.length < 2) return project;
+
+      const clips = [...project.clips];
+      clips[clips.length - 1] = {
+        ...closerFor(starter.slug, source),
+        id: clips[clips.length - 1].id,
+      };
+
+      return { ...project, showMark: showsMark(starter.slug), clips };
+    },
+  };
+}
+
 export const ALL_STARTERS: Starter[] = [
   ...STARTERS,
   ...DEMO_STARTERS,
@@ -355,7 +388,15 @@ export const ALL_STARTERS: Starter[] = [
   ...FEATURE_LIBRARY,
   ...THIRTY_SECOND,
   ...SHORT_STARTERS,
-];
+].map(withVariedEnding);
+
+/** De startpunten op slug, zodat de families in de kiezer dezelfde gevarieerde
+ *  versie tonen als de editor bouwt. */
+const BY_SLUG = new Map(ALL_STARTERS.map((starter) => [starter.slug, starter]));
+
+function varied(list: Starter[]): Starter[] {
+  return list.map((starter) => BY_SLUG.get(starter.slug) ?? starter);
+}
 
 /**
  * The starting points in families, for the picker.
@@ -381,55 +422,55 @@ export const STARTER_GROUPS: StarterGroup[] = [
     label: "What it is",
     blurb: "The plain answers. Nothing to record, nothing to film.",
     needsFootage: false,
-    starters: [...EXPLAINER_LIBRARY, ...EXPLAINER_STARTERS],
+    starters: varied([...EXPLAINER_LIBRARY, ...EXPLAINER_STARTERS]),
   },
   {
     label: "How it works",
     blurb: "Each one frames one real recording. This is the set that converts.",
     needsFootage: true,
-    starters: [...DEMO_LIBRARY, ...DEMO_STARTERS],
+    starters: varied([...DEMO_LIBRARY, ...DEMO_STARTERS]),
   },
   {
     label: "Questions people ask",
     blurb: "Answer the objection before anyone has to type it.",
     needsFootage: false,
-    starters: OBJECTION_LIBRARY,
+    starters: varied(OBJECTION_LIBRARY),
   },
   {
     label: "Who it is for",
     blurb: "One job, one moment they recognise.",
     needsFootage: false,
-    starters: AUDIENCE_LIBRARY,
+    starters: varied(AUDIENCE_LIBRARY),
   },
   {
     label: "One feature at a time",
     blurb: "A single thing it does, held long enough to land.",
     needsFootage: false,
-    starters: FEATURE_LIBRARY,
+    starters: varied(FEATURE_LIBRARY),
   },
   {
     label: "Launch, first weeks",
     blurb: "For an account with no followers and no reviews yet.",
     needsFootage: false,
-    starters: LAUNCH_STARTERS,
+    starters: varied(LAUNCH_STARTERS),
   },
   {
     label: "Shorts, fourteen seconds",
     blurb: "Fifty in one shape. Post them daily without repeating yourself.",
     needsFootage: false,
-    starters: SHORT_STARTERS,
+    starters: varied(SHORT_STARTERS),
   },
   {
     label: "Shapes",
     blurb: "Empty forms to pour your own brief into.",
     needsFootage: false,
-    starters: STARTERS,
+    starters: varied(STARTERS),
   },
   {
     label: "The full arc",
     blurb: "Thirty seconds, the whole story. For a pinned post.",
     needsFootage: false,
-    starters: THIRTY_SECOND,
+    starters: varied(THIRTY_SECOND),
   },
 ];
 

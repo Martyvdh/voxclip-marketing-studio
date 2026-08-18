@@ -36,38 +36,57 @@ describe("de vijftig shorts", () => {
   });
 });
 
-describe("de vorm is bij alle vijftig gelijk", () => {
-  it("vijf clips, veertien seconden", () => {
+/**
+ * Hier stond dat alle vijftig gelijk moesten zijn: vijf clips, veertien
+ * seconden, overal donker, overal dezelfde afsluiter. Dat was de bedoeling en
+ * het was fout — vijftig video's die je na de tweede niet meer uit elkaar houdt.
+ *
+ * De eis is omgedraaid. Ze delen een stem, geen scherm.
+ */
+describe("de vijftig delen een stem, geen vorm", () => {
+  it("blijven kort genoeg voor een telefoon", () => {
     for (const starter of SHORT_STARTERS) {
-      const project = starter.build(source);
-      expect(project.clips, starter.slug).toHaveLength(5);
-      const total = project.clips.reduce((sum, c) => sum + c.seconds, 0);
-      expect(total, starter.slug).toBe(14);
+      const total = starter
+        .build(source)
+        .clips.reduce((sum, c) => sum + c.seconds, 0);
+      expect(total, starter.slug).toBeGreaterThanOrEqual(8);
+      expect(total, starter.slug).toBeLessThanOrEqual(16);
     }
   });
 
-  it("staat overal verticaal", () => {
-    for (const starter of SHORT_STARTERS) {
-      expect(starter.build(source).ratio).toBe("9:16");
-    }
+  it("komen in vijf verschillende vormen voor", () => {
+    const shapes = new Set(
+      SHORT_STARTERS.map((starter) => {
+        const project = starter.build(source);
+        return `${project.ratio}|${project.clips.length}|${project.clips[0].animation}`;
+      }),
+    );
+    expect(shapes.size).toBeGreaterThanOrEqual(5);
   });
 
-  it("is overal donker", () => {
-    for (const starter of SHORT_STARTERS) {
-      for (const clip of starter.build(source).clips) {
-        expect(clip.theme, starter.slug).toBe("ink");
-      }
-    }
+  it("staan niet allemaal verticaal en niet allemaal donker", () => {
+    const projects = SHORT_STARTERS.map((s) => s.build(source));
+    expect(new Set(projects.map((p) => p.ratio)).size).toBeGreaterThan(1);
+    const themes = new Set(projects.flatMap((p) => p.clips.map((c) => c.theme)));
+    expect(themes.size).toBeGreaterThan(1);
   });
 
-  it("eindigt overal met dezelfde afsluiter", () => {
-    // Bij vijftig video's op een account is die herhaling het enige dat ze
-    // tot een ding maakt.
+  it("eindigen wel allemaal met de link in het bijschrift", () => {
+    // Dit is het stuk herhaling dat wel moet blijven: nergens een link in beeld.
     for (const starter of SHORT_STARTERS) {
       const clips = starter.build(source).clips;
-      expect(clips[clips.length - 1].text).toBe("Try it free");
-      expect(clips[clips.length - 1].secondary).toContain("voxclip.it");
+      expect(clips[clips.length - 1].note, starter.slug).toContain("caption");
     }
+  });
+
+  it("gebruiken niet allemaal dezelfde afsluiter", () => {
+    const endings = new Set(
+      SHORT_STARTERS.map((s) => {
+        const clips = s.build(source).clips;
+        return clips[clips.length - 1].text;
+      }),
+    );
+    expect(endings.size).toBeGreaterThanOrEqual(4);
   });
 });
 

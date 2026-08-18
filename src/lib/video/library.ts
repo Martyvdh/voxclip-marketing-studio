@@ -16,22 +16,21 @@
  * lange regel dwars doorheen. `layout.test.ts` bewaakt dat.
  */
 
+import { closerFor, hashSlug, showsMark } from "./closers";
 import { newClip, type Project } from "./project";
 import type { Starter, StarterSource } from "./starters";
 
-const CTA_NOTE =
-  "The link is not drawn on the video. It goes in the caption, tagged, so the click can be measured.";
-
-/** Overal dezelfde afsluiter. Bij honderdvijftig startpunten is die herhaling
- *  het enige dat ze tot één merk maakt. */
-const closer = (s: StarterSource) =>
-  newClip({
-    text: s.ctaLabel,
-    secondary: "voxclip.it",
-    animation: "hold",
-    seconds: 2,
-    note: CTA_NOTE,
-  });
+/**
+ * Elke familie heeft een eigen handschrift.
+ *
+ * Dit ontbrak en dat was te zien: alles was 9:16, alles opende op Ink, alles
+ * gebruikte dezelfde vier animaties en had dezelfde drie tellen. Honderdvijftig
+ * startpunten die één video zijn.
+ *
+ * Nu verschilt per familie de vorm, het ritme, de uitlijning en het palet, en
+ * binnen een familie wisselt het nog eens per startpunt. Dezelfde stem, andere
+ * zin.
+ */
 
 const el = (kind: string, x: number, y: number, tone: "ink" | "paper" | "teal", delay = 0.2) => ({
   id: `${kind}-${Math.round(x * 100)}-${Math.round(y * 100)}`,
@@ -85,21 +84,45 @@ export const DEMOS: DemoRow[] = [
   { slug: "settings-tour", setup: "Everything you can change.", during: "It fits on one screen.", payoff: "Nothing to configure to start.", record: "Record: a slow pass through the Settings tabs. Do not stop on any one." },
 ];
 
+/**
+ * Demo's: kort, kort, LANG, kort.
+ *
+ * De opname is het onderwerp, dus die krijgt de tijd en de rest niet. Links
+ * uitgelijnd en op Ink, zodat je meteen ziet dat dit een ander soort video is
+ * dan een uitlegger. Drie varianten wisselen elkaar af.
+ */
 function buildDemo(row: DemoRow, s: StarterSource): Project {
+  const slug = `demo-${row.slug}`;
+  const variant = hashSlug(slug) % 3;
+
+  const opener =
+    variant === 0
+      ? newClip({ text: row.setup, animation: "slide-left", seconds: 1.8, size: "l", align: "left", theme: "ink" })
+      : variant === 1
+        ? newClip({ text: row.setup, animation: "typeline", seconds: 2.2, theme: "ink" })
+        : newClip({ text: row.setup, animation: "zoom-in", seconds: 1.5, size: "l" });
+
   return {
     ratio: "9:16",
-    showMark: true,
+    showMark: showsMark(slug),
     clips: [
-      newClip({ text: row.setup, animation: "fade-rise", seconds: 2.5, size: "l", theme: "ink" }),
+      opener,
       newClip({
         text: row.during,
-        animation: "wipe-up",
-        seconds: 4.5,
+        animation: "hold",
+        seconds: 5,
+        align: variant === 0 ? "left" : "center",
         note: row.record,
-        elements: [el("chips-copied", 0.5, 0.82, "paper")],
+        elements:
+          variant === 1 ? [el("frame-window", 0.5, 0.8, "paper", 0.1)] : [el("chips-copied", 0.5, 0.82, "paper")],
       }),
-      newClip({ text: row.payoff, animation: "letter-fade", seconds: 3 }),
-      closer(s),
+      newClip({
+        text: row.payoff,
+        animation: variant === 2 ? "word-pop" : "wipe-up",
+        seconds: 2,
+        size: "l",
+      }),
+      closerFor(slug, s),
     ],
   };
 }
@@ -136,20 +159,42 @@ export const EXPLAINERS: ExplainRow[] = [
   { slug: "how-to-start", question: "How do you start?", answer: "Download it. Copy something.", detail: "There is no step three." },
 ];
 
+/**
+ * Uitleggers: rustig en op Paper.
+ *
+ * Dit is de familie die tijd mag nemen — een vraag beantwoorden gaat niet
+ * sneller door hem sneller te knippen. Licht in plaats van donker, want dat
+ * onderscheidt hem meteen van de demo's.
+ */
 function buildExplainer(row: ExplainRow, s: StarterSource): Project {
+  const slug = `explain-${row.slug}`;
+  const variant = hashSlug(slug) % 3;
+
   return {
-    ratio: "9:16",
-    showMark: true,
+    ratio: variant === 2 ? "1:1" : "9:16",
+    showMark: showsMark(slug),
     clips: [
-      newClip({ text: row.question, animation: "typeline", seconds: 3, size: "l", theme: "ink" }),
-      newClip({ text: row.answer, animation: "fade-rise", seconds: 3.5 }),
+      newClip({
+        text: row.question,
+        animation: variant === 0 ? "typeline" : "fade-rise",
+        seconds: 3,
+        size: "l",
+        align: variant === 1 ? "left" : "center",
+      }),
+      newClip({
+        text: row.answer,
+        animation: variant === 1 ? "stack" : "wipe-up",
+        seconds: 3.5,
+        theme: "ink",
+        align: variant === 1 ? "left" : "center",
+      }),
       newClip({
         text: row.detail,
         animation: "letter-fade",
         seconds: 3,
-        elements: [el("rule-thin", 0.5, 0.8, "teal", 0.3)],
+        elements: variant === 0 ? [el("rule-thin", 0.5, 0.8, "teal", 0.3)] : [],
       }),
-      closer(s),
+      closerFor(slug, s),
     ],
   };
 }
@@ -180,21 +225,44 @@ export const OBJECTIONS: ObjectionRow[] = [
   { slug: "obj-team", objection: "Can my whole team use it?", reply: "Everyone installs their own.", proof: "It is built for one person's memory." },
 ];
 
+/**
+ * Bezwaren: heen en weer slaan tussen donker en licht.
+ *
+ * De vraag staat op Ink, het antwoord op Paper, het bewijs weer op Ink. Die
+ * flikkering is het handschrift van deze familie — je ziet aan het ritme al dat
+ * er iemand tegengesproken wordt.
+ */
 function buildObjection(row: ObjectionRow, s: StarterSource): Project {
+  const slug = row.slug;
+  const variant = hashSlug(slug) % 2;
+
   return {
     ratio: "9:16",
-    showMark: true,
+    showMark: showsMark(slug),
     clips: [
       newClip({
         text: row.objection,
-        animation: "stack",
-        seconds: 3.5,
+        animation: variant === 0 ? "stack" : "typeline",
+        seconds: 3,
         theme: "ink",
+        align: "left",
         elements: [el("quote-open", 0.18, 0.8, "paper", 0.1)],
       }),
-      newClip({ text: row.reply, animation: "wipe-up", seconds: 3, size: "l" }),
-      newClip({ text: row.proof, animation: "letter-fade", seconds: 3 }),
-      closer(s),
+      newClip({
+        text: row.reply,
+        animation: "zoom-in",
+        seconds: 2,
+        size: "l",
+      }),
+      newClip({
+        text: row.proof,
+        animation: "slide-left",
+        seconds: 2.5,
+        theme: "ink",
+        align: "left",
+        elements: variant === 1 ? [el("tick", 0.2, 0.82, "teal", 0.25)] : [],
+      }),
+      closerFor(slug, s),
     ],
   };
 }
@@ -225,20 +293,32 @@ export const AUDIENCES: AudienceRow[] = [
   { slug: "for-thinkers", who: "If your best ideas arrive walking", moment: "One keystroke and say it.", why: "It lands with everything else." },
 ];
 
+/**
+ * Voor wie: snel en klein.
+ *
+ * Vijf korte tellen achter elkaar in plaats van drie lange. Deze familie moet
+ * aanvoelen als iemand die een lijstje opdreunt en jou eruit pikt, dus de tekst
+ * is klein en de knip zit er strak op.
+ */
 function buildAudience(row: AudienceRow, s: StarterSource): Project {
+  const slug = `who-${row.slug}`;
+  const variant = hashSlug(slug) % 2;
+
   return {
-    ratio: "9:16",
-    showMark: true,
+    ratio: variant === 0 ? "9:16" : "1:1",
+    showMark: showsMark(slug),
     clips: [
-      newClip({ text: row.who, animation: "fade-rise", seconds: 2.5, size: "l" }),
-      newClip({ text: row.moment, animation: "stack", seconds: 3.5, theme: "ink" }),
+      newClip({ text: row.who, animation: "word-pop", seconds: 1.4, size: "s", align: "left" }),
+      newClip({ text: row.moment, animation: "slide-left", seconds: 2.2, align: "left", theme: "ink" }),
+      newClip({ text: "So?", animation: "hold", seconds: 0.8, size: "s" }),
       newClip({
         text: row.why,
-        animation: "wipe-up",
-        seconds: 3,
-        elements: [el("rule-thick", 0.5, 0.8, "teal", 0.25)],
+        animation: "spotlight",
+        seconds: 2.6,
+        size: "l",
+        elements: variant === 0 ? [el("rule-thick", 0.5, 0.8, "teal", 0.25)] : [],
       }),
-      closer(s),
+      closerFor(slug, s),
     ],
   };
 }
@@ -271,21 +351,42 @@ export const FEATURES: FeatureRow[] = [
   { slug: "feat-enhance", feature: "Enhance", what: "A rough spoken note, tidied up.", why: "Paste-ready. Plus." },
 ];
 
+/**
+ * Functies: één woord, groot, en dan stil.
+ *
+ * De enige familie die ook liggend voorkomt. Een 16:9 tussen vijftig staande
+ * video's valt op in je eigen overzicht, en je hebt hem nodig voor je site en
+ * je mails.
+ */
 function buildFeature(row: FeatureRow, s: StarterSource): Project {
+  const slug = row.slug;
+  const variant = hashSlug(slug) % 3;
+
   return {
-    ratio: row.square ? "1:1" : "9:16",
-    showMark: true,
+    ratio: row.square ? "1:1" : variant === 0 ? "16:9" : "9:16",
+    showMark: showsMark(slug),
     clips: [
-      newClip({ text: row.feature, animation: "word-pop", seconds: 2, size: "l" }),
-      newClip({ text: row.what, animation: "fade-rise", seconds: 3 }),
+      newClip({
+        text: row.feature,
+        animation: variant === 1 ? "letter-fade" : "word-pop",
+        seconds: 1.6,
+        size: "l",
+        theme: variant === 2 ? "ink" : "paper",
+      }),
+      newClip({
+        text: row.what,
+        animation: variant === 0 ? "slide-left" : "fade-rise",
+        seconds: 2.8,
+        align: variant === 0 ? "left" : "center",
+      }),
       newClip({
         text: row.why,
-        animation: "letter-fade",
-        seconds: 3,
-        theme: "ink",
-        elements: [el("rule-thin", 0.5, 0.8, "teal", 0.3)],
+        animation: "spotlight",
+        seconds: 2.6,
+        theme: variant === 2 ? "paper" : "ink",
+        elements: variant === 1 ? [el("underline", 0.5, 0.8, "teal", 0.3)] : [],
       }),
-      closer(s),
+      closerFor(slug, s),
     ],
   };
 }
