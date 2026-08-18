@@ -9,7 +9,7 @@
  * campaign never said.
  */
 
-import { LAUNCH_STARTERS } from "./launch-starters";
+import { EXPLAINER_STARTERS, LAUNCH_STARTERS } from "./launch-starters";
 import { newClip, type Clip, type Project } from "./project";
 import type { RatioKey } from "./timeline";
 
@@ -335,6 +335,7 @@ export const ALL_STARTERS: Starter[] = [
   ...STARTERS,
   ...DEMO_STARTERS,
   ...LAUNCH_STARTERS,
+  ...EXPLAINER_STARTERS,
 ];
 
 /**
@@ -348,6 +349,7 @@ export const STARTER_GROUPS: { label: string; starters: Starter[] }[] = [
   { label: "Shapes", starters: STARTERS },
   { label: "Demos, needs your footage", starters: DEMO_STARTERS },
   { label: "Launch, first weeks", starters: LAUNCH_STARTERS },
+  { label: "Explainers, no footage needed", starters: EXPLAINER_STARTERS },
 ];
 
 export function starterBySlug(slug: string): Starter | undefined {

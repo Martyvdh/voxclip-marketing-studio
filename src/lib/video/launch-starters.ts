@@ -421,3 +421,149 @@ export const LAUNCH_STARTERS: Starter[] = [
       ]),
   },
 ];
+
+/**
+ * Explainers that need no footage at all.
+ *
+ * There is a line here worth naming. A video that looks like a recording of
+ * VoxClip but is not one is a claim about the product, and if someone downloads
+ * on the strength of it and finds something else, you spent their trust at the
+ * only moment it mattered.
+ *
+ * These stay on the safe side of that line on purpose: shapes, keys and rules,
+ * never a rebuilt interface. Anyone can see it is a diagram. Nobody feels
+ * misled later. And it still shows what happens, which is the part that was
+ * actually being asked for.
+ *
+ * They exist so you have something to post this week. They are not a substitute
+ * for the four seconds of real recording, and the day that exists these move to
+ * second place.
+ */
+export const EXPLAINER_STARTERS: Starter[] = [
+  {
+    slug: "explain-two-keys",
+    name: "Explainer: two keys, no footage",
+    intent:
+      "Shows the idea with shapes rather than the app. Postable today, without a screen recording.",
+    build: (s) =>
+      project("9:16", [
+        newClip({
+          text: "You copy something.",
+          animation: "fade-rise",
+          seconds: 2,
+          elements: [el("chips-copied", 0.5, 0.68, { tone: "ink", delay: 0.2 })],
+        }),
+        newClip({
+          text: "Then something else.",
+          secondary: "The first one is gone.",
+          animation: "stack",
+          seconds: 3,
+          theme: "ink",
+          elements: [
+            el("chips-copied", 0.42, 0.66, { tone: "paper", delay: 0.1 }),
+            el("cross", 0.68, 0.66, { tone: "paper", delay: 0.5 }),
+          ],
+        }),
+        newClip({
+          text: "Two keys.",
+          animation: "spotlight",
+          seconds: 2.5,
+          size: "l",
+          elements: [
+            el("key-1", 0.38, 0.72, { tone: "ink", delay: 0.15 }),
+            el("key-wide", 0.62, 0.72, { tone: "teal", delay: 0.3 }),
+          ],
+        }),
+        newClip({
+          text: "It is back.",
+          animation: "letter-fade",
+          seconds: 2.5,
+          size: "l",
+          elements: [
+            el("tick", 0.5, 0.68, { tone: "teal", delay: 0.2 }),
+          ],
+        }),
+        closer(s),
+      ]),
+  },
+  {
+    slug: "explain-one-timeline",
+    name: "Explainer: two habits, one timeline",
+    intent:
+      "The wedge as a diagram. Two streams that turn out to be one. No footage needed.",
+    build: (s) =>
+      project("9:16", [
+        newClip({
+          text: "What you copy.",
+          animation: "fade-rise",
+          seconds: 2.5,
+          elements: [el("chips-copied", 0.5, 0.66, { tone: "ink", delay: 0.2 })],
+        }),
+        newClip({
+          text: "What you say.",
+          animation: "fade-rise",
+          seconds: 2.5,
+          elements: [el("waveform-wide", 0.5, 0.66, { tone: "ink", delay: 0.2 })],
+        }),
+        newClip({
+          text: "Same habit.",
+          secondary: "It crossed your screen and you will want it back.",
+          animation: "wipe-up",
+          seconds: 3.5,
+          theme: "ink",
+        }),
+        newClip({
+          text: "So it goes in one place.",
+          animation: "spotlight",
+          seconds: 3,
+          elements: [
+            el("rule-thick", 0.5, 0.62, { tone: "teal", delay: 0.2 }),
+            el("bracket-left", 0.28, 0.72, { tone: "ink", delay: 0.4 }),
+            el("bracket-right", 0.72, 0.72, { tone: "ink", delay: 0.4 }),
+          ],
+        }),
+        closer(s),
+      ]),
+  },
+  {
+    slug: "explain-stays-here",
+    name: "Explainer: it stays here",
+    intent:
+      "Privacy as a diagram: one machine, nothing leaving it. The strongest first video, and it needs no recording.",
+    build: (s) =>
+      project("9:16", [
+        newClip({
+          text: "It keeps everything you copy.",
+          animation: "stack",
+          seconds: 3,
+          theme: "ink",
+          elements: [el("frame-window", 0.5, 0.64, { tone: "paper", delay: 0.2 })],
+        }),
+        newClip({
+          text: "So where does it go?",
+          animation: "typeline",
+          seconds: 2.5,
+          theme: "ink",
+          elements: [
+            el("arrow-right", 0.7, 0.64, { tone: "paper", delay: 0.3 }),
+          ],
+        }),
+        newClip({
+          text: "Nowhere.",
+          animation: "spotlight",
+          seconds: 3,
+          size: "l",
+          elements: [
+            el("frame-window", 0.5, 0.66, { tone: "ink", delay: 0.1 }),
+            el("circle-highlight", 0.5, 0.66, { tone: "teal", delay: 0.4 }),
+          ],
+        }),
+        newClip({
+          text: "It stays on your machine.",
+          animation: "letter-fade",
+          seconds: 3,
+        }),
+        closer(s),
+      ]),
+  },
+];
