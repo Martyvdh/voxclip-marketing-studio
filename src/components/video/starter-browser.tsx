@@ -16,7 +16,9 @@
 import { useMemo, useState } from "react";
 
 import {
+  LATEST_BATCH,
   STARTER_GROUPS,
+  isNew,
   matchesQuery,
   starterMeta,
   type Starter,
@@ -191,6 +193,14 @@ export function StarterBrowser({
                           }`}
                         >
                           <span className="text-sm font-medium">
+                            {isNew(starter) ? (
+                              <span
+                                title={`Added ${LATEST_BATCH}`}
+                                className="mr-1.5 rounded bg-teal-wash px-1.5 py-0.5 align-middle text-[10px] font-semibold uppercase tracking-wide text-teal-deep"
+                              >
+                                New
+                              </span>
+                            ) : null}
                             {starter.name}
                           </span>
                           <span className="mt-1 text-xs text-ink-muted">

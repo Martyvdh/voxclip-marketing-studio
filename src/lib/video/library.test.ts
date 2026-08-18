@@ -10,7 +10,10 @@ import {
 import { MAX_CLIP_SECONDS, MIN_CLIP_SECONDS } from "./project";
 import {
   ALL_STARTERS,
+  LATEST_BATCH,
+  NEWEST_FIRST,
   STARTER_GROUPS,
+  isNew,
   matchesQuery,
   starterMeta,
 } from "./starters";
@@ -151,6 +154,59 @@ describe("starterMeta", () => {
   it("geeft de vorm door die het startpunt zelf koos", () => {
     const square = FEATURE_LIBRARY.find((s) => s.slug === "feat-templates");
     expect(square && starterMeta(square, source).ratio).toBe("1:1");
+  });
+});
+
+describe("nieuw terugvinden", () => {
+  it("geeft elk startpunt een lichting mee", () => {
+    for (const starter of ALL_STARTERS) {
+      expect(starter.added, starter.slug).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
+  });
+
+  it("zet de jongste lichting bovenaan", () => {
+    const dates = NEWEST_FIRST.map((s) => s.added ?? "");
+    expect(dates).toEqual([...dates].sort().reverse());
+    expect(NEWEST_FIRST[0].added).toBe(LATEST_BATCH);
+  });
+
+  it("markeert alleen de laatste lichting als nieuw", () => {
+    const marked = ALL_STARTERS.filter(isNew);
+    expect(marked.length).toBeGreaterThan(0);
+    expect(marked.length).toBeLessThan(ALL_STARTERS.length);
+    for (const starter of marked) {
+      expect(starter.added).toBe(LATEST_BATCH);
+    }
+  });
+
+  it("laat alles terugkomen in de lijst met alles", () => {
+    expect(NEWEST_FIRST).toHaveLength(ALL_STARTERS.length);
+  });
+
+  it("vindt de laatste lichting op het woord new", () => {
+    const hits = ALL_STARTERS.filter((s) => matchesQuery(s, "Recently added", "new"));
+    expect(hits.length).toBe(ALL_STARTERS.filter(isNew).length);
+  });
+
+  it("laat new een filter zijn en geen zoekwoord", () => {
+    // "Launch: why I built this" zegt "A new product has no reviews" en komt uit
+    // de eerste lichting. Die mag niet meekomen bij zoeken op nieuw.
+    const july = ALL_STARTERS.find((s) => s.slug === "launch-why-built");
+    expect(july && isNew(july)).toBe(false);
+    expect(july && matchesQuery(july, "Launch", "new")).toBe(false);
+  });
+
+  it("combineert new met een gewoon woord", () => {
+    const hits = ALL_STARTERS.filter((s) => matchesQuery(s, "x", "new snippets"));
+    expect(hits.length).toBeGreaterThan(0);
+    for (const hit of hits) {
+      expect(isNew(hit), hit.slug).toBe(true);
+    }
+  });
+
+  it("vindt een lichting op datum", () => {
+    const hits = ALL_STARTERS.filter((s) => matchesQuery(s, "x", LATEST_BATCH));
+    expect(hits.length).toBe(ALL_STARTERS.filter((s) => s.added === LATEST_BATCH).length);
   });
 });
 

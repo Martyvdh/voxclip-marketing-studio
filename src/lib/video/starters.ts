@@ -42,6 +42,23 @@ export interface Starter {
   name: string;
   intent: string;
   build: (s: StarterSource) => Project;
+  /**
+   * De dag waarop dit startpunt erbij kwam, als `JJJJ-MM-DD`.
+   *
+   * Zonder datum is "nieuw" een gevoel, en bij honderdvijftig stuks kun je niet
+   * meer zien wat er vorige week bij is gezet. Ontbreekt hij, dan hoort het bij
+   * de eerste lichting.
+   */
+  added?: string;
+}
+
+/** De eerste lichting, van voordat er data bij stonden. */
+const FIRST_BATCH = "2026-07-01";
+
+/** Hangt één datum aan een hele familie. Eén plek per lichting, in plaats van
+ *  honderd regels met dezelfde string erin. */
+function dated(list: Starter[], added: string): Starter[] {
+  return list.map((starter) => ({ ...starter, added: starter.added ?? added }));
 }
 
 function project(ratio: RatioKey, clips: Clip[]): Project {
@@ -377,18 +394,37 @@ function withVariedEnding(starter: Starter): Starter {
 }
 
 export const ALL_STARTERS: Starter[] = [
-  ...STARTERS,
-  ...DEMO_STARTERS,
-  ...DEMO_LIBRARY,
-  ...LAUNCH_STARTERS,
-  ...EXPLAINER_STARTERS,
-  ...EXPLAINER_LIBRARY,
-  ...OBJECTION_LIBRARY,
-  ...AUDIENCE_LIBRARY,
-  ...FEATURE_LIBRARY,
-  ...THIRTY_SECOND,
-  ...SHORT_STARTERS,
+  ...dated(STARTERS, FIRST_BATCH),
+  ...dated(DEMO_STARTERS, FIRST_BATCH),
+  ...dated(LAUNCH_STARTERS, FIRST_BATCH),
+  ...dated(EXPLAINER_STARTERS, FIRST_BATCH),
+  ...dated(THIRTY_SECOND, FIRST_BATCH),
+  ...dated(SHORT_STARTERS, "2026-08-17"),
+
+  // De vijf families van 18 augustus.
+  ...dated(DEMO_LIBRARY, "2026-08-18"),
+  ...dated(EXPLAINER_LIBRARY, "2026-08-18"),
+  ...dated(OBJECTION_LIBRARY, "2026-08-18"),
+  ...dated(AUDIENCE_LIBRARY, "2026-08-18"),
+  ...dated(FEATURE_LIBRARY, "2026-08-18"),
 ].map(withVariedEnding);
+
+/** De dag waarop er voor het laatst iets bij kwam. */
+export const LATEST_BATCH: string = ALL_STARTERS.reduce(
+  (latest, starter) => ((starter.added ?? "") > latest ? starter.added! : latest),
+  "",
+);
+
+/** Of dit startpunt uit de laatste lichting komt. */
+export function isNew(starter: Starter): boolean {
+  return starter.added === LATEST_BATCH;
+}
+
+/** Alles, jongste lichting eerst. Binnen een lichting blijft de eigen volgorde
+ *  staan, want die is met opzet gekozen. */
+export const NEWEST_FIRST: Starter[] = [...ALL_STARTERS].sort((a, b) =>
+  (b.added ?? "").localeCompare(a.added ?? ""),
+);
 
 /** De startpunten op slug, zodat de families in de kiezer dezelfde gevarieerde
  *  versie tonen als de editor bouwt. */
@@ -418,6 +454,12 @@ export interface StarterGroup {
 }
 
 export const STARTER_GROUPS: StarterGroup[] = [
+  {
+    label: "Recently added",
+    blurb: "Newest first. What arrived in the last batch is marked.",
+    needsFootage: false,
+    starters: NEWEST_FIRST,
+  },
   {
     label: "What it is",
     blurb: "The plain answers. Nothing to record, nothing to film.",
@@ -504,10 +546,27 @@ export function starterMeta(starter: Starter, source: StarterSource): StarterMet
   };
 }
 
-/** Free-text match over the name, the intent and the family. */
+/**
+ * Vrij zoeken over naam, bedoeling, familie en lichting.
+ *
+ * `new` is geen gewoon zoekwoord maar een filter. Als losse tekst zou het ook
+ * "A new product has no reviews" raken, en dan geeft zoeken op nieuw je een
+ * startpunt uit juli. Dus wordt het woord eruit gehaald en als voorwaarde
+ * gebruikt; wat overblijft zoekt gewoon door.
+ *
+ * De datum blijft wel gewone tekst, zodat `2026-08` een maand geeft.
+ */
 export function matchesQuery(starter: Starter, family: string, query: string): boolean {
-  const needle = query.trim().toLowerCase();
-  if (needle.length === 0) return true;
-  const haystack = `${starter.name} ${starter.intent} ${family}`.toLowerCase();
-  return needle.split(/\s+/).every((word) => haystack.includes(word));
+  const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return true;
+
+  const wantsNew = words.includes("new");
+  if (wantsNew && !isNew(starter)) return false;
+
+  const rest = words.filter((word) => word !== "new");
+  if (rest.length === 0) return true;
+
+  const haystack =
+    `${starter.name} ${starter.intent} ${family} ${starter.added ?? ""}`.toLowerCase();
+  return rest.every((word) => haystack.includes(word));
 }
