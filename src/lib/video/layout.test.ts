@@ -47,6 +47,12 @@ describe("geen enkel startpunt zet iets in de tekstband", () => {
   it("plaatst elk element onder de tekst", () => {
     for (const starter of ALL_STARTERS) {
       for (const clip of starter.build(source).clips) {
+        // Een beat heeft geen tekst. Dan is er ook geen band om doorheen te
+        // lopen, en mag de vorm juist wel in het midden staan — dat is het enige
+        // beeld in de hele editor dat geen kop-op-vlak is.
+        const hasText = `${clip.text}${clip.secondary}`.trim().length > 0;
+        if (!hasText) continue;
+
         for (const element of clip.elements ?? []) {
           expect(
             sitsInTextBand(element.y),
@@ -55,5 +61,16 @@ describe("geen enkel startpunt zet iets in de tekstband", () => {
         }
       }
     }
+  });
+
+  it("laat een beat zijn vorm wel in het midden zetten", () => {
+    const withCentred = ALL_STARTERS.filter((starter) =>
+      starter.build(source).clips.some(
+        (clip) =>
+          `${clip.text}${clip.secondary}`.trim().length === 0 &&
+          (clip.elements ?? []).some((element) => sitsInTextBand(element.y)),
+      ),
+    );
+    expect(withCentred.length).toBeGreaterThan(0);
   });
 });

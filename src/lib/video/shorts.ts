@@ -18,6 +18,7 @@
  * downloadt controleert het meteen.
  */
 
+import { asideFor, beat, payoffFor } from "./beats";
 import { closerFor, hashSlug, showsMark } from "./closers";
 import { newClip, type Project } from "./project";
 import type { Starter, StarterSource } from "./starters";
@@ -48,16 +49,24 @@ function buildShort(short: Short, s: StarterSource): Project {
   const shape = hashSlug(slug) % 5;
   const cta = closerFor(slug, s);
 
-  // 0 — de oorspronkelijke: opbouw in vier tellen, donker.
+  // 0 — opbouw in drie tellen, donker.
+  //
+  // Hier stond een vaste stellage: "Meet VoxClip." boven de kennismaking, "Why
+  // you need it" boven de reden, en "One Timeline. Local." als vaste payoff. Die
+  // drie regels stonden in tien shorts woordelijk gelijk, waardoor twee video's
+  // uit verschillende groepen niet van elkaar te onderscheiden waren.
+  //
+  // Ze zijn weg. Een kop die aankondigt dat er zo iets gezegd wordt is een kop
+  // die je kunt schrappen — zeg het gewoon.
   if (shape === 0) {
     return {
       ratio: "9:16",
       showMark: showsMark(slug),
       clips: [
         newClip({ text: short.hook, animation: "fade-rise", seconds: 3, size: "l", theme: "ink" }),
-        newClip({ text: "Meet VoxClip.", secondary: short.meet, animation: "wipe-up", seconds: 2.5, theme: "ink" }),
-        newClip({ text: "Why you need it", secondary: short.why, animation: "stack", seconds: 3, theme: "ink" }),
-        newClip({ text: "One Timeline. Local.", animation: "letter-fade", seconds: 3, theme: "ink" }),
+        beat("short", { seconds: 0.6, theme: "paper" }),
+        newClip({ text: short.meet, animation: "wipe-up", seconds: 2.5, size: "l", theme: "ink" }),
+        newClip({ text: short.why, animation: "stack", seconds: 3 }),
         cta,
       ],
     };
@@ -70,6 +79,7 @@ function buildShort(short: Short, s: StarterSource): Project {
       showMark: showsMark(slug),
       clips: [
         newClip({ text: short.hook, animation: "typeline", seconds: 5, size: "l" }),
+        beat("short", { seconds: 0.5, theme: "ink" }),
         newClip({ text: short.meet, animation: "zoom-in", seconds: 2.5, size: "l", theme: "ink" }),
         newClip({ text: short.why, animation: "wipe-up", seconds: 3 }),
         cta,
@@ -84,10 +94,10 @@ function buildShort(short: Short, s: StarterSource): Project {
       showMark: showsMark(slug),
       clips: [
         newClip({ text: short.hook, animation: "slide-left", seconds: 2.2, align: "left", size: "l" }),
-        newClip({ text: "So.", animation: "hold", seconds: 0.7, size: "s", align: "left" }),
+        asideFor(slug),
         newClip({ text: short.meet, animation: "slide-left", seconds: 2.2, align: "left", theme: "ink" }),
         newClip({ text: short.why, animation: "slide-left", seconds: 2.4, align: "left" }),
-        newClip({ text: "Local. Free.", animation: "word-pop", seconds: 1.6, size: "l", theme: "ink" }),
+        newClip({ text: payoffFor(slug), animation: "word-pop", seconds: 1.6, size: "l", theme: "ink" }),
         cta,
       ],
     };
@@ -99,6 +109,7 @@ function buildShort(short: Short, s: StarterSource): Project {
       ratio: "1:1",
       showMark: showsMark(slug),
       clips: [
+        beat("short", { seconds: 0.5, theme: "paper" }),
         newClip({ text: short.hook, animation: "word-pop", seconds: 3.5, size: "l", theme: "ink" }),
         newClip({ text: short.why, animation: "spotlight", seconds: 3.5, size: "l" }),
         cta,
@@ -113,6 +124,7 @@ function buildShort(short: Short, s: StarterSource): Project {
     clips: [
       newClip({ text: short.hook, animation: "stack", seconds: 3, theme: "ink", align: "left" }),
       newClip({ text: short.meet, animation: "letter-fade", seconds: 2.5, size: "l" }),
+      beat("short", { seconds: 0.6, theme: "paper" }),
       newClip({ text: short.why, animation: "spotlight", seconds: 3, theme: "ink", align: "left" }),
       cta,
     ],

@@ -16,6 +16,7 @@
  * lange regel dwars doorheen. `layout.test.ts` bewaakt dat.
  */
 
+import { beat } from "./beats";
 import { closerFor, hashSlug, showsMark } from "./closers";
 import { newClip, type Project } from "./project";
 import type { Starter, StarterSource } from "./starters";
@@ -107,6 +108,7 @@ function buildDemo(row: DemoRow, s: StarterSource): Project {
     showMark: showsMark(slug),
     clips: [
       opener,
+      beat("demo", { seconds: variant === 2 ? 0.5 : 0.7, theme: variant === 1 ? "paper" : "ink" }),
       newClip({
         text: row.during,
         animation: "hold",
@@ -181,6 +183,7 @@ function buildExplainer(row: ExplainRow, s: StarterSource): Project {
         size: "l",
         align: variant === 1 ? "left" : "center",
       }),
+      beat("explain", { seconds: 0.6, theme: variant === 0 ? "paper" : "ink", tone: variant === 2 ? "ink" : "teal" }),
       newClip({
         text: row.answer,
         animation: variant === 1 ? "stack" : "wipe-up",
@@ -248,6 +251,7 @@ function buildObjection(row: ObjectionRow, s: StarterSource): Project {
         align: "left",
         elements: [el("quote-open", 0.18, 0.8, "paper", 0.1)],
       }),
+      beat("objection", { seconds: 0.5, theme: "paper" }),
       newClip({
         text: row.reply,
         animation: "zoom-in",
@@ -310,7 +314,7 @@ function buildAudience(row: AudienceRow, s: StarterSource): Project {
     clips: [
       newClip({ text: row.who, animation: "word-pop", seconds: 1.4, size: "s", align: "left" }),
       newClip({ text: row.moment, animation: "slide-left", seconds: 2.2, align: "left", theme: "ink" }),
-      newClip({ text: "So?", animation: "hold", seconds: 0.8, size: "s" }),
+      beat("audience", { seconds: 0.6, theme: variant === 0 ? "paper" : "ink" }),
       newClip({
         text: row.why,
         animation: "spotlight",
@@ -366,6 +370,7 @@ function buildFeature(row: FeatureRow, s: StarterSource): Project {
     ratio: row.square ? "1:1" : variant === 0 ? "16:9" : "9:16",
     showMark: showsMark(slug),
     clips: [
+      beat("feature", { seconds: 0.5, theme: variant === 2 ? "paper" : "ink" }),
       newClip({
         text: row.feature,
         animation: variant === 1 ? "letter-fade" : "word-pop",

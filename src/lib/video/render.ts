@@ -238,6 +238,13 @@ export function renderFrame(ctx: CanvasRenderingContext2D, input: RenderInput): 
   ].filter((b) => b.text.trim().length > 0);
 
   if (blocks.length === 0) {
+    // Een clip zonder tekst tekende niets, ook zijn elementen niet. Dat was een
+    // fout en het kostte de enige compositie die geen kop-op-vlak is: een beat
+    // van een halve seconde waarin alleen een vorm staat. Zonder tekst is er ook
+    // niets om doorheen te lopen, dus de ondergrens is nul en een element mag
+    // hier overal staan.
+    drawElements(ctx, clip, width, height, onDark, 0);
+
     if (input.showMark) {
       drawMark(ctx, safe.left, safe.top - height * 0.06, height * 0.035, onDark);
     }

@@ -81,6 +81,41 @@ describe("de startpunten lijken niet op elkaar", () => {
     }
   });
 
+  it("herhaalt geen vaste stellage", () => {
+    // Hier zat het echte probleem. "Meet VoxClip." en "Why you need it" stonden
+    // in tien shorts woordelijk gelijk, dus twee video's uit verschillende
+    // groepen waren niet uit elkaar te houden. De afsluiter mag herhalen — dat
+    // is het merk — dus die telt niet mee.
+    // Regels die uit de campagne komen tellen niet mee: die verschillen per
+    // campagne, en dat ze hier gelijk zijn komt door de testwaarden.
+    const fromCampaign = new Set(Object.values(source));
+
+    const lines = new Map<string, number>();
+    for (const { project } of built) {
+      for (const clip of project.clips.slice(0, -1)) {
+        const text = clip.text.trim();
+        if (text.length === 0 || fromCampaign.has(text)) continue;
+        lines.set(text, (lines.get(text) ?? 0) + 1);
+      }
+    }
+    for (const [line, n] of lines) {
+      expect(n, `"${line}" staat in ${n} startpunten`).toBeLessThanOrEqual(4);
+    }
+  });
+
+  it("zet een beat tussen de koppen", () => {
+    const withBeat = built.filter((b) =>
+      b.project.clips.some(
+        (clip) =>
+          `${clip.text}${clip.secondary}`.trim().length === 0 &&
+          (clip.elements ?? []).length > 0,
+      ),
+    );
+    // Niet overal: een beat in elke video is zelf weer een vaste vorm.
+    expect(withBeat.length).toBeGreaterThan(built.length * 0.4);
+    expect(withBeat.length).toBeLessThan(built.length);
+  });
+
   it("gebruikt beide uitlijningen", () => {
     const aligns = new Set(
       built.flatMap((b) => b.project.clips.map((c) => c.align)),
