@@ -20,6 +20,7 @@ import {
   SIGNAL_TEAL,
 } from "./render-colours";
 import type { ClipAt } from "./project";
+import { breathe, crossfadeAlpha, kenBurns, progressWidth } from "./polish";
 import { RATIOS, easeInOut, safeArea, type RatioKey } from "./timeline";
 
 export * from "./render-colours";
@@ -38,6 +39,13 @@ export interface RenderInput {
   showMark: boolean;
   /** Resolved element for this clip's media, when there is one and it is ready. */
   media?: MediaSource | null;
+  /**
+   * Waar we in de hele video zitten. Alleen voor het streepje onderin.
+   *
+   * Optioneel, zodat een losse preview van een clip niets stuk maakt.
+   */
+  elapsedMs?: number;
+  totalMs?: number;
 }
 
 const SIZE_SCALE: Record<string, number> = { s: 0.052, m: 0.068, l: 0.086 };
@@ -191,11 +199,31 @@ export function renderFrame(ctx: CanvasRenderingContext2D, input: RenderInput): 
   ctx.fillRect(0, 0, width, height);
 
   if (hasMedia && input.media && clip?.media) {
+    // Langzame inzoom op het beeld. Een stilstaande opname onder bewegende
+    // tekst leest als een screenshot met tekst erop.
+    const burns = kenBurns(clip.progress);
+    ctx.save();
+    ctx.translate(width / 2, height / 2);
+    ctx.scale(burns.scale, burns.scale);
+    ctx.translate(
+      -width / 2 + burns.offsetX * width,
+      -height / 2 + burns.offsetY * height,
+    );
     drawMedia(ctx, input.media, clip.media.fit, width, height);
+    ctx.restore();
+
     if (clip.media.dim > 0) {
       ctx.fillStyle = `rgba(20, 24, 31, ${Math.min(0.85, clip.media.dim)})`;
       ctx.fillRect(0, 0, width, height);
     }
+  }
+
+  // Zachte wissel. Onder de tweehonderd milliseconden ziet een harde snede er
+  // goedkoop uit; erboven kijk je naar de overgang in plaats van erdoorheen.
+  const sinceStart = clip ? clip.progress * clip.durationMs : Infinity;
+  const entering = crossfadeAlpha(sinceStart);
+  if (entering < 1) {
+    ctx.globalAlpha = entering;
   }
 
   if (!clip) {
@@ -212,8 +240,19 @@ export function renderFrame(ctx: CanvasRenderingContext2D, input: RenderInput): 
     if (input.showMark) {
       drawMark(ctx, safe.left, safe.top - height * 0.06, height * 0.035, onDark);
     }
+    drawProgress(ctx, input, width, height, onDark);
     ctx.restore();
     return;
+  }
+
+  // Nauwelijks zichtbare beweging op een verder stilstaand tekstbeeld. Een
+  // volkomen stil frame leest op een telefoon als een screenshot, en daar
+  // scrollen mensen langs.
+  if (!hasMedia) {
+    const grow = breathe(clip.progress);
+    ctx.translate(width / 2, height / 2);
+    ctx.scale(grow, grow);
+    ctx.translate(-width / 2, -height / 2);
   }
 
   const maxWidth = safe.right - safe.left;
@@ -290,6 +329,11 @@ export function renderFrame(ctx: CanvasRenderingContext2D, input: RenderInput): 
   }
 
   ctx.restore();
+
+  // Buiten de restore, want het streepje mag niet meeademen of meefaden.
+  ctx.save();
+  drawProgress(ctx, input, width, height, onDark);
+  ctx.restore();
 }
 
 /**
@@ -327,4 +371,36 @@ function drawElements(
     });
     ctx.restore();
   }
+}
+
+/**
+ * Het streepje onderin dat zegt hoe ver de video is.
+ *
+ * Waarom het er hoort: op een verticaal kanaal beslist iemand in de eerste
+ * seconde of hij blijft kijken. Zien dat het bijna klaar is, is een reden om
+ * te blijven, en het kost twee pixels.
+ */
+function drawProgress(
+  ctx: CanvasRenderingContext2D,
+  input: RenderInput,
+  width: number,
+  height: number,
+  onDark: boolean,
+): void {
+  if (input.totalMs === undefined || input.elapsedMs === undefined) return;
+  if (input.totalMs <= 0) return;
+
+  const thickness = Math.max(2, Math.round(height * 0.004));
+  const y = height - thickness;
+
+  ctx.save();
+  ctx.globalAlpha = onDark ? 0.22 : 0.14;
+  ctx.fillStyle = onDark ? "#F7F7F5" : "#1C2230";
+  ctx.fillRect(0, y, width, thickness);
+  ctx.restore();
+
+  ctx.save();
+  ctx.fillStyle = "#12B3A6";
+  ctx.fillRect(0, y, progressWidth(input.elapsedMs, input.totalMs, width), thickness);
+  ctx.restore();
 }

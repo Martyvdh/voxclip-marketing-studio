@@ -98,7 +98,14 @@ export function VideoEditor({
 
       const clip = clipAt(project, at);
       const media = clip?.media ? (mediaRef.current.get(clip.id) ?? null) : null;
-      renderFrame(ctx, { clip, ratio: project.ratio, showMark: project.showMark, media });
+      renderFrame(ctx, {
+        clip,
+        ratio: project.ratio,
+        showMark: project.showMark,
+        media,
+        elapsedMs: at,
+        totalMs: Math.round(totalSeconds(project) * 1000),
+      });
     },
     [project],
   );
