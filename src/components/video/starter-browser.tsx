@@ -245,6 +245,11 @@ export function StarterBrowser({
                           een knop is voor een schermlezer onzin, en met de muis
                           klik je dan per ongeluk het startpunt aan terwijl je
                           alleen wilde markeren.
+
+                          Hij is altijd zichtbaar. Eerst verscheen een lege ster
+                          pas bij zweven, en dan bestaat de functie niet voor wie
+                          er niet toevallig overheen gaat — of op een aanraak-
+                          scherm zit, want daar is geen zweven.
                         */}
                         <button
                           type="button"
@@ -259,7 +264,7 @@ export function StarterBrowser({
                           className={`absolute right-2 top-2 z-10 rounded-md px-1.5 py-0.5 text-base leading-none ${
                             starred
                               ? "text-teal-deep"
-                              : "text-ink-faint opacity-0 hover:text-ink focus:opacity-100 group-hover:opacity-100"
+                              : "text-ink-faint hover:text-ink"
                           }`}
                         >
                           {starred ? "★" : "☆"}
