@@ -336,3 +336,20 @@ export const ALL_STARTERS: Starter[] = [
   ...DEMO_STARTERS,
   ...LAUNCH_STARTERS,
 ];
+
+/**
+ * The starting points in three families, for the picker.
+ *
+ * Order is the order you meet them: the plain shapes first, then the ones that
+ * frame a real recording, then the launch set. Names are short because they sit
+ * in a dropdown.
+ */
+export const STARTER_GROUPS: { label: string; starters: Starter[] }[] = [
+  { label: "Shapes", starters: STARTERS },
+  { label: "Demos, needs your footage", starters: DEMO_STARTERS },
+  { label: "Launch, first weeks", starters: LAUNCH_STARTERS },
+];
+
+export function starterBySlug(slug: string): Starter | undefined {
+  return ALL_STARTERS.find((starter) => starter.slug === slug);
+}

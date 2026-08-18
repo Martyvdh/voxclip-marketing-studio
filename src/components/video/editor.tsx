@@ -29,7 +29,12 @@ import {
   type Project,
 } from "@/lib/video/project";
 import { RATIOS, type RatioKey } from "@/lib/video/timeline";
-import { ALL_STARTERS, type StarterSource } from "@/lib/video/starters";
+import {
+  ALL_STARTERS,
+  STARTER_GROUPS,
+  starterBySlug,
+  type StarterSource,
+} from "@/lib/video/starters";
 
 const FPS = 30;
 
@@ -48,6 +53,8 @@ export function VideoEditor({
   const mediaRef = useRef(new Map<string, MediaSource>());
 
   const [project, setProject] = useState<Project>(() => ALL_STARTERS[0].build(source));
+  const [starterSlug, setStarterSlug] = useState(ALL_STARTERS[0].slug);
+  const selectedStarter = starterBySlug(starterSlug);
   const [history, setHistory] = useState<Project[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [ms, setMs] = useState(0);
@@ -358,25 +365,55 @@ export function VideoEditor({
 
         {/* project settings */}
         <aside className="space-y-4">
+          {/*
+            Twenty-three starting points as twenty-three buttons was a wall.
+            One list, grouped, with the description of the selected one below
+            it, and a separate button to apply. Separate on purpose: picking a
+            starting point throws away what is on the timeline, and that should
+            take two deliberate clicks rather than one stray one.
+          */}
           <div>
-            <span className="block text-sm font-medium">Start from</span>
-            <div className="mt-1 grid gap-1.5">
-              {ALL_STARTERS.map((s) => (
-                <button
-                  key={s.slug}
-                  type="button"
-                  onClick={() => {
-                    edit(() => s.build(source));
-                    setMs(0);
-                    setPlaying(false);
-                  }}
-                  className="rounded-lg border border-line bg-surface px-3 py-2 text-left text-sm hover:border-ink"
-                >
-                  {s.name}
-                  <span className="block text-xs text-ink-muted">{s.intent}</span>
-                </button>
+            <label htmlFor="starter" className="block text-sm font-medium">
+              Start from
+            </label>
+            <select
+              id="starter"
+              value={starterSlug}
+              onChange={(e) => setStarterSlug(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm"
+            >
+              {STARTER_GROUPS.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.starters.map((s) => (
+                    <option key={s.slug} value={s.slug}>
+                      {s.name}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
-            </div>
+            </select>
+
+            {selectedStarter ? (
+              <p className="mt-1.5 text-xs text-ink-muted">
+                {selectedStarter.intent}
+              </p>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!selectedStarter) return;
+                edit(() => selectedStarter.build(source));
+                setMs(0);
+                setPlaying(false);
+              }}
+              className="mt-2 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium hover:border-ink"
+            >
+              Use this starting point
+            </button>
+            <p className="mt-1 text-xs text-ink-faint">
+              Replaces the timeline. Undo with ⌘Z.
+            </p>
           </div>
 
           <div>

@@ -1,16 +1,16 @@
 /**
- * Startpunten voor de eerste weken van een nieuw product.
+ * Starting points for the first weeks of a product nobody has heard of.
  *
- * Het probleem bij een lancering is niet de montage, het is dat je voor een
- * leeg account staat en niet weet wat de eerste video moet zijn. Deze twaalf
- * zijn de gesprekken die je in die eerste weken hoe dan ook voert: wat is het,
- * waarom bestaat het, is dit niet gewoon een plakbord, wat kost het, waar blijft
- * mijn data.
+ * The hard part of a launch is not the editing, it is standing in front of an
+ * empty account with no idea what the first video should be. These twelve are
+ * the conversations you end up having anyway: what is this, why does it exist,
+ * isn't this just a clipboard manager, what does it cost, where does my stuff
+ * go.
  *
- * Geen enkele tekent de app na. Waar het scherm te zien moet zijn staat een
- * notitie met wat je opneemt en hoe lang. Dat is geen beperking van de editor
- * maar de regel uit AGENTS.md: een beeld dat op het product lijkt is een
- * uitspraak over het product.
+ * None of them draws the app. Where the screen should be seen there is a note
+ * saying what to record and for how long. That is not a limitation of the
+ * editor; it is the rule from AGENTS.md, because a picture that looks like the
+ * product is a claim about the product.
  */
 
 import { newClip, type Clip, type Project } from "./project";
@@ -22,7 +22,7 @@ function project(ratio: RatioKey, clips: Clip[]): Project {
 }
 
 const CTA_NOTE =
-  "De link staat niet in beeld. Die gaat in het bijschrift, getagd, zodat de klik geteld kan worden.";
+  "The link is not drawn on the video. It goes in the caption, tagged, so the click can be measured.";
 
 const el = (
   kind: string,
@@ -45,7 +45,7 @@ const el = (
   delay: over.delay ?? 0.15,
 });
 
-/** De afsluiter is overal hetzelfde, want herhaling werkt bij een lancering. */
+/** The same close everywhere. Repetition is what a launch is made of. */
 const closer = (s: StarterSource) =>
   newClip({
     text: s.ctaLabel,
@@ -59,27 +59,27 @@ const closer = (s: StarterSource) =>
 export const LAUNCH_STARTERS: Starter[] = [
   {
     slug: "launch-what-is-it",
-    name: "Lancering: wat is dit, in acht seconden",
+    name: "Launch: what is this, in eight seconds",
     intent:
-      "De eerste video op een leeg account. Iemand die je niet kent moet in acht seconden snappen wat het is.",
+      "The first video on an empty account. Someone who has never heard of you has eight seconds to get it.",
     build: (s) =>
       project("9:16", [
         newClip({
-          text: "Alles wat je kopieert of zegt.",
-          secondary: "Op één plek.",
+          text: "Everything you copy or say.",
+          secondary: "In one place.",
           animation: "fade-rise",
           seconds: 2.5,
           size: "l",
         }),
         newClip({
-          text: "Eén tijdlijn. Eén zoekveld.",
+          text: "One timeline. One search.",
           animation: "wipe-up",
           seconds: 4,
-          note: "Opnemen: open de Timeline, scroll er kort doorheen. Vier seconden, één take, geen muisgeklungel.",
+          note: "Record: open the Timeline and scroll through it briefly. Four seconds, one take, no fumbling with the mouse.",
           elements: [el("chips-copied", 0.5, 0.82, { tone: "paper", delay: 0.2 })],
         }),
         newClip({
-          text: "Gratis voor Mac en Windows.",
+          text: "Free for Mac and Windows.",
           animation: "letter-fade",
           seconds: 2.5,
           elements: [
@@ -92,9 +92,9 @@ export const LAUNCH_STARTERS: Starter[] = [
   },
   {
     slug: "launch-why-built",
-    name: "Lancering: waarom ik dit gebouwd heb",
+    name: "Launch: why I built this",
     intent:
-      "Een nieuw product heeft geen reviews. Het enige dat je in week één hebt is waarom het bestaat.",
+      "A new product has no reviews. In week one the only thing you have is why it exists.",
     build: (s) =>
       project("9:16", [
         newClip({
@@ -104,11 +104,11 @@ export const LAUNCH_STARTERS: Starter[] = [
           theme: "ink",
         }),
         newClip({
-          text: "Daar bestond niets voor.",
-          secondary: "Dus heb ik het gemaakt.",
+          text: "Nothing did that.",
+          secondary: "So I made it.",
           animation: "fade-rise",
           seconds: 3.5,
-          note: "Optioneel: jezelf in beeld, of gewoon je scherm. Iets echts werkt hier beter dan iets moois.",
+          note: "Optional: yourself on camera, or just your screen. Something real beats something polished here.",
         }),
         newClip({
           text: s.promise,
@@ -121,42 +121,41 @@ export const LAUNCH_STARTERS: Starter[] = [
   },
   {
     slug: "launch-not-a-clipboard",
-    name: "Lancering: nee, dit is geen plakbordbeheerder",
+    name: "Launch: no, this is not a clipboard manager",
     intent:
-      "De eerste reactie die je gaat krijgen, vóór iemand hem stelt beantwoord.",
+      "The first reply you are going to get. Answer it before anyone asks.",
     build: (s) =>
       project("9:16", [
         newClip({
-          text: "Is dit niet gewoon een plakbordbeheerder?",
+          text: "Isn't this just a clipboard manager?",
           animation: "typeline",
           seconds: 3,
           theme: "ink",
           elements: [el("quote-open", 0.18, 0.32, { tone: "paper", delay: 0.1 })],
         }),
         newClip({
-          text: "Kopiëren en iets zeggen zijn dezelfde gewoonte.",
-          secondary: "Het kwam langs en je hebt het zo weer nodig.",
+          text: "Copying and saying something are the same habit.",
+          secondary: "It crossed your screen and you will want it back.",
           animation: "wipe-up",
           seconds: 4,
         }),
         newClip({
-          text: "Daarom staan ze in dezelfde tijdlijn.",
+          text: "So they live in the same timeline.",
           animation: "spotlight",
           seconds: 4.5,
-          note: "Opnemen: één tijdlijn waarin een gekopieerde regel en een ingesproken notitie naast elkaar staan. Dit is het hele punt, neem er de tijd voor.",
+          note: "Record: one timeline with a copied line and a dictated note sitting next to each other. This is the whole point, so take your time.",
         }),
         closer(s),
       ]),
   },
   {
     slug: "launch-two-keystrokes",
-    name: "Lancering: twee toetsaanslagen",
-    intent:
-      "Snelheid laat je zien, niet vertellen. Kortste video van de reeks.",
+    name: "Launch: two keystrokes",
+    intent: "Speed is shown, not described. The shortest one in the set.",
     build: (s) =>
       project("9:16", [
         newClip({
-          text: "Van 'waar was dat' naar geplakt.",
+          text: "From where was that to pasted.",
           animation: "fade-rise",
           seconds: 2,
           size: "l",
@@ -165,7 +164,7 @@ export const LAUNCH_STARTERS: Starter[] = [
           text: "",
           animation: "hold",
           seconds: 4,
-          note: "Opnemen: de Quick-picker openen, kiezen, plakken. Geen tekst in beeld, alleen de handeling. Als het langer dan vier seconden duurt, doe het opnieuw.",
+          note: "Record: open the Quick-picker, pick, paste. No text on screen, just the action. If it takes longer than four seconds, do it again.",
           elements: [
             el("key-cmd", 0.34, 0.8, { tone: "paper", delay: 0.1 }),
             el("key-shift", 0.5, 0.8, { tone: "paper", delay: 0.2 }),
@@ -173,7 +172,7 @@ export const LAUNCH_STARTERS: Starter[] = [
           ],
         }),
         newClip({
-          text: "Dat was het.",
+          text: "That was it.",
           animation: "letter-fade",
           seconds: 2,
           size: "l",
@@ -183,59 +182,59 @@ export const LAUNCH_STARTERS: Starter[] = [
   },
   {
     slug: "launch-privacy",
-    name: "Lancering: het blijft op je eigen machine",
+    name: "Launch: it stays on your machine",
     intent:
-      "De vraag die iedereen stelt bij een app die alles vastlegt. Eerlijk en zonder omhaal.",
+      "The question everyone asks about an app that keeps everything. Answer it plainly.",
     build: (s) =>
       project("9:16", [
         newClip({
-          text: "Een app die alles bewaart wat je kopieert.",
-          secondary: "Waar gaat dat heen?",
+          text: "An app that keeps everything you copy.",
+          secondary: "Where does that go?",
           animation: "stack",
           seconds: 3.5,
           theme: "ink",
         }),
         newClip({
-          text: "Nergens heen.",
+          text: "Nowhere.",
           animation: "spotlight",
           seconds: 2.5,
           size: "l",
           elements: [el("circle-highlight", 0.5, 0.5, { tone: "teal", delay: 0.1 })],
         }),
         newClip({
-          text: "De tijdlijn staat op je eigen apparaat.",
-          secondary: "Wat je inspreekt gaat er nooit af.",
+          text: "The timeline lives on your device.",
+          secondary: "What you dictate never leaves it.",
           animation: "fade-rise",
           seconds: 4,
-          note: "Optioneel opnemen: de instelling waar dit staat. Alleen als het er echt zo staat.",
+          note: "Optional record: the setting where this is stated. Only if it really says that.",
         }),
         closer(s),
       ]),
   },
   {
     slug: "launch-free-vs-paid",
-    name: "Lancering: wat is gratis en wat kost geld",
+    name: "Launch: what is free and what costs money",
     intent:
-      "De eerlijke lijn, letterlijk. Dit is de video die je bij elke prijsvraag opnieuw kunt sturen.",
+      "The honest line, literally. Send this again every time someone asks about pricing.",
     build: (s) =>
       project("9:16", [
         newClip({
-          text: "Draait het op jouw machine?",
-          secondary: "Dan is het gratis.",
+          text: "Does it run on your machine?",
+          secondary: "Then it is free.",
           animation: "fade-rise",
           seconds: 3,
           elements: [el("badge-free", 0.5, 0.74, { tone: "teal", delay: 0.2 })],
         }),
         newClip({
-          text: "Heeft het onze servers nodig?",
-          secondary: "Dan betaal je ervoor.",
+          text: "Does it need our servers?",
+          secondary: "Then you pay for it.",
           animation: "wipe-up",
           seconds: 3,
           theme: "ink",
           elements: [el("badge-plus", 0.5, 0.74, { tone: "paper", delay: 0.2 })],
         }),
         newClip({
-          text: "Dat is de hele regel.",
+          text: "That is the whole rule.",
           animation: "letter-fade",
           seconds: 2.5,
           size: "l",
@@ -245,25 +244,25 @@ export const LAUNCH_STARTERS: Starter[] = [
   },
   {
     slug: "launch-before-after",
-    name: "Lancering: hoe het was, hoe het is",
+    name: "Launch: how it was, how it is",
     intent:
-      "Twee opnames naast elkaar. Werkt zonder geluid, en dat is hoe de meeste mensen kijken.",
+      "Two recordings side by side. Works with the sound off, which is how most people watch.",
     build: (s) =>
       project("9:16", [
         newClip({
-          text: "Eerst",
+          text: "Before",
           animation: "hold",
           seconds: 5,
           theme: "ink",
-          note: "Opnemen: het gedoe. Drie vensters langs om iets terug te vinden. Overdrijf niet, één echte zoektocht is genoeg.",
-          elements: [el("label-mono", 0.18, 0.16, { tone: "paper", text: "EERST" })],
+          note: "Record: the mess. Three windows to find one thing. Do not exaggerate, one real search is enough.",
+          elements: [el("label-mono", 0.18, 0.16, { tone: "paper", text: "BEFORE" })],
         }),
         newClip({
-          text: "Nu",
+          text: "Now",
           animation: "hold",
           seconds: 4,
-          note: "Opnemen: dezelfde handeling met VoxClip. Zelfde begin, zelfde eind, veel korter.",
-          elements: [el("label-mono", 0.18, 0.16, { tone: "ink", text: "NU" })],
+          note: "Record: the same task with VoxClip. Same start, same end, much shorter.",
+          elements: [el("label-mono", 0.18, 0.16, { tone: "ink", text: "NOW" })],
         }),
         newClip({
           text: s.payoff,
@@ -276,30 +275,30 @@ export const LAUNCH_STARTERS: Starter[] = [
   },
   {
     slug: "launch-day-in-the-life",
-    name: "Lancering: drie momenten op een dag",
+    name: "Launch: three moments in a day",
     intent:
-      "Drie korte fragmenten in plaats van één demo. Laat zien dat het een gewoonte is en geen truc.",
+      "Three short clips instead of one demo. Shows it is a habit rather than a trick.",
     build: (s) =>
       project("9:16", [
         newClip({
-          text: "Ochtend",
+          text: "Morning",
           animation: "fade-rise",
           seconds: 3.5,
-          note: "Opnemen: iets kopiëren dat je later nodig hebt. Een adres, een code.",
+          note: "Record: copying something you will need later. An address, a code.",
           elements: [el("step-1", 0.2, 0.16, { tone: "ink" })],
         }),
         newClip({
-          text: "Tussendoor",
+          text: "Somewhere in between",
           animation: "fade-rise",
           seconds: 3.5,
-          note: "Opnemen: een gedachte inspreken zonder ergens naartoe te navigeren.",
+          note: "Record: dictating a thought without navigating anywhere first.",
           elements: [el("step-2", 0.2, 0.16, { tone: "ink" })],
         }),
         newClip({
-          text: "Als je het nodig hebt",
+          text: "When you need it",
           animation: "wipe-up",
           seconds: 4,
-          note: "Opnemen: allebei terugvinden in dezelfde tijdlijn en plakken.",
+          note: "Record: finding both in the same timeline and pasting one.",
           elements: [el("step-3", 0.2, 0.16, { tone: "teal" })],
         }),
         closer(s),
@@ -307,28 +306,28 @@ export const LAUNCH_STARTERS: Starter[] = [
   },
   {
     slug: "launch-talk-to-stash",
-    name: "Lancering: vraag het aan je eigen geschiedenis",
+    name: "Launch: ask your own history",
     intent:
-      "De betaalde held. Alleen maken als de functie echt draait in de build die je opneemt.",
+      "The paid hero. Only make this if the feature really runs in the build you record.",
     build: (s) =>
       project("9:16", [
         newClip({
-          text: "Je weet dat je het hebt gehad.",
-          secondary: "Alleen niet meer waar.",
+          text: "You know you had it.",
+          secondary: "Just not where.",
           animation: "stack",
           seconds: 3.5,
           theme: "ink",
         }),
         newClip({
-          text: "Vraag het gewoon.",
+          text: "So ask.",
           animation: "typeline",
           seconds: 5,
-          note: "Opnemen: hardop een vraag stellen over je eigen geschiedenis en het antwoord krijgen. Neem alleen op wat de app echt doet.",
+          note: "Record: asking a question out loud about your own history and getting the answer. Record only what the app actually does.",
           elements: [el("waveform-wide", 0.5, 0.8, { tone: "teal", delay: 0.1 })],
         }),
         newClip({
-          text: "Dit zit in VoxClip Plus.",
-          secondary: "Zeven dagen proberen.",
+          text: "This is in VoxClip Plus.",
+          secondary: "Seven days to try it.",
           animation: "letter-fade",
           seconds: 3,
           elements: [el("badge-plus", 0.5, 0.74, { tone: "ink", delay: 0.2 })],
@@ -338,27 +337,27 @@ export const LAUNCH_STARTERS: Starter[] = [
   },
   {
     slug: "launch-install",
-    name: "Lancering: installeren in dertig seconden",
+    name: "Launch: installed in thirty seconds",
     intent:
-      "Inclusief de waarschuwing van je besturingssysteem, want die komt en die schrikt mensen af.",
+      "Including the warning from the operating system, because it comes and it scares people off.",
     build: (s) =>
       project("9:16", [
         newClip({
-          text: "Downloaden en starten.",
+          text: "Download it and open it.",
           animation: "fade-rise",
           seconds: 4,
-          note: "Opnemen: de download en de eerste start. Kort.",
+          note: "Record: the download and the first launch. Keep it short.",
         }),
         newClip({
-          text: "Je krijgt een waarschuwing.",
-          secondary: "Die betekent: onbekende maker, niet: gevaarlijk.",
+          text: "You will get a warning.",
+          secondary: "It means unverified developer, not harmful.",
           animation: "wipe-up",
           seconds: 4.5,
           theme: "ink",
-          note: "Opnemen: het echte scherm van Gatekeeper of SmartScreen, en hoe je verdergaat. Verstop dit niet, het is de reden dat mensen afhaken.",
+          note: "Record: the real Gatekeeper or SmartScreen screen, and how you get past it. Do not hide this. It is the reason people give up.",
         }),
         newClip({
-          text: "Ondertekenen staat op de lijst.",
+          text: "Signing is on the list.",
           animation: "letter-fade",
           seconds: 2.5,
         }),
@@ -367,9 +366,9 @@ export const LAUNCH_STARTERS: Starter[] = [
   },
   {
     slug: "launch-one-feature",
-    name: "Lancering: één functie, één minuut",
+    name: "Launch: one feature, one minute",
     intent:
-      "Het formaat dat je twintig keer kunt herhalen. Per keer één ding, nooit twee.",
+      "The format you can repeat twenty times. One thing per video, never two.",
     build: (s) =>
       project("9:16", [
         newClip({
@@ -382,7 +381,7 @@ export const LAUNCH_STARTERS: Starter[] = [
           text: "",
           animation: "hold",
           seconds: 6,
-          note: "Opnemen: die ene functie, van begin tot eind, zonder knippen. Zes seconden is lang genoeg om te volgen en kort genoeg om te blijven kijken.",
+          note: "Record: that one feature, start to finish, no cuts. Six seconds is long enough to follow and short enough to keep watching.",
           elements: [el("frame-window", 0.5, 0.5, { tone: "ink", delay: 0.05 })],
         }),
         newClip({
@@ -395,9 +394,9 @@ export const LAUNCH_STARTERS: Starter[] = [
   },
   {
     slug: "launch-square-recap",
-    name: "Lancering: vierkant, voor de feed",
+    name: "Launch: square, for the feed",
     intent:
-      "Dezelfde boodschap in 1:1 voor Instagram en LinkedIn. Werkt zonder geluid.",
+      "The same message in 1:1 for Instagram and LinkedIn. Works with the sound off.",
     build: (s) =>
       project("1:1", [
         newClip({
