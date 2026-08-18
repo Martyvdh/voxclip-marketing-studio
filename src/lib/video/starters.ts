@@ -15,6 +15,7 @@ import {
   THIRTY_SECOND,
 } from "./launch-starters";
 import { newClip, type Clip, type Project } from "./project";
+import { SHORT_STARTERS } from "./shorts";
 import type { RatioKey } from "./timeline";
 
 export interface StarterSource {
@@ -341,6 +342,7 @@ export const ALL_STARTERS: Starter[] = [
   ...LAUNCH_STARTERS,
   ...EXPLAINER_STARTERS,
   ...THIRTY_SECOND,
+  ...SHORT_STARTERS,
 ];
 
 /**
@@ -356,6 +358,7 @@ export const STARTER_GROUPS: { label: string; starters: Starter[] }[] = [
   { label: "Launch, first weeks", starters: LAUNCH_STARTERS },
   { label: "Explainers, no footage needed", starters: EXPLAINER_STARTERS },
   { label: "The full arc", starters: THIRTY_SECOND },
+  { label: "Shorts, fourteen seconds", starters: SHORT_STARTERS },
 ];
 
 export function starterBySlug(slug: string): Starter | undefined {
