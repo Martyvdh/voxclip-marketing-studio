@@ -57,7 +57,8 @@ confusion with the unrelated `voxclip.dev` CLI tool by another developer.
 ## Typography of copy
 
 - **No em dash and no en dash in public-facing copy.** Use a comma, a full stop, or a rewrite.
-- Hotkeys use key glyphs, Mac first: `⌘⇧Space`, then `Ctrl+Shift+V`.
+- Hotkeys use key glyphs, Mac first: `⌥Space`, then `Ctrl+Shift+V`. That is the Quick-picker.
+  `⌘⇧Space` starts dictation — do not use it as the recall shortcut.
 
 ## Naming
 

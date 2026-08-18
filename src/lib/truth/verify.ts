@@ -93,7 +93,7 @@ export function hotkeyWarning(kind: ClaimKind, value: string): string | null {
   if (kind !== "HOTKEY") return null;
   if (looksLikeHotkey(value)) return null;
 
-  return "Sneltoetsen schrijven we met de toetsen zelf: ⌘⇧Space op Mac, Ctrl+Shift+V op Windows. Klopt dit toch, laat het dan staan.";
+  return "Sneltoetsen schrijven we met de toetsen zelf: ⌥Space op Mac, Ctrl+Shift+V op Windows. Klopt dit toch, laat het dan staan.";
 }
 
 /**

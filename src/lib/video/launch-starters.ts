@@ -165,9 +165,8 @@ export const LAUNCH_STARTERS: Starter[] = [
           seconds: 4,
           note: "Record: open the Quick-picker, pick, paste. No text on screen, just the action. If it takes longer than four seconds, do it again.",
           elements: [
-            el("key-cmd", 0.34, 0.8, { tone: "paper", delay: 0.1 }),
-            el("key-shift", 0.5, 0.8, { tone: "paper", delay: 0.2 }),
-            el("key-wide", 0.68, 0.8, { tone: "teal", delay: 0.3 }),
+            el("key-opt", 0.4, 0.8, { tone: "paper", delay: 0.1 }),
+            el("key-wide", 0.6, 0.8, { tone: "teal", delay: 0.25 }),
           ],
         }),
         newClip({

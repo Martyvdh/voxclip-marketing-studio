@@ -43,8 +43,8 @@ const gateContext: GateContext = {
       key: "hotkey.quickpicker.macos",
       kind: "HOTKEY",
       status: "UNVERIFIED",
-      value: "⌘⇧Space",
-      statement: "The Quick-picker opens with ⌘⇧Space on macOS.",
+      value: "⌥Space",
+      statement: "The Quick-picker opens with ⌥Space on macOS.",
       nextReviewAt: null,
     },
     {

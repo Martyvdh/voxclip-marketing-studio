@@ -47,8 +47,8 @@ function context(overrides: Partial<GateContext> = {}): GateContext {
         key: "hotkey.quickpicker.macos",
         kind: "HOTKEY",
         status: "UNVERIFIED",
-        value: "⌘⇧Space",
-        statement: "The Quick-picker opens with ⌘⇧Space on macOS.",
+        value: "⌥Space",
+        statement: "The Quick-picker opens with ⌥Space on macOS.",
         nextReviewAt: null,
       },
       {
@@ -276,7 +276,7 @@ describe("Product Truth rules", () => {
 
   it("blocks copy that states a hotkey while the hotkey claim is unverified", () => {
     const result = runQualityGate(
-      asset({ body: "Press ⌘⇧Space and your Timeline opens." }),
+      asset({ body: "Press ⌥Space and your Timeline opens." }),
       context(),
     );
     const finding = result.findings.find(

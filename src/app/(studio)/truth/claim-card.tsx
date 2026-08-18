@@ -29,7 +29,7 @@ const STATUS_STYLE: Record<string, { label: string; className: string }> = {
 };
 
 const VALUE_HINT: Partial<Record<ClaimKind, string>> = {
-  HOTKEY: "⌘⇧Space of Ctrl+Shift+V",
+  HOTKEY: "⌥Space of Ctrl+Shift+V",
   RELEASE: "0.4.2",
   PRICING: "6.99",
 };

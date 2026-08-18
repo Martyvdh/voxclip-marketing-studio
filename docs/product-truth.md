@@ -57,11 +57,15 @@ stale and blocks approval of any asset that depends on it.
 
 | Fact | Value | Confidence |
 | --- | --- | --- |
-| Quick-picker, macOS | `⌘⇧Space` | `NEEDS VERIFICATION` against the shipped default |
-| Quick-picker, Windows | `Ctrl+Shift+V` | `NEEDS VERIFICATION` against the shipped default |
+| Quick-picker, macOS | `⌥Space` | verified — Settings → Shortcuts, build 0.2.14, seen 18 August 2026 |
+| Start dictation, macOS | `⌘⇧Space` | verified — Settings → Shortcuts, build 0.2.14, seen 18 August 2026 |
+| Open Snippets, macOS | `⌥↑` | verified — Settings → Shortcuts, build 0.2.14, seen 18 August 2026 |
+| Quick-picker, Windows | `Ctrl+Shift+V` | `NEEDS VERIFICATION` — cannot be read from a Mac |
 
-> The audit found shortcut claims conflicting between the Studio, the product defaults, and the
-> public site. Until one source is confirmed, no asset may state a hotkey.
+> These were wrong until 18 August 2026. Every doc said the Quick-picker opened with `⌘⇧Space`;
+> in the shipped app that combination starts dictation. The Quick-picker is `⌥Space`. The two had
+> been swapped, and a launch video was drawing the wrong keycaps. Read the value off Settings →
+> Shortcuts in a release build, never off another document.
 
 ## Free tier — runs on your device, no account
 

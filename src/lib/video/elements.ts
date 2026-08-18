@@ -580,6 +580,7 @@ export const ELEMENTS: ElementDef[] = [
   { kind: "key-wide", name: "Wide key", group: "Keys", hasText: true, defaultText: "Space", draw: (d) => keycap(d, 84) },
   { kind: "key-shift", name: "Shift key", group: "Keys", hasText: false, draw: (d) => keycap({ ...d, text: "⇧" }, 40) },
   { kind: "key-cmd", name: "Command key", group: "Keys", hasText: false, draw: (d) => keycap({ ...d, text: "⌘" }, 40) },
+  { kind: "key-opt", name: "Option key", group: "Keys", hasText: false, draw: (d) => keycap({ ...d, text: "⌥" }, 40) },
   { kind: "key-ctrl", name: "Control key", group: "Keys", hasText: false, draw: (d) => keycap({ ...d, text: "Ctrl" }, 52) },
 
   // Callouts

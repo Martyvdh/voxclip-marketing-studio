@@ -16,7 +16,7 @@ describe("validateVerification", () => {
   const input = (over: Partial<Parameters<typeof validateVerification>[0]> = {}) =>
     validateVerification({
       kind: "HOTKEY",
-      value: "⌘⇧Space",
+      value: "⌥Space",
       checkedAgainst: "Build 0.4.2 op deze Mac",
       ...over,
     });
@@ -99,7 +99,7 @@ describe("de reviewdatum hangt af van hoe snel iets veroudert", () => {
 
 describe("sneltoetsen worden geschreven zoals brand.md het vraagt", () => {
   it("herkent Mac-glyphs", () => {
-    expect(looksLikeHotkey("⌘⇧Space")).toBe(true);
+    expect(looksLikeHotkey("⌥Space")).toBe(true);
     expect(looksLikeHotkey("⌥⌘V")).toBe(true);
   });
 
@@ -114,7 +114,7 @@ describe("sneltoetsen worden geschreven zoals brand.md het vraagt", () => {
 
   it("waarschuwt, maar blokkeert niet", () => {
     const warning = hotkeyWarning("HOTKEY", "command shift spatie");
-    expect(warning).toMatch(/⌘⇧Space/);
+    expect(warning).toMatch(/⌥Space/);
     expect(warning).toMatch(/laat het dan staan/i);
   });
 
