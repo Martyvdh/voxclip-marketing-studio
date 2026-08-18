@@ -9,6 +9,7 @@
  * campaign never said.
  */
 
+import { LAUNCH_STARTERS } from "./launch-starters";
 import { newClip, type Clip, type Project } from "./project";
 import type { RatioKey } from "./timeline";
 
@@ -330,4 +331,8 @@ export const DEMO_STARTERS: Starter[] = [
   },
 ];
 
-export const ALL_STARTERS: Starter[] = [...STARTERS, ...DEMO_STARTERS];
+export const ALL_STARTERS: Starter[] = [
+  ...STARTERS,
+  ...DEMO_STARTERS,
+  ...LAUNCH_STARTERS,
+];
