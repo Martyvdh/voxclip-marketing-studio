@@ -32,21 +32,30 @@ function shape(kind: string, tone: Tone, scale: number) {
   };
 }
 
-/** De vormen die alleen staan. Elk hoort bij een familie, zodat je aan het
- *  tussenbeeld al ziet wat voor video je kijkt. */
+/**
+ * De vormen die alleen staan.
+ *
+ * Eerst stonden hier kaders op halve schermgrootte in teal. Dat leest niet als
+ * een leesteken maar als een leeg vak dat nog gevuld moet worden — en het brak
+ * de merkregel dat teal één klein element is, hooguit een tiende van het beeld.
+ *
+ * Dus: klein, en geen kaders. Een kader is een gat; een streep of een paar
+ * punten is een adempauze. De schaal blijft onder de één, want alles daarboven
+ * begint te concurreren met de tekst ervoor en erna.
+ */
 export const BEATS: Record<string, { kind: string; scale: number }> = {
-  /** Demo's: het venster waar je opname in komt. */
-  demo: { kind: "frame-window", scale: 2.2 },
-  /** Uitleggers: de chip, rustig en groot. */
-  explain: { kind: "frame-chip", scale: 2 },
-  /** Bezwaren: het sluitingsteken van een citaat. */
-  objection: { kind: "quote-close", scale: 2.4 },
+  /** Demo's: de golf van wat je zo gaat opnemen. */
+  demo: { kind: "waveform", scale: 0.8 },
+  /** Uitleggers: één streep. Zo rustig als het wordt. */
+  explain: { kind: "rule-thick", scale: 0.9 },
+  /** Bezwaren: een plus, alsof er iets aan toegevoegd wordt. */
+  objection: { kind: "plus", scale: 0.6 },
   /** Voor wie: drie punten, alsof er iemand nadenkt. */
-  audience: { kind: "dots-3", scale: 2 },
-  /** Functies: de golf. */
-  feature: { kind: "waveform-wide", scale: 1.8 },
-  /** Shorts: het raster. */
-  short: { kind: "dot-grid", scale: 2.6 },
+  audience: { kind: "dots-3", scale: 0.7 },
+  /** Functies: een halve ring. */
+  feature: { kind: "ring-half", scale: 0.7 },
+  /** Shorts: een streepje. */
+  short: { kind: "stripe", scale: 0.8 },
 };
 
 /**
@@ -60,13 +69,20 @@ export function beat(
   over: { seconds?: number; theme?: "ink" | "paper"; tone?: Tone } = {},
 ): Clip {
   const { kind, scale } = BEATS[family];
+  const theme = over.theme ?? "ink";
+
+  // Standaard meekleuren met de achtergrond in plaats van ertegenin. Een beat
+  // hoort een adempauze te zijn; teal maakt er een aankondiging van. Wie hem
+  // toch als accent wil, geeft `tone` mee.
+  const tone: Tone = over.tone ?? (theme === "ink" ? "paper" : "ink");
+
   return newClip({
     text: "",
     secondary: "",
     animation: "hold",
-    seconds: over.seconds ?? 0.6,
-    theme: over.theme ?? "ink",
-    elements: [shape(kind, over.tone ?? "teal", scale)],
+    seconds: over.seconds ?? 0.5,
+    theme,
+    elements: [shape(kind, tone, scale)],
   });
 }
 

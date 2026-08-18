@@ -183,7 +183,7 @@ function buildExplainer(row: ExplainRow, s: StarterSource): Project {
         size: "l",
         align: variant === 1 ? "left" : "center",
       }),
-      beat("explain", { seconds: 0.6, theme: variant === 0 ? "paper" : "ink", tone: variant === 2 ? "ink" : "teal" }),
+      beat("explain", { seconds: 0.6, theme: variant === 0 ? "paper" : "ink" }),
       newClip({
         text: row.answer,
         animation: variant === 1 ? "stack" : "wipe-up",
