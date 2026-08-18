@@ -48,23 +48,31 @@ export interface Starter {
   name: string;
   intent: string;
   build: (s: StarterSource) => Project;
-  /**
-   * De dag waarop dit startpunt erbij kwam, als `JJJJ-MM-DD`.
-   *
-   * Zonder datum is "nieuw" een gevoel, en bij honderdvijftig stuks kun je niet
-   * meer zien wat er vorige week bij is gezet. Ontbreekt hij, dan hoort het bij
-   * de eerste lichting.
-   */
+  /** De dag waarop dit startpunt erbij kwam, als `JJJJ-MM-DD`. Voor het zoeken
+   *  en om te tonen. */
   added?: string;
+
+  /**
+   * Het nummer van de lichting. Loopt op, en bepaalt wat "nieuw" is.
+   *
+   * Eerst hing dat aan de datum, en dat was fout: op één dag kwamen er twee
+   * lichtingen bij, dus stond zesennegentig van de honderddrieënzeventig als
+   * nieuw. Een merkje op meer dan de helft zegt niets meer.
+   *
+   * Een nummer kan wel twee keer op dezelfde dag oplopen. De datum blijft
+   * ernaast staan, want die is leesbaar en het nummer niet.
+   */
+  batch?: number;
 }
 
-/** De eerste lichting, van voordat er data bij stonden. */
-const FIRST_BATCH = "2026-07-01";
-
-/** Hangt één datum aan een hele familie. Eén plek per lichting, in plaats van
- *  honderd regels met dezelfde string erin. */
-function dated(list: Starter[], added: string): Starter[] {
-  return list.map((starter) => ({ ...starter, added: starter.added ?? added }));
+/** Hangt één lichting aan een hele familie. Eén plek per lichting, in plaats
+ *  van honderd regels met dezelfde waarden erin. */
+function inBatch(list: Starter[], batch: number, added: string): Starter[] {
+  return list.map((starter) => ({
+    ...starter,
+    batch: starter.batch ?? batch,
+    added: starter.added ?? added,
+  }));
 }
 
 function project(ratio: RatioKey, clips: Clip[]): Project {
@@ -400,42 +408,49 @@ function withVariedEnding(starter: Starter): Starter {
 }
 
 export const ALL_STARTERS: Starter[] = [
-  ...dated(STARTERS, FIRST_BATCH),
-  ...dated(DEMO_STARTERS, FIRST_BATCH),
-  ...dated(LAUNCH_STARTERS, FIRST_BATCH),
-  ...dated(EXPLAINER_STARTERS, FIRST_BATCH),
-  ...dated(THIRTY_SECOND, FIRST_BATCH),
-  ...dated(SHORT_STARTERS, "2026-08-17"),
+  // Lichting 1 — waar het mee begon.
+  ...inBatch(STARTERS, 1, "2026-07-01"),
+  ...inBatch(DEMO_STARTERS, 1, "2026-07-01"),
+  ...inBatch(LAUNCH_STARTERS, 1, "2026-07-01"),
+  ...inBatch(EXPLAINER_STARTERS, 1, "2026-07-01"),
+  ...inBatch(THIRTY_SECOND, 1, "2026-07-01"),
 
-  // De vijf families van 18 augustus.
-  ...dated(DEMO_LIBRARY, "2026-08-18"),
-  ...dated(EXPLAINER_LIBRARY, "2026-08-18"),
-  ...dated(OBJECTION_LIBRARY, "2026-08-18"),
-  ...dated(AUDIENCE_LIBRARY, "2026-08-18"),
-  ...dated(FEATURE_LIBRARY, "2026-08-18"),
+  // Lichting 2 — de vijftig shorts.
+  ...inBatch(SHORT_STARTERS, 2, "2026-08-17"),
 
-  // De vier vormen die er nog niet waren.
-  ...dated(TWO_WAYS_LIBRARY, "2026-08-18"),
-  ...dated(ON_PURPOSE_LIBRARY, "2026-08-18"),
-  ...dated(FIRST_RUN_LIBRARY, "2026-08-18"),
-  ...dated(MAKER_LIBRARY, "2026-08-18"),
+  // Lichting 3 — vijf families.
+  ...inBatch(DEMO_LIBRARY, 3, "2026-08-18"),
+  ...inBatch(EXPLAINER_LIBRARY, 3, "2026-08-18"),
+  ...inBatch(OBJECTION_LIBRARY, 3, "2026-08-18"),
+  ...inBatch(AUDIENCE_LIBRARY, 3, "2026-08-18"),
+  ...inBatch(FEATURE_LIBRARY, 3, "2026-08-18"),
+
+  // Lichting 4 — vier vormen die er nog niet waren.
+  ...inBatch(TWO_WAYS_LIBRARY, 4, "2026-08-18"),
+  ...inBatch(ON_PURPOSE_LIBRARY, 4, "2026-08-18"),
+  ...inBatch(FIRST_RUN_LIBRARY, 4, "2026-08-18"),
+  ...inBatch(MAKER_LIBRARY, 4, "2026-08-18"),
 ].map(withVariedEnding);
 
-/** De dag waarop er voor het laatst iets bij kwam. */
-export const LATEST_BATCH: string = ALL_STARTERS.reduce(
-  (latest, starter) => ((starter.added ?? "") > latest ? starter.added! : latest),
-  "",
+/** Het nummer van de laatste lichting. */
+export const LATEST_BATCH: number = ALL_STARTERS.reduce(
+  (latest, starter) => Math.max(latest, starter.batch ?? 0),
+  0,
 );
+
+/** De dag van die lichting, om te tonen. */
+export const LATEST_BATCH_DATE: string =
+  ALL_STARTERS.find((starter) => starter.batch === LATEST_BATCH)?.added ?? "";
 
 /** Of dit startpunt uit de laatste lichting komt. */
 export function isNew(starter: Starter): boolean {
-  return starter.added === LATEST_BATCH;
+  return starter.batch === LATEST_BATCH;
 }
 
 /** Alles, jongste lichting eerst. Binnen een lichting blijft de eigen volgorde
  *  staan, want die is met opzet gekozen. */
-export const NEWEST_FIRST: Starter[] = [...ALL_STARTERS].sort((a, b) =>
-  (b.added ?? "").localeCompare(a.added ?? ""),
+export const NEWEST_FIRST: Starter[] = [...ALL_STARTERS].sort(
+  (a, b) => (b.batch ?? 0) - (a.batch ?? 0),
 );
 
 /** De startpunten op slug, zodat de families in de kiezer dezelfde gevarieerde

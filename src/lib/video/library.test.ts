@@ -165,9 +165,17 @@ describe("nieuw terugvinden", () => {
   });
 
   it("zet de jongste lichting bovenaan", () => {
-    const dates = NEWEST_FIRST.map((s) => s.added ?? "");
-    expect(dates).toEqual([...dates].sort().reverse());
-    expect(NEWEST_FIRST[0].added).toBe(LATEST_BATCH);
+    const batches = NEWEST_FIRST.map((s) => s.batch ?? 0);
+    expect(batches).toEqual([...batches].sort((a, b) => b - a));
+    expect(NEWEST_FIRST[0].batch).toBe(LATEST_BATCH);
+  });
+
+  it("markeert niet de halve bibliotheek als nieuw", () => {
+    // Dit ging mis toen nieuw aan de datum hing: op een dag kwamen er twee
+    // lichtingen bij, dus stond zesennegentig van de honderddrieenzeventig als
+    // nieuw. Een merkje op meer dan de helft zegt niets.
+    const marked = ALL_STARTERS.filter(isNew).length;
+    expect(marked).toBeLessThan(ALL_STARTERS.length / 4);
   });
 
   it("markeert alleen de laatste lichting als nieuw", () => {
@@ -175,7 +183,7 @@ describe("nieuw terugvinden", () => {
     expect(marked.length).toBeGreaterThan(0);
     expect(marked.length).toBeLessThan(ALL_STARTERS.length);
     for (const starter of marked) {
-      expect(starter.added).toBe(LATEST_BATCH);
+      expect(starter.batch).toBe(LATEST_BATCH);
     }
   });
 
@@ -197,7 +205,12 @@ describe("nieuw terugvinden", () => {
   });
 
   it("combineert new met een gewoon woord", () => {
-    const hits = ALL_STARTERS.filter((s) => matchesQuery(s, "x", "new snippets"));
+    // Woord uit een echt nieuw startpunt, zodat de test niet omvalt zodra er
+    // een lichting bijkomt met andere onderwerpen.
+    const sample = ALL_STARTERS.find(isNew)!;
+    const word = sample.name.toLowerCase().split(/\s+/).find((w) => w.length > 4)!;
+
+    const hits = ALL_STARTERS.filter((s) => matchesQuery(s, "x", `new ${word}`));
     expect(hits.length).toBeGreaterThan(0);
     for (const hit of hits) {
       expect(isNew(hit), hit.slug).toBe(true);
@@ -205,8 +218,17 @@ describe("nieuw terugvinden", () => {
   });
 
   it("vindt een lichting op datum", () => {
-    const hits = ALL_STARTERS.filter((s) => matchesQuery(s, "x", LATEST_BATCH));
-    expect(hits.length).toBe(ALL_STARTERS.filter((s) => s.added === LATEST_BATCH).length);
+    const hits = ALL_STARTERS.filter((s) => matchesQuery(s, "x", "2026-08-17"));
+    expect(hits.length).toBe(
+      ALL_STARTERS.filter((s) => s.added === "2026-08-17").length,
+    );
+    expect(hits.length).toBeGreaterThan(0);
+  });
+
+  it("geeft elk startpunt een lichtingsnummer", () => {
+    for (const starter of ALL_STARTERS) {
+      expect(starter.batch, starter.slug).toBeGreaterThan(0);
+    }
   });
 });
 
