@@ -21,6 +21,12 @@ import {
   FEATURE_LIBRARY,
   OBJECTION_LIBRARY,
 } from "./library";
+import {
+  FIRST_RUN_LIBRARY,
+  MAKER_LIBRARY,
+  ON_PURPOSE_LIBRARY,
+  TWO_WAYS_LIBRARY,
+} from "./library-two";
 import { closerFor, showsMark } from "./closers";
 import { newClip, type Clip, type Project } from "./project";
 import { SHORT_STARTERS } from "./shorts";
@@ -407,6 +413,12 @@ export const ALL_STARTERS: Starter[] = [
   ...dated(OBJECTION_LIBRARY, "2026-08-18"),
   ...dated(AUDIENCE_LIBRARY, "2026-08-18"),
   ...dated(FEATURE_LIBRARY, "2026-08-18"),
+
+  // De vier vormen die er nog niet waren.
+  ...dated(TWO_WAYS_LIBRARY, "2026-08-18"),
+  ...dated(ON_PURPOSE_LIBRARY, "2026-08-18"),
+  ...dated(FIRST_RUN_LIBRARY, "2026-08-18"),
+  ...dated(MAKER_LIBRARY, "2026-08-18"),
 ].map(withVariedEnding);
 
 /** De dag waarop er voor het laatst iets bij kwam. */
@@ -489,6 +501,30 @@ export const STARTER_GROUPS: StarterGroup[] = [
     blurb: "A single thing it does, held long enough to land.",
     needsFootage: false,
     starters: varied(FEATURE_LIBRARY),
+  },
+  {
+    label: "Two ways",
+    blurb: "The old way and the new one, side by side and labelled.",
+    needsFootage: false,
+    starters: varied(TWO_WAYS_LIBRARY),
+  },
+  {
+    label: "On purpose, not",
+    blurb: "What it deliberately does not do. The quietest, boldest set.",
+    needsFootage: false,
+    starters: varied(ON_PURPOSE_LIBRARY),
+  },
+  {
+    label: "First five minutes",
+    blurb: "Three numbered steps. Each one waits for one recording.",
+    needsFootage: true,
+    starters: varied(FIRST_RUN_LIBRARY),
+  },
+  {
+    label: "Made by a person",
+    blurb: "First person, small type, no effects. Where you sound human.",
+    needsFootage: false,
+    starters: varied(MAKER_LIBRARY),
   },
   {
     label: "Launch, first weeks",
