@@ -20,6 +20,7 @@ import {
   SIGNAL_TEAL,
 } from "./render-colours";
 import type { ClipAt } from "./project";
+import { elementFloor, placeElementY } from "./layout";
 import { breathe, crossfadeAlpha, kenBurns, progressWidth } from "./polish";
 import { RATIOS, easeInOut, safeArea, type RatioKey } from "./timeline";
 
@@ -322,7 +323,7 @@ export function renderFrame(ctx: CanvasRenderingContext2D, input: RenderInput): 
     Math.max(4, height * 0.005),
   );
 
-  drawElements(ctx, clip, width, height, onDark);
+  drawElements(ctx, clip, width, height, onDark, y);
 
   if (input.showMark) {
     drawMark(ctx, safe.left, safe.top - height * 0.06, height * 0.035, onDark);
@@ -347,7 +348,11 @@ function drawElements(
   width: number,
   height: number,
   onDark: boolean,
+  /** Onderkant van de tekst in pixels. Elementen blijven daaronder. */
+  textBottom = 0,
 ) {
+  const floor = elementFloor(textBottom, height);
+
   for (const element of clip.elements ?? []) {
     const def = elementByKind(element.kind);
     if (!def) continue;
@@ -360,7 +365,8 @@ function drawElements(
     const { colour, contrast } = toneColours(element.tone, onDark);
 
     ctx.save();
-    ctx.translate(element.x * width - box / 2, element.y * height - box / 2);
+    const y = placeElementY(element.y, floor);
+    ctx.translate(element.x * width - box / 2, y * height - box / 2);
     ctx.scale(box / 100, box / 100);
     def.draw({
       ctx,

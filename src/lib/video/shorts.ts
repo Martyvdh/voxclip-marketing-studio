@@ -31,14 +31,6 @@ export interface Short {
   why: string;
 }
 
-const el = (
-  kind: string,
-  x: number,
-  y: number,
-  tone: "ink" | "paper" | "teal" = "paper",
-  delay = 0.15,
-) => ({ id: `${kind}-${Math.round(x * 100)}`, kind, x, y, scale: 1, tone, text: "", delay });
-
 /**
  * De vorm. Veertien seconden, vijf clips.
  *
@@ -70,7 +62,6 @@ function buildShort(short: Short, s: StarterSource): Project {
         animation: "stack",
         seconds: 3,
         theme: "ink",
-        elements: [el("tick", 0.28, 0.55, "teal", 0.4)],
       }),
       newClip({
         text: "One Timeline. Local.",
@@ -85,7 +76,6 @@ function buildShort(short: Short, s: StarterSource): Project {
         animation: "hold",
         seconds: 2.5,
         theme: "ink",
-        elements: [el("wordmark", 0.5, 0.42, "paper", 0.1)],
       }),
     ],
   };

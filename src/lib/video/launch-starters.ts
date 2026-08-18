@@ -53,7 +53,6 @@ const closer = (s: StarterSource) =>
     animation: "hold",
     seconds: 2,
     note: CTA_NOTE,
-    elements: [el("wordmark", 0.5, 0.78, { tone: "ink", delay: 0.2 })],
   });
 
 export const LAUNCH_STARTERS: Starter[] = [
@@ -114,7 +113,7 @@ export const LAUNCH_STARTERS: Starter[] = [
           text: s.promise,
           animation: "letter-fade",
           seconds: 3,
-          elements: [el("rule-thick", 0.5, 0.7, { tone: "teal", delay: 0.2 })],
+          elements: [el("rule-thick", 0.5, 0.78, { tone: "teal", delay: 0.2 })],
         }),
         closer(s),
       ]),
@@ -131,7 +130,7 @@ export const LAUNCH_STARTERS: Starter[] = [
           animation: "typeline",
           seconds: 3,
           theme: "ink",
-          elements: [el("quote-open", 0.18, 0.32, { tone: "paper", delay: 0.1 })],
+          elements: [el("quote-open", 0.18, 0.78, { tone: "paper", delay: 0.1 })],
         }),
         newClip({
           text: "Copying and saying something are the same habit.",
@@ -199,7 +198,7 @@ export const LAUNCH_STARTERS: Starter[] = [
           animation: "spotlight",
           seconds: 2.5,
           size: "l",
-          elements: [el("circle-highlight", 0.5, 0.5, { tone: "teal", delay: 0.1 })],
+          elements: [el("circle-highlight", 0.5, 0.78, { tone: "teal", delay: 0.1 })],
         }),
         newClip({
           text: "The timeline lives on your device.",
@@ -382,7 +381,7 @@ export const LAUNCH_STARTERS: Starter[] = [
           animation: "hold",
           seconds: 6,
           note: "Record: that one feature, start to finish, no cuts. Six seconds is long enough to follow and short enough to keep watching.",
-          elements: [el("frame-window", 0.5, 0.5, { tone: "ink", delay: 0.05 })],
+          elements: [el("frame-window", 0.5, 0.78, { tone: "ink", delay: 0.05 })],
         }),
         newClip({
           text: s.desiredOutcome,
@@ -409,7 +408,7 @@ export const LAUNCH_STARTERS: Starter[] = [
           text: s.subhead,
           animation: "wipe-up",
           seconds: 3,
-          elements: [el("rule-thin", 0.5, 0.68, { tone: "teal", delay: 0.2 })],
+          elements: [el("rule-thin", 0.5, 0.78, { tone: "teal", delay: 0.2 })],
         }),
         newClip({
           text: s.payoff,
@@ -451,7 +450,7 @@ export const EXPLAINER_STARTERS: Starter[] = [
           text: "You copy something.",
           animation: "fade-rise",
           seconds: 2,
-          elements: [el("chips-copied", 0.5, 0.68, { tone: "ink", delay: 0.2 })],
+          elements: [el("chips-copied", 0.5, 0.78, { tone: "ink", delay: 0.2 })],
         }),
         newClip({
           text: "Then something else.",
@@ -460,8 +459,8 @@ export const EXPLAINER_STARTERS: Starter[] = [
           seconds: 3,
           theme: "ink",
           elements: [
-            el("chips-copied", 0.42, 0.66, { tone: "paper", delay: 0.1 }),
-            el("cross", 0.68, 0.66, { tone: "paper", delay: 0.5 }),
+            el("chips-copied", 0.42, 0.78, { tone: "paper", delay: 0.1 }),
+            el("cross", 0.68, 0.78, { tone: "paper", delay: 0.5 }),
           ],
         }),
         newClip({
@@ -480,7 +479,7 @@ export const EXPLAINER_STARTERS: Starter[] = [
           seconds: 2.5,
           size: "l",
           elements: [
-            el("tick", 0.5, 0.68, { tone: "teal", delay: 0.2 }),
+            el("tick", 0.5, 0.78, { tone: "teal", delay: 0.2 }),
           ],
         }),
         closer(s),
@@ -497,13 +496,13 @@ export const EXPLAINER_STARTERS: Starter[] = [
           text: "What you copy.",
           animation: "fade-rise",
           seconds: 2.5,
-          elements: [el("chips-copied", 0.5, 0.66, { tone: "ink", delay: 0.2 })],
+          elements: [el("chips-copied", 0.5, 0.78, { tone: "ink", delay: 0.2 })],
         }),
         newClip({
           text: "What you say.",
           animation: "fade-rise",
           seconds: 2.5,
-          elements: [el("waveform-wide", 0.5, 0.66, { tone: "ink", delay: 0.2 })],
+          elements: [el("waveform-wide", 0.5, 0.78, { tone: "ink", delay: 0.2 })],
         }),
         newClip({
           text: "Same habit.",
@@ -517,7 +516,7 @@ export const EXPLAINER_STARTERS: Starter[] = [
           animation: "spotlight",
           seconds: 3,
           elements: [
-            el("rule-thick", 0.5, 0.62, { tone: "teal", delay: 0.2 }),
+            el("rule-thick", 0.5, 0.78, { tone: "teal", delay: 0.2 }),
             el("bracket-left", 0.28, 0.72, { tone: "ink", delay: 0.4 }),
             el("bracket-right", 0.72, 0.72, { tone: "ink", delay: 0.4 }),
           ],
@@ -537,7 +536,7 @@ export const EXPLAINER_STARTERS: Starter[] = [
           animation: "stack",
           seconds: 3,
           theme: "ink",
-          elements: [el("frame-window", 0.5, 0.64, { tone: "paper", delay: 0.2 })],
+          elements: [el("frame-window", 0.5, 0.78, { tone: "paper", delay: 0.2 })],
         }),
         newClip({
           text: "So where does it go?",
@@ -545,7 +544,7 @@ export const EXPLAINER_STARTERS: Starter[] = [
           seconds: 2.5,
           theme: "ink",
           elements: [
-            el("arrow-right", 0.7, 0.64, { tone: "paper", delay: 0.3 }),
+            el("arrow-right", 0.7, 0.78, { tone: "paper", delay: 0.3 }),
           ],
         }),
         newClip({
@@ -554,8 +553,8 @@ export const EXPLAINER_STARTERS: Starter[] = [
           seconds: 3,
           size: "l",
           elements: [
-            el("frame-window", 0.5, 0.66, { tone: "ink", delay: 0.1 }),
-            el("circle-highlight", 0.5, 0.66, { tone: "teal", delay: 0.4 }),
+            el("frame-window", 0.5, 0.78, { tone: "ink", delay: 0.1 }),
+            el("circle-highlight", 0.5, 0.78, { tone: "teal", delay: 0.4 }),
           ],
         }),
         newClip({
@@ -603,14 +602,14 @@ export const THIRTY_SECOND: Starter[] = [
           text: "You copy it.",
           animation: "wipe-up",
           seconds: 2.5,
-          elements: [el("chips-copied", 0.5, 0.7, { tone: "ink", delay: 0.2 })],
+          elements: [el("chips-copied", 0.5, 0.78, { tone: "ink", delay: 0.2 })],
         }),
         newClip({
           text: "You paste it somewhere else.",
           animation: "wipe-up",
           seconds: 2.5,
           elements: [
-            el("arrow-right", 0.5, 0.7, { tone: "ink", delay: 0.2 }),
+            el("arrow-right", 0.5, 0.78, { tone: "ink", delay: 0.2 }),
           ],
         }),
         newClip({
@@ -627,7 +626,7 @@ export const THIRTY_SECOND: Starter[] = [
           animation: "spotlight",
           seconds: 3.5,
           size: "l",
-          elements: [el("mark", 0.5, 0.34, { tone: "ink", delay: 0.1 })],
+          elements: [el("mark", 0.5, 0.78, { tone: "ink", delay: 0.1 })],
         }),
         newClip({
           text: "It keeps what you copy.",
