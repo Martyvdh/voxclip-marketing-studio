@@ -16,6 +16,14 @@
 import { useMemo, useState } from "react";
 
 import {
+  STORAGE_KEY,
+  isFavourite,
+  parseFavourites,
+  pruneFavourites,
+  toggleFavourite,
+} from "@/lib/video/favourites";
+
+import {
   LATEST_BATCH_DATE,
   STARTER_GROUPS,
   isNew,
@@ -69,19 +77,69 @@ export function StarterBrowser({
   const [query, setQuery] = useState("");
   const [family, setFamily] = useState<string>(STARTER_GROUPS[0].label);
 
+  // Eén keer lezen, bij het opzetten van de state.
+  //
+  // Niet in een effect: dat zet de state meteen na de eerste render nog eens en
+  // laat React alles opnieuw tekenen. De vensterwacht is nodig omdat er op de
+  // server geen localStorage is; dit venster verschijnt pas na een klik, dus in
+  // de praktijk draait dit altijd in de browser.
+  const [favourites, setFavourites] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    const known = new Set(
+      STARTER_GROUPS.flatMap((g) => g.starters.map((s) => s.slug)),
+    );
+    return pruneFavourites(
+      parseFavourites(window.localStorage.getItem(STORAGE_KEY)),
+      known,
+    );
+  });
+
+  function flip(slug: string) {
+    setFavourites((current) => {
+      const next = toggleFavourite(current, slug);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }
+
   const searching = query.trim().length > 0;
+
+  // Favorieten is geen vaste familie maar een doorsnede: het zijn de startpunten
+  // uit alle families die je zelf hebt aangevinkt.
+  const families = useMemo(() => {
+    const all = STARTER_GROUPS.flatMap((g) => g.starters);
+    const picked = favourites
+      .map((slug) => all.find((s) => s.slug === slug))
+      .filter((s): s is Starter => Boolean(s));
+
+    return [
+      {
+        label: "Favourites",
+        blurb:
+          picked.length === 0
+            ? "Star the ones you keep coming back to."
+            : "The ones you starred. Stored on this machine.",
+        needsFootage: false,
+        starters: picked,
+      },
+      ...STARTER_GROUPS,
+    ];
+  }, [favourites]);
 
   // Zoeken kijkt door alle families heen; zonder zoekterm zie je er één.
   const visible = useMemo(() => {
     if (!searching) {
-      const group = STARTER_GROUPS.find((g) => g.label === family);
+      const group = families.find((g) => g.label === family);
       return group ? [{ group, starters: group.starters }] : [];
     }
-    return STARTER_GROUPS.map((group) => ({
-      group,
-      starters: group.starters.filter((s) => matchesQuery(s, group.label, query)),
-    })).filter((entry) => entry.starters.length > 0);
-  }, [family, query, searching]);
+    return families
+      .filter((group) => group.label !== "Favourites")
+      .map((group) => ({
+        group,
+        starters: group.starters.filter((s) => matchesQuery(s, group.label, query)),
+      }))
+      .filter((entry) => entry.starters.length > 0);
+  }, [families, family, query, searching]);
 
   const total = STARTER_GROUPS.reduce((sum, g) => sum + g.starters.length, 0);
   const found = visible.reduce((sum, entry) => sum + entry.starters.length, 0);
@@ -121,7 +179,7 @@ export function StarterBrowser({
             aria-label="Families"
             className="hidden w-60 shrink-0 overflow-y-auto border-r border-line p-3 sm:block"
           >
-            {STARTER_GROUPS.map((group) => {
+            {families.map((group) => {
               const active = !searching && group.label === family;
               return (
                 <button
@@ -179,14 +237,40 @@ export function StarterBrowser({
                 <ul className="grid gap-2 sm:grid-cols-2">
                   {entry.starters.map((starter) => {
                     const active = starter.slug === selectedSlug;
+                    const starred = isFavourite(favourites, starter.slug);
                     return (
-                      <li key={starter.slug}>
+                      <li key={starter.slug} className="relative">
+                        {/*
+                          De ster staat naast de kaart en niet erin: een knop in
+                          een knop is voor een schermlezer onzin, en met de muis
+                          klik je dan per ongeluk het startpunt aan terwijl je
+                          alleen wilde markeren.
+                        */}
+                        <button
+                          type="button"
+                          onClick={() => flip(starter.slug)}
+                          aria-pressed={starred}
+                          aria-label={
+                            starred
+                              ? `Remove ${starter.name} from favourites`
+                              : `Add ${starter.name} to favourites`
+                          }
+                          title={starred ? "Remove from favourites" : "Add to favourites"}
+                          className={`absolute right-2 top-2 z-10 rounded-md px-1.5 py-0.5 text-base leading-none ${
+                            starred
+                              ? "text-teal-deep"
+                              : "text-ink-faint opacity-0 hover:text-ink focus:opacity-100 group-hover:opacity-100"
+                          }`}
+                        >
+                          {starred ? "★" : "☆"}
+                        </button>
+
                         <button
                           type="button"
                           onClick={() => onSelect(starter.slug)}
                           onDoubleClick={onApply}
                           aria-pressed={active}
-                          className={`flex h-full w-full flex-col rounded-xl border p-3 text-left ${
+                          className={`group flex h-full w-full flex-col rounded-xl border p-3 pr-9 text-left ${
                             active
                               ? "border-teal-deep bg-teal-wash"
                               : "border-line hover:border-ink"
