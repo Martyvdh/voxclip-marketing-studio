@@ -63,7 +63,7 @@ function buildShort(short: Short, s: StarterSource): Project {
       ratio: "9:16",
       showMark: showsMark(slug),
       clips: [
-        newClip({ text: short.hook, animation: "fade-rise", seconds: 3, size: "l", theme: "ink" }),
+        newClip({ text: short.hook, animation: "rise-fast", seconds: 3, size: "l", theme: "ink" }),
         beat("short", { seconds: 0.6, theme: "paper" }),
         newClip({ text: short.meet, animation: "wipe-up", seconds: 2.5, size: "l", theme: "ink" }),
         newClip({ text: short.why, animation: "stack", seconds: 3 }),
@@ -80,7 +80,7 @@ function buildShort(short: Short, s: StarterSource): Project {
       clips: [
         newClip({ text: short.hook, animation: "typeline", seconds: 5, size: "l" }),
         beat("short", { seconds: 0.5, theme: "ink" }),
-        newClip({ text: short.meet, animation: "zoom-in", seconds: 2.5, size: "l", theme: "ink" }),
+        newClip({ text: short.meet, animation: "punch", seconds: 2.5, size: "l", theme: "ink" }),
         newClip({ text: short.why, animation: "wipe-up", seconds: 3 }),
         cta,
       ],
@@ -93,11 +93,11 @@ function buildShort(short: Short, s: StarterSource): Project {
       ratio: "9:16",
       showMark: showsMark(slug),
       clips: [
-        newClip({ text: short.hook, animation: "slide-left", seconds: 2.2, align: "left", size: "l" }),
+        newClip({ text: short.hook, animation: "whip", seconds: 2.2, align: "left", size: "l" }),
         asideFor(slug),
-        newClip({ text: short.meet, animation: "slide-left", seconds: 2.2, align: "left", theme: "ink" }),
+        newClip({ text: short.meet, animation: "fly-in", seconds: 2.2, align: "left", theme: "ink" }),
         newClip({ text: short.why, animation: "slide-left", seconds: 2.4, align: "left" }),
-        newClip({ text: payoffFor(slug), animation: "word-pop", seconds: 1.6, size: "l", theme: "ink" }),
+        newClip({ text: payoffFor(slug), animation: "punch", seconds: 1.6, size: "l", theme: "ink" }),
         cta,
       ],
     };
@@ -110,7 +110,7 @@ function buildShort(short: Short, s: StarterSource): Project {
       showMark: showsMark(slug),
       clips: [
         beat("short", { seconds: 0.5, theme: "paper" }),
-        newClip({ text: short.hook, animation: "word-pop", seconds: 3.5, size: "l", theme: "ink" }),
+        newClip({ text: short.hook, animation: "drop-in", seconds: 3.5, size: "l", theme: "ink" }),
         newClip({ text: short.why, animation: "spotlight", seconds: 3.5, size: "l" }),
         cta,
       ],

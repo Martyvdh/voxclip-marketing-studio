@@ -98,7 +98,7 @@ function buildDemo(row: DemoRow, s: StarterSource): Project {
 
   const opener =
     variant === 0
-      ? newClip({ text: row.setup, animation: "slide-left", seconds: 1.8, size: "l", align: "left", theme: "ink" })
+      ? newClip({ text: row.setup, animation: "whip", seconds: 1.8, size: "l", align: "left", theme: "ink" })
       : variant === 1
         ? newClip({ text: row.setup, animation: "typeline", seconds: 2.2, theme: "ink" })
         : newClip({ text: row.setup, animation: "zoom-in", seconds: 1.5, size: "l" });
@@ -120,7 +120,7 @@ function buildDemo(row: DemoRow, s: StarterSource): Project {
       }),
       newClip({
         text: row.payoff,
-        animation: variant === 2 ? "word-pop" : "wipe-up",
+        animation: variant === 2 ? "punch" : "rise-fast",
         seconds: 2,
         size: "l",
       }),
@@ -186,7 +186,7 @@ function buildExplainer(row: ExplainRow, s: StarterSource): Project {
       beat("explain", { seconds: 0.6, theme: variant === 0 ? "paper" : "ink" }),
       newClip({
         text: row.answer,
-        animation: variant === 1 ? "stack" : "wipe-up",
+        animation: variant === 1 ? "drop-in" : "fly-in",
         seconds: 3.5,
         theme: "ink",
         align: variant === 1 ? "left" : "center",
@@ -254,13 +254,13 @@ function buildObjection(row: ObjectionRow, s: StarterSource): Project {
       beat("objection", { seconds: 0.5, theme: "paper" }),
       newClip({
         text: row.reply,
-        animation: "zoom-in",
+        animation: "punch",
         seconds: 2,
         size: "l",
       }),
       newClip({
         text: row.proof,
-        animation: "slide-left",
+        animation: "whip",
         seconds: 2.5,
         theme: "ink",
         align: "left",
@@ -312,8 +312,8 @@ function buildAudience(row: AudienceRow, s: StarterSource): Project {
     ratio: variant === 0 ? "9:16" : "1:1",
     showMark: showsMark(slug),
     clips: [
-      newClip({ text: row.who, animation: "word-pop", seconds: 1.4, size: "s", align: "left" }),
-      newClip({ text: row.moment, animation: "slide-left", seconds: 2.2, align: "left", theme: "ink" }),
+      newClip({ text: row.who, animation: "rise-fast", seconds: 1.4, size: "s", align: "left" }),
+      newClip({ text: row.moment, animation: "fly-in", seconds: 2.2, align: "left", theme: "ink" }),
       beat("audience", { seconds: 0.6, theme: variant === 0 ? "paper" : "ink" }),
       newClip({
         text: row.why,
@@ -373,7 +373,7 @@ function buildFeature(row: FeatureRow, s: StarterSource): Project {
       beat("feature", { seconds: 0.5, theme: variant === 2 ? "paper" : "ink" }),
       newClip({
         text: row.feature,
-        animation: variant === 1 ? "letter-fade" : "word-pop",
+        animation: variant === 1 ? "drop-in" : "punch",
         seconds: 1.6,
         size: "l",
         theme: variant === 2 ? "ink" : "paper",

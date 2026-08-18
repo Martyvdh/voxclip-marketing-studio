@@ -16,8 +16,39 @@ describe("the animation set", () => {
     expect(animationById("something-else").id).toBe("fade-rise");
   });
 
-  it("has ten of them, which is a set a person can hold in their head", () => {
-    expect(ANIMATIONS.length).toBe(10);
+  it("has sixteen: ten quiet ones and six that move", () => {
+    // Er waren er tien, met opzet: een set die je kunt onthouden. Maar ze
+    // bewogen allemaal tussen de 12 en 90 eenheden op een doek van 1920 — één
+    // tot vijf procent. Op een telefoon zie je dat niet, en honderdvijftig
+    // video's voelden daardoor als stilstaande beelden met een fade.
+    //
+    // De zes erbij reizen over een derde van het beeld. Ze zijn niet netter,
+    // ze zijn zichtbaar.
+    expect(ANIMATIONS.length).toBe(16);
+  });
+
+  it("heeft animaties die echt over het beeld reizen", () => {
+    const loud = ANIMATIONS.filter((anim) => {
+      const start = anim.at(0, 0, 1);
+      return Math.abs(start.dx) > 200 || Math.abs(start.dy) > 200;
+    });
+    expect(loud.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it("houdt de harde animaties weg bij een call to action", () => {
+    for (const id of ["fly-in", "drop-in", "punch", "whip", "rise-fast", "split-in"]) {
+      expect(animationById(id).goodForCta, id).toBe(false);
+    }
+  });
+
+  it("laat de harde animaties op tijd uitgewerkt zijn", () => {
+    // Beweging die nog loopt terwijl je leest, leest niet.
+    for (const id of ["fly-in", "punch", "whip", "rise-fast"]) {
+      const late = animationById(id).at(0.5, 0, 1);
+      expect(Math.abs(late.dx), id).toBeLessThan(2);
+      expect(Math.abs(late.dy), id).toBeLessThan(2);
+      expect(late.opacity, id).toBe(1);
+    }
   });
 });
 
