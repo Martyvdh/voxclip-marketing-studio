@@ -4,6 +4,8 @@ import { getDb } from "@/db";
 import { channelConnections } from "@/db/schema";
 import { Card } from "@/components/brand";
 import { requireUser } from "@/lib/auth";
+import { isConfigured } from "@/lib/tiktok/api";
+import { connectionState } from "@/lib/tiktok/store";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +51,8 @@ export default async function ChannelsPage() {
   const db = getDb();
 
   const connections = await db.select().from(channelConnections);
+  const tiktok = await connectionState();
+  const tiktokReady = isConfigured();
 
   return (
     <>
@@ -57,6 +61,53 @@ export default async function ChannelsPage() {
         You post by hand for now. The Studio writes it, checks it, and hands it
         over ready to paste.
       </p>
+
+      {/*
+        De koppeling met TikTok. Alleen lezen: dit haalt de cijfers op van wat
+        je zelf hebt geplaatst en plaatst zelf niets. Dat staat er ook zo, want
+        "verbind je account" leest anders als "hij gaat nu voor mij posten".
+      */}
+      <Card className="mt-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-md">
+            <h2 className="font-[family-name:var(--font-display)] text-base font-semibold">
+              TikTok-cijfers ophalen
+            </h2>
+            {tiktok.connected ? (
+              <p className="mt-1 text-sm text-ink-muted">
+                Verbonden. Elke nacht om vier uur worden de views, likes,
+                reacties en shares opgehaald van elke post waar je de link bij
+                hebt geplakt. Je hoeft niets meer over te tikken.
+              </p>
+            ) : tiktokReady ? (
+              <p className="mt-1 text-sm text-ink-muted">
+                Eén keer verbinden en de cijfers komen vanzelf binnen. Dit leest
+                alleen; er wordt niets geplaatst — dat blijf jij zelf doen.
+              </p>
+            ) : (
+              <p className="mt-1 text-sm text-ink-muted">
+                Nog niet ingesteld. Maak een app aan op developers.tiktok.com met
+                de scopes <code>user.info.basic</code> en <code>video.list</code>,
+                en zet <code>TIKTOK_CLIENT_KEY</code> en{" "}
+                <code>TIKTOK_CLIENT_SECRET</code> in je omgevingsvariabelen.
+              </p>
+            )}
+          </div>
+
+          {tiktokReady ? (
+            <a
+              href="/api/tiktok/connect"
+              className={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium ${
+                tiktok.connected
+                  ? "border border-line hover:border-ink"
+                  : "bg-ink text-paper hover:opacity-90"
+              }`}
+            >
+              {tiktok.connected ? "Opnieuw verbinden" : "Verbind TikTok"}
+            </a>
+          ) : null}
+        </div>
+      </Card>
 
       <Card className="mt-6">
         <div className="flex flex-wrap items-start justify-between gap-4">

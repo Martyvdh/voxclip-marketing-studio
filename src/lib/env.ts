@@ -19,6 +19,20 @@ const schema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((v) => v === "true"),
+  /**
+   * TikTok, voor het ophalen van cijfers. Optioneel: zonder deze twee toont de
+   * app een uitleg in plaats van een knop, in plaats van om te vallen.
+   *
+   * Maak een app op developers.tiktok.com, vraag de scopes user.info.basic en
+   * video.list aan, en zet hier de sleutel en het geheim. Alleen lezen; er wordt
+   * niets geplaatst.
+   */
+  TIKTOK_CLIENT_KEY: z.string().optional(),
+  TIKTOK_CLIENT_SECRET: z.string().optional(),
+
+  /** Beschermt de nachtelijke ronde. Verzin een lange willekeurige tekst. */
+  CRON_SECRET: z.string().optional(),
+
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
