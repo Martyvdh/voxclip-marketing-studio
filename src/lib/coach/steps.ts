@@ -52,6 +52,8 @@ export interface CoachState {
   approvedNotPlanned: number;
   /** Ingepland, tijd is geweest, nog niet afgevinkt als gepost. */
   duePosts: number;
+  /** Welke er als eerste klaarstaat. Zonder naam is de stap een raadsel. */
+  dueLabel?: string;
   /** Gepost, maar er staat nog geen enkel cijfer bij. */
   postedWithoutResults: number;
 }
@@ -113,8 +115,10 @@ export function nextStep(state: CoachState): Step | null {
     return {
       number: 8,
       total: TOTAL_STEPS,
-      title: `Post ${state.duePosts === 1 ? "wat klaarstaat" : `de ${state.duePosts} dingen die klaarstaan`}`,
-      body: "De tijd is geweest. Open de handoff, kopieer de caption en de link, post het op het platform en vink het hier af. Er gaat niets automatisch de deur uit.",
+      title: state.dueLabel
+        ? `Post ${state.dueLabel}`
+        : `Post ${state.duePosts === 1 ? "wat klaarstaat" : `de ${state.duePosts} dingen die klaarstaan`}`,
+      body: `De geplande tijd is geweest${state.duePosts > 1 ? ` voor ${state.duePosts} dingen` : ""}. Open de handoff, kopieer de caption en de link, post het op het platform en vink het hier af. Er gaat niets automatisch de deur uit. Klopt dit niet, dan staat er nog een plan van een test op de kalender — haal het daar weg.`,
       href: "/calendar",
       linkLabel: "Naar de kalender",
     };

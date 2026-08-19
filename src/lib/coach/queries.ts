@@ -114,8 +114,14 @@ export async function loadCoachStep(now = new Date()): Promise<Step | null> {
   // Posten en cijfers hebben de datum nodig, dus die twee blijven apart.
   const [due, logged] = await Promise.all([
     db
-      .select({ variantId: schedules.variantId })
+      .select({
+        variantId: schedules.variantId,
+        variantCode: channelVariants.variantCode,
+        campaignTitle: campaigns.title,
+      })
       .from(schedules)
+      .innerJoin(channelVariants, eq(channelVariants.id, schedules.variantId))
+      .innerJoin(campaigns, eq(campaigns.id, schedules.campaignId))
       .where(and(eq(schedules.status, "PENDING"), lte(schedules.runAt, now))),
     db
       .select({ variantId: publicationAttempts.variantId })
@@ -124,7 +130,8 @@ export async function loadCoachStep(now = new Date()): Promise<Step | null> {
   ]);
 
   const postedIds = new Set(logged.map((row) => row.variantId));
-  const duePosts = due.filter((row) => !postedIds.has(row.variantId)).length;
+  const stillDue = due.filter((row) => !postedIds.has(row.variantId));
+  const duePosts = stillDue.length;
 
   const measured = postedIds.size
     ? new Set(
@@ -177,6 +184,11 @@ export async function loadCoachStep(now = new Date()): Promise<Step | null> {
       variantStateRows.filter((row) => row.status === "APPROVED"),
     ),
     duePosts,
+    // Zonder naam is "post wat klaarstaat" een raadsel: je weet niet wat er
+    // klaarstaat en je hebt het gevoel dat de app iets verzint.
+    dueLabel: stillDue[0]
+      ? `${stillDue[0].campaignTitle} — ${stillDue[0].variantCode}`
+      : undefined,
     postedWithoutResults: [...postedIds].filter((id) => !measured.has(id))
       .length,
   };
