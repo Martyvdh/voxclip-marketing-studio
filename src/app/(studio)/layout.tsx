@@ -29,6 +29,7 @@ function navFor(waiting: number): NavItem[] {
     { href: "/assets", label: "Assets" },
     { href: "/channels", label: "Channels" },
     { href: "/results", label: "Results" },
+    { href: "/learn", label: "Wat werkt" },
     { href: "/truth", label: "Truth" },
   ];
 }
