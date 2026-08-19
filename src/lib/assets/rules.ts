@@ -30,10 +30,18 @@ import type { AssetKind, AssetOrigin } from "@/db/schema";
  */
 export const MAX_BYTES = 4 * 1024 * 1024;
 
+/**
+ * QuickTime hoort erbij, en dat ontbrak.
+ *
+ * `⇧⌘5` op een Mac levert een `.mov`, dus dat is precies het bestand dat als
+ * eerste geprobeerd wordt bij een schermopname. Dat werd geweigerd met een
+ * melding over toegestane types, terwijl het de meest voor de hand liggende
+ * bron is die er bestaat.
+ */
 export const ALLOWED_MIME: Record<AssetKind, string[]> = {
   SCREENSHOT: ["image/png", "image/jpeg", "image/webp"],
-  SCREEN_RECORDING: ["video/webm", "video/mp4", "image/gif"],
-  RENDERED_VIDEO: ["video/webm", "video/mp4"],
+  SCREEN_RECORDING: ["video/webm", "video/mp4", "video/quicktime", "image/gif"],
+  RENDERED_VIDEO: ["video/webm", "video/mp4", "video/quicktime"],
   IMAGE: ["image/png", "image/jpeg", "image/webp", "image/svg+xml"],
   AUDIO: ["audio/webm", "audio/mpeg", "audio/wav"],
   DOCUMENT: ["application/pdf"],
