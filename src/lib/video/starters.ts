@@ -27,6 +27,7 @@ import {
   ON_PURPOSE_LIBRARY,
   TWO_WAYS_LIBRARY,
 } from "./library-two";
+import { APP_STARTERS } from "./app-starters";
 import { closerFor, showsMark } from "./closers";
 import { newClip, type Clip, type Project } from "./project";
 import { SHORT_STARTERS } from "./shorts";
@@ -425,6 +426,9 @@ export const ALL_STARTERS: Starter[] = [
   ...inBatch(AUDIENCE_LIBRARY, 3, "2026-08-18"),
   ...inBatch(FEATURE_LIBRARY, 3, "2026-08-18"),
 
+  // Lichting 5 — het venster in beeld.
+  ...inBatch(APP_STARTERS, 5, "2026-08-18"),
+
   // Lichting 4 — vier vormen die er nog niet waren.
   ...inBatch(TWO_WAYS_LIBRARY, 4, "2026-08-18"),
   ...inBatch(ON_PURPOSE_LIBRARY, 4, "2026-08-18"),
@@ -516,6 +520,12 @@ export const STARTER_GROUPS: StarterGroup[] = [
     blurb: "A single thing it does, held long enough to land.",
     needsFootage: false,
     starters: varied(FEATURE_LIBRARY),
+  },
+  {
+    label: "In the app",
+    blurb: "The window on screen from start to finish. Nothing to record.",
+    needsFootage: false,
+    starters: varied(APP_STARTERS),
   },
   {
     label: "Two ways",

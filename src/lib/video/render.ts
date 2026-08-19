@@ -6,10 +6,17 @@
  *  - Space Grotesk for display. Hierarchy from weight and size, never colour.
  *  - Text stays inside the safe area, which is asymmetric on vertical.
  *  - Nothing snaps. Entrances come from animations.ts.
- *  - No product interface is ever drawn. Real captures only, supplied as media.
+ *  - The product interface is drawn only by app-frame.ts, and only what was
+ *    verified on screen. Everything else is a real capture, supplied as media.
  */
 
 import { transformAt } from "./animations";
+import {
+  SAMPLE_ROWS,
+  drawAppFrame,
+  drawPicker,
+  visibleRows,
+} from "./app-frame";
 import { elementByKind, toneColours } from "./elements";
 import {
   CANVAS_DARK,
@@ -195,9 +202,29 @@ export function renderFrame(ctx: CanvasRenderingContext2D, input: RenderInput): 
   const hasMedia = Boolean(input.media && clip?.media);
   const theme = clip?.theme ?? "paper";
   const onDark = theme === "ink" || hasMedia;
+  const isApp = theme === "app";
 
   ctx.fillStyle = theme === "ink" ? CANVAS_DARK : PAPER;
   ctx.fillRect(0, 0, width, height);
+
+  if (isApp && clip) {
+    // Het venster is de achtergrond; de tekst van de clip wordt het bijschrift
+    // en komt onderin. Zie app-frame.ts voor waarom dit mag.
+    const app = clip.app ?? {};
+    const picker = app.picker === true;
+    const rise = easeInOut(Math.min(1, clip.progress / 0.25));
+
+    drawAppFrame(ctx, width, height, visibleRows(SAMPLE_ROWS, app.query ?? "", app.filter ?? 0), {
+      query: app.query ?? "",
+      filter: app.filter ?? 0,
+      highlight: app.highlight ?? -1,
+      dim: picker ? 0.55 * rise : 0,
+    });
+
+    if (picker) {
+      drawPicker(ctx, width, height, rise, app.query ?? "", SAMPLE_ROWS, app.chosen ?? -1);
+    }
+  }
 
   if (hasMedia && input.media && clip?.media) {
     // Langzame inzoom op het beeld. Een stilstaande opname onder bewegende
@@ -282,7 +309,11 @@ export function renderFrame(ctx: CanvasRenderingContext2D, input: RenderInput): 
 
   const centred = clip.align === "center";
   const x = centred ? (safe.left + safe.right) / 2 : safe.left;
-  let y = safe.top + (safe.bottom - safe.top - totalHeight) / 2;
+  // Bij het venster is de tekst een bijschrift: die hoort onderin, niet in het
+  // midden, want in het midden staat je Timeline.
+  let y = isApp
+    ? height * 0.82 - totalHeight
+    : safe.top + (safe.bottom - safe.top - totalHeight) / 2;
 
   ctx.textAlign = centred ? "center" : "left";
   ctx.textBaseline = "top";

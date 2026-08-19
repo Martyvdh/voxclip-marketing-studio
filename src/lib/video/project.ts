@@ -17,7 +17,11 @@ export const MAX_CLIP_SECONDS = 30;
 
 export type ClipAlign = "left" | "center";
 export type ClipSize = "s" | "m" | "l";
-export type ClipTheme = "paper" | "ink" | "media";
+/**
+ * `app` tekent het VoxClip-venster als achtergrond en zet je tekst eronder als
+ * bijschrift. Zie `app-frame.ts` voor waarom dat mag en waar de grens ligt.
+ */
+export type ClipTheme = "paper" | "ink" | "media" | "app";
 
 export interface ClipMedia {
   kind: "video" | "image";
@@ -58,6 +62,20 @@ export interface Clip {
   elements: ClipElement[];
   /** Shown in the editor, never drawn. Used for shot notes. */
   note?: string;
+
+  /** Alleen bij theme "app": wat er in het venster gebeurt. */
+  app?: {
+    /** Wat er in het zoekveld staat. */
+    query?: string;
+    /** 0 All, 1 Copied, 2 Spoke. */
+    filter?: number;
+    /** Welke rij oplicht, of -1. */
+    highlight?: number;
+    /** Laat de Quick-picker eroverheen komen. */
+    picker?: boolean;
+    /** Welke rij in de picker gekozen is. */
+    chosen?: number;
+  };
 }
 
 export interface Project {
