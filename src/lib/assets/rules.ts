@@ -13,11 +13,17 @@ import type { AssetKind, AssetOrigin } from "@/db/schema";
 /**
  * Bytes live in Postgres for now, so the cap is real rather than polite.
  *
- * Ten megabytes covers any screenshot and a short rendered clip. Anything
- * longer belongs in a file host, and the page says so instead of failing at
- * upload with a database error.
+ * Vijfentwintig megabyte haalt een gemonteerde verticale video van een halve
+ * minuut. Tien was te krap: een export uit een editor is al gauw twintig, en
+ * dan is de bibliotheek onbruikbaar voor precies het bestand waar hij voor is.
+ *
+ * Twee dingen horen hierbij en staan elders:
+ *  - `next.config.ts` laat een server action net iets meer door dan dit, zodat
+ *    onze eigen melding afgaat en niet die van het raamwerk.
+ *  - Groter dan dit hoort niet in een databaserij. Wordt dit krap, dan is de
+ *    volgende stap Supabase Storage, niet dit getal nog eens verdubbelen.
  */
-export const MAX_BYTES = 10 * 1024 * 1024;
+export const MAX_BYTES = 25 * 1024 * 1024;
 
 export const ALLOWED_MIME: Record<AssetKind, string[]> = {
   SCREENSHOT: ["image/png", "image/jpeg", "image/webp"],
