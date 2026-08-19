@@ -11,19 +11,24 @@
 import type { AssetKind, AssetOrigin } from "@/db/schema";
 
 /**
- * Bytes live in Postgres for now, so the cap is real rather than polite.
+ * Vier megabyte, en dat getal is niet door ons gekozen.
  *
- * Vijfentwintig megabyte haalt een gemonteerde verticale video van een halve
- * minuut. Tien was te krap: een export uit een editor is al gauw twintig, en
- * dan is de bibliotheek onbruikbaar voor precies het bestand waar hij voor is.
+ * Vercel kapt het verzoek aan een serverless function af op 4,5 MB en geeft dan
+ * FUNCTION_PAYLOAD_TOO_LARGE. Dat is een grens van het platform: geen instelling
+ * in Next.js komt eroverheen. Hier heeft eerst tien en daarna vijfentwintig
+ * megabyte gestaan, en allebei waren het beloftes die de hosting niet kan
+ * waarmaken — je kreeg een kapotte pagina in plaats van een weigering.
  *
- * Twee dingen horen hierbij en staan elders:
- *  - `next.config.ts` laat een server action net iets meer door dan dit, zodat
- *    onze eigen melding afgaat en niet die van het raamwerk.
- *  - Groter dan dit hoort niet in een databaserij. Wordt dit krap, dan is de
- *    volgende stap Supabase Storage, niet dit getal nog eens verdubbelen.
+ * Vier laat een halve megabyte over voor de rest van het formulier.
+ *
+ * Dit is een pleister, geen oplossing. De echte weg is het bestand vanuit de
+ * browser rechtstreeks naar opslag sturen, zonder er een function tussen te
+ * zetten. Zolang dat er niet is, weigert de bibliotheek eerlijk in plaats van
+ * te breken.
+ *
+ * Zie https://vercel.com/docs/errors/FUNCTION_PAYLOAD_TOO_LARGE
  */
-export const MAX_BYTES = 25 * 1024 * 1024;
+export const MAX_BYTES = 4 * 1024 * 1024;
 
 export const ALLOWED_MIME: Record<AssetKind, string[]> = {
   SCREENSHOT: ["image/png", "image/jpeg", "image/webp"],

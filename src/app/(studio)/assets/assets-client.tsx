@@ -56,14 +56,17 @@ export function UploadForm({
 
   const showsApp = kind === "SCREENSHOT" || kind === "SCREEN_RECORDING";
 
+  const [tooBig, setTooBig] = useState<string | null>(null);
+
   return (
     <Card>
       <h2 className="font-[family-name:var(--font-display)] text-base font-semibold">
         Add something
       </h2>
       <p className="mt-1 text-sm text-ink-muted">
-        Up to {formatBytes(MAX_BYTES)} per file. Longer recordings belong on a
-        file host; link to those from the campaign instead.
+        Up to {formatBytes(MAX_BYTES)} per file — that ceiling is the host&apos;s,
+        not ours. Anything bigger belongs on a file host; link to it from the
+        campaign instead.
       </p>
 
       <form action={action} className="mt-4 space-y-4">
@@ -71,12 +74,31 @@ export function UploadForm({
           <label htmlFor="file" className="block text-sm font-medium">
             File
           </label>
+          {/*
+            Meten zodra je het bestand kiest, niet pas bij het versturen.
+            Een upload boven de grens komt bij de hosting nooit aan, dus dan
+            klapt de pagina eruit en ben je je hele formulier kwijt. Hier zie je
+            het meteen, met het formulier nog gewoon ingevuld.
+          */}
           <input
             id="file"
             name="file"
             type="file"
+            onChange={(e) => {
+              const picked = e.target.files?.[0];
+              setTooBig(
+                picked && picked.size > MAX_BYTES
+                  ? `Dit bestand is ${formatBytes(picked.size)}. De grens ligt op ${formatBytes(MAX_BYTES)} en die is van de hosting, niet van ons — groter komt niet aan. Maak de video kleiner of zet hem op een filehost.`
+                  : null,
+              );
+            }}
             className="mt-1 w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm"
           />
+          {tooBig ? (
+            <p className="mt-1.5 rounded-lg bg-amber-wash px-3 py-2 text-xs text-amber">
+              {tooBig}
+            </p>
+          ) : null}
           {state.errors?.file ? (
             <p role="alert" className="mt-1 text-xs text-alert">
               {state.errors.file}

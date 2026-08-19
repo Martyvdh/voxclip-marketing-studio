@@ -3,19 +3,22 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   experimental: {
     /**
-     * Een server action mag standaard één megabyte ontvangen.
+     * Een server action mag standaard één megabyte ontvangen; dat is ruim voor
+     * een formulier en niets voor een video.
      *
-     * Dat is ruim voor een formulier en niets voor een video. Een upload van
-     * een paar megabyte klapte er daarom uit voordat onze eigen controle in
-     * `src/lib/assets/rules.ts` ook maar keek naar het bestand — je kreeg een
-     * kapotte pagina in plaats van "dit bestand is te groot".
+     * Hier stond even 26mb, en dat was een belofte die de hosting niet kan
+     * waarmaken: Vercel kapt elk verzoek aan een serverless function af op
+     * 4,5 MB. Hoger zetten verandert daar niets aan — het verzoek komt gewoon
+     * nooit aan.
      *
-     * Deze grens ligt bewust net boven `MAX_BYTES`. Zo is de app degene die
-     * "te groot" zegt, met een leesbare reden, in plaats van het raamwerk dat
-     * de verbinding verbreekt.
+     * Dus staat het op wat er echt doorheen past, net boven `MAX_BYTES`, zodat
+     * de app "te groot" zegt met een leesbare reden in plaats van dat het
+     * platform de verbinding verbreekt.
+     *
+     * Zie https://vercel.com/docs/errors/FUNCTION_PAYLOAD_TOO_LARGE
      */
     serverActions: {
-      bodySizeLimit: "26mb",
+      bodySizeLimit: "4mb",
     },
   },
 };

@@ -30,14 +30,15 @@ export default function Error({
       <h1 className="text-2xl font-semibold">Daar ging iets mis</h1>
 
       <p className="mt-3 text-sm text-ink-muted">
-        Niet jouw schuld, en er is niets kwijt. Wat je net probeerde is niet
-        opgeslagen; alles wat er al stond staat er nog.
+        Wat je net invulde is weg — dat is vervelend en het klopt niet dat je
+        het opnieuw moet typen. Alles wat al opgeslagen was, staat er nog.
       </p>
 
       <p className="mt-4 text-sm text-ink-muted">
-        Kwam dit na het uploaden van een bestand, dan was het waarschijnlijk te
-        groot. De limiet is 25 MB, en een langere video hoort op een filehost met
-        een link vanuit de campagne.
+        Kwam dit na het kiezen van een bestand, dan was het te groot. De grens
+        ligt op <strong>4 MB</strong>, en die is niet van ons: de hosting kapt
+        elk verzoek daarboven af. Maak de video kleiner, of zet hem op een
+        filehost en link ernaar vanuit de campagne.
       </p>
 
       <div className="mt-6 flex flex-wrap gap-2">
