@@ -64,16 +64,21 @@ def blend(a, b, t):
 
 
 # De Timeline zoals hij er echt uitziet: tekst, bron, hoe lang geleden.
+#
+# Nooit een volledig adres met huisnummer. Wat er in een demo staat wordt door
+# duizenden mensen bekeken en bevroren in een bestand dat je niet meer terug kunt
+# halen; een straat met een nummer erbij is dan iemands voordeur. Postcodes en
+# huisnummers dus niet, ook niet verzonnen — die bestaan meestal echt.
 ROWS = [
     ("invoice@voxclip.it", "Chrome · 12m", "RICH TEXT"),
-    ("Kerkstraat 12B, 1017 GC Amsterdam", "Notes · 41m", ""),
+    ("Pick-up point: the bakery on the corner", "Notes · 41m", ""),
     ("Call the notary — 3:00", "Notes · 1h", "SPOKE"),
     ("Order #48213 — delivery Thursday", "Mail · 2h", ""),
     ("Meeting moved to 14:30, room 2.", "Notes · 3h", ""),
 ]
 
 
-def draw_window(d, typed: str, rows, highlight=-1, dim=0.0):
+def draw_window(d, typed: str, rows, highlight=-1, dim=0.0, chip=0):
     """Het venster. Geeft de y terug waar de lijst ophoudt."""
     x0, x1 = PAD, W - PAD
     ink = blend(PAPER, INK, 1 - dim * 0.75)
@@ -106,7 +111,8 @@ def draw_window(d, typed: str, rows, highlight=-1, dim=0.0):
         )
 
     y += 100
-    for i, (label, on) in enumerate([("All", True), ("Copied", False), ("Spoke", False)]):
+    for i, label in enumerate(["All", "Copied", "Spoke"]):
+        on = i == chip
         d.text(
             (x0 + i * 108, y),
             label,
@@ -186,68 +192,145 @@ def caption(d, text, alpha, y=H - 250, colour=INK):
         x += d.textlength(p, font=fnt)
 
 
-QUERY = "invo"
+# ---------------------------------------------------------------------------
+# De scenario's.
+#
+# Allemaal dezelfde vorm — het venster staat van begin tot eind in beeld en er
+# gebeurt iets in — maar elk vertelt iets anders. Dat is het verschil tussen
+# variatie en herhaling: dezelfde camera, een ander verhaal.
+# ---------------------------------------------------------------------------
+
+SPOKEN = ("Ask Arend about the pricing page", "Dictated \u00b7 now", "SPOKE")
+SNIPPET = ("Thanks for the quick reply \u2014 notes added.", "Snippet", "")
+IMAGE = ("Screenshot 2026-08-18.png", "Preview \u00b7 5m", "IMAGE")
 
 
-def frame(t: float) -> Image.Image:
-    """t is de tijd in seconden. Eén doorlopende scène."""
-    img = Image.new("RGB", (W, H), PAPER)
-    d = ImageDraw.Draw(img)
-
-    # 0.0–1.6  het venster staat er, vol
-    # 1.6–3.2  er wordt getypt en de lijst krimpt
-    # 3.2–4.2  gefilterd, één rij over
-    # 4.2–6.4  de Quick-picker komt op
-    # 6.4–7.6  kiezen
-    # 7.6–9.0  geplakt
-
+def scene_search(t, d):
+    """Typen, filteren, Quick-picker, plakken."""
+    q = "invo"
     if t < 1.6:
         draw_window(d, "", ROWS)
         caption(d, "Everything you copy or say.", ease((t - 0.3) / 0.6))
-
     elif t < 3.4:
-        p = (t - 1.6) / 1.8
-        n = min(len(QUERY), int(p * len(QUERY) * 1.6))
-        typed = QUERY[:n]
+        n = min(len(q), int((t - 1.6) / 1.8 * len(q) * 1.6))
+        typed = q[:n]
         rows = [r for r in ROWS if typed.lower() in r[0].lower()] if typed else ROWS
         draw_window(d, typed, rows)
         caption(d, "Type three letters.", ease((t - 1.8) / 0.5))
-
     elif t < 4.4:
-        rows = [r for r in ROWS if QUERY in r[0].lower()]
-        draw_window(d, QUERY, rows)
+        draw_window(d, q, [r for r in ROWS if q in r[0].lower()])
         caption(d, "There it is.", ease((t - 3.5) / 0.4))
-
     elif t < 6.6:
         rise = ease((t - 4.4) / 0.5)
         draw_window(d, "", ROWS, dim=0.55 * rise)
         draw_picker(d, rise, "invo", ROWS)
-        caption(d, "Or ⌥Space, from any app.", ease((t - 5.0) / 0.5), y=H - 700, colour=PAPER)
-
+        caption(d, "Or \u2325Space, from any app.", ease((t - 5.0) / 0.5), y=H - 780)
     elif t < 7.8:
         draw_window(d, "", ROWS, dim=0.55)
         draw_picker(d, 1.0, "invo", ROWS, chosen=0)
-        caption(d, "Pick it.", ease((t - 6.8) / 0.4), y=H - 700, colour=PAPER)
-
+        caption(d, "Pick it.", ease((t - 6.8) / 0.4), y=H - 780)
     else:
         draw_window(d, "", ROWS, highlight=0)
-        a = ease((t - 8.0) / 0.5)
-        caption(d, "Pasted where your cursor was.", a)
-        if a > 0.6:
-            f = ImageFont.truetype(REG, 30)
-            foot = "Free · Mac and Windows · voxclip.it"
-            d.text(((W - d.textlength(foot, font=f)) / 2, H - 160), foot, font=f,
-                   fill=blend(PAPER, GREY, a))
+        caption(d, "Pasted where your cursor was.", ease((t - 8.0) / 0.5))
+
+
+def scene_dictate(t, d):
+    """Je zegt iets en het staat bovenaan tussen je kopieen."""
+    if t < 1.8:
+        draw_window(d, "", ROWS)
+        caption(d, "Typing a note is slower than saying it.", ease((t - 0.3) / 0.6))
+    elif t < 4.0:
+        draw_window(d, "", ROWS, dim=0.35)
+        cx, cy = W // 2, H - 640
+        for i in range(-3, 4):
+            amp = 40 + 46 * abs((t * 3 + i) % 2 - 1)
+            d.rounded_rectangle(
+                [cx + i * 34 - 8, cy - amp / 2, cx + i * 34 + 8, cy + amp / 2],
+                radius=8, fill=TEAL)
+        caption(d, "So say it.", ease((t - 2.2) / 0.5))
+    elif t < 6.4:
+        draw_window(d, "", [SPOKEN] + ROWS[:4], highlight=0)
+        caption(d, "It lands in the same Timeline.", ease((t - 4.4) / 0.5))
+    else:
+        draw_window(d, "", [SPOKEN] + ROWS[:4])
+        caption(d, "Your voice never leaves this Mac.", ease((t - 6.8) / 0.5))
+
+
+def scene_filter(t, d):
+    """Copied en Spoke: een tik en je ziet er een soort."""
+    rows = [SPOKEN] + ROWS[:4]
+    if t < 2.0:
+        draw_window(d, "", rows)
+        caption(d, "Copies and voice notes, together.", ease((t - 0.3) / 0.6))
+    elif t < 4.6:
+        draw_window(d, "", [r for r in rows if r[2] != "SPOKE"], chip=1)
+        caption(d, "Only what you copied.", ease((t - 2.4) / 0.5))
+    elif t < 7.0:
+        draw_window(d, "", [r for r in rows if r[2] == "SPOKE"], chip=2)
+        caption(d, "Or only what you said.", ease((t - 4.9) / 0.5))
+    else:
+        draw_window(d, "", rows)
+        caption(d, "One tap. No menus.", ease((t - 7.3) / 0.5))
+
+
+def scene_snippet(t, d):
+    """De regel die je elke dag typt, een keer bewaard."""
+    if t < 2.0:
+        draw_window(d, "", ROWS)
+        caption(d, "You have typed this reply five times.", ease((t - 0.3) / 0.6))
+    elif t < 4.4:
+        draw_window(d, "", [SNIPPET] + ROWS[:4], highlight=0)
+        caption(d, "Save it once.", ease((t - 2.3) / 0.5))
+    elif t < 6.8:
+        rise = ease((t - 4.4) / 0.5)
+        draw_window(d, "", ROWS, dim=0.55 * rise)
+        draw_picker(d, rise, "than", [SNIPPET] + ROWS[:3], chosen=0)
+        caption(d, "Two keys from now on.", ease((t - 5.2) / 0.5), y=H - 780)
+    else:
+        draw_window(d, "", [SNIPPET] + ROWS[:4], highlight=0)
+        caption(d, "Snippets. Free, on your machine.", ease((t - 7.1) / 0.5))
+
+
+def scene_kinds(t, d):
+    """Niet alleen tekst."""
+    rows = [IMAGE] + ROWS[:4]
+    if t < 2.0:
+        draw_window(d, "", ROWS)
+        caption(d, "It is not only text.", ease((t - 0.3) / 0.6))
+    elif t < 4.4:
+        draw_window(d, "", rows, highlight=0)
+        caption(d, "Images and files as well.", ease((t - 2.3) / 0.5))
+    elif t < 6.8:
+        draw_window(d, "", rows, highlight=0)
+        caption(d, "Whatever you copied, it kept.", ease((t - 4.7) / 0.5))
+    else:
+        draw_window(d, "", rows)
+        caption(d, "Free \u00b7 Mac and Windows", ease((t - 7.1) / 0.5))
+
+
+SCENES = {
+    "search": (scene_search, 9.4),
+    "dictate": (scene_dictate, 8.6),
+    "filter": (scene_filter, 9.0),
+    "snippet": (scene_snippet, 9.2),
+    "kinds": (scene_kinds, 8.8),
+}
+
+
+def frame(scene, t: float) -> Image.Image:
+    img = Image.new("RGB", (W, H), PAPER)
+    scene(t, ImageDraw.Draw(img))
     return img
 
 
 def main() -> None:
-    out = Path(sys.argv[1] if len(sys.argv) > 1 else "demo.mp4")
-    seconds = 9.4
+    name = sys.argv[1] if len(sys.argv) > 1 else "search"
+    out = Path(sys.argv[2] if len(sys.argv) > 2 else f"demo-{name}.mp4")
+    scene, seconds = SCENES[name]
     with tempfile.TemporaryDirectory() as tmp:
         n = int(seconds * FPS)
         for i in range(n):
-            frame(i / FPS).save(Path(tmp) / f"{i:05d}.png")
+            frame(scene, i / FPS).save(Path(tmp) / f"{i:05d}.png")
         subprocess.run(
             ["ffmpeg", "-y", "-r", str(FPS), "-i", str(Path(tmp) / "%05d.png"),
              "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18",
