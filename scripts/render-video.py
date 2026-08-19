@@ -138,6 +138,38 @@ def blend(a, b, t):
     return tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
 
 
+# --- het merkteken ---------------------------------------------------------
+#
+# Niet natekenen maar inladen. Hier stond een met de hand getekend blokje met
+# drie balkjes, zonder de ingesneden hoek — dus niet het merkteken maar iets dat
+# erop leek. Een logo dat je natekent loopt uit de pas zodra het echte verandert,
+# en dan staat er in tien video's een versie die nergens meer bestaat.
+#
+# Bron: public/voxclip-mark.svg, via public/voxclip-mark-512.png.
+
+MARK_PATH = Path(__file__).resolve().parent.parent / "public" / "voxclip-mark-512.png"
+_mark_cache: dict[int, Image.Image] = {}
+
+
+def mark(size: int) -> Image.Image:
+    """Het merkteken op maat, met doorzichtige achtergrond."""
+    if size not in _mark_cache:
+        _mark_cache[size] = Image.open(MARK_PATH).convert("RGBA").resize(
+            (size, size), Image.LANCZOS
+        )
+    return _mark_cache[size]
+
+
+def paste_mark(img: Image.Image, x: int, y: int, size: int, alpha: float = 1.0) -> None:
+    m = mark(size)
+    if alpha < 1.0:
+        m = m.copy()
+        m.putalpha(m.getchannel("A").point(lambda v: int(v * clamp01(alpha))))
+    img.alpha_composite(m, (x, y)) if img.mode == "RGBA" else img.paste(m, (x, y), m)
+
+
+
+
 def runs(text: str):
     """Splitst een regel in stukken die dezelfde font nodig hebben."""
     out, buf, cur = [], "", None
@@ -184,13 +216,7 @@ def draw_app(d, top: int, alpha: float, query: str, row: str, source: str) -> in
     ink = blend(PAPER, INK, alpha)
     faint = blend(PAPER, (150, 158, 170), alpha)
 
-    # merkje
-    d.rounded_rectangle([x0, top, x0 + 46, top + 46], radius=12, fill=ink)
-    for i, (bx, h) in enumerate([(10, 14), (19, 22), (28, 14)]):
-        c = TEAL if i == 1 else PAPER
-        d.rounded_rectangle(
-            [x0 + bx, top + 23 - h // 2, x0 + bx + 8, top + 23 + h // 2], radius=4, fill=c
-        )
+    paste_mark(d._image, x0, top, 46, alpha)
     f = ImageFont.truetype(BOLD, 34)
     d.text((x0 + 60, top + 6), "VoxClip", font=f, fill=ink)
 

@@ -63,6 +63,38 @@ def blend(a, b, t):
     return tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
 
 
+# --- het merkteken ---------------------------------------------------------
+#
+# Niet natekenen maar inladen. Hier stond een met de hand getekend blokje met
+# drie balkjes, zonder de ingesneden hoek — dus niet het merkteken maar iets dat
+# erop leek. Een logo dat je natekent loopt uit de pas zodra het echte verandert,
+# en dan staat er in tien video's een versie die nergens meer bestaat.
+#
+# Bron: public/voxclip-mark.svg, via public/voxclip-mark-512.png.
+
+MARK_PATH = Path(__file__).resolve().parent.parent / "public" / "voxclip-mark-512.png"
+_mark_cache: dict[int, Image.Image] = {}
+
+
+def mark(size: int) -> Image.Image:
+    """Het merkteken op maat, met doorzichtige achtergrond."""
+    if size not in _mark_cache:
+        _mark_cache[size] = Image.open(MARK_PATH).convert("RGBA").resize(
+            (size, size), Image.LANCZOS
+        )
+    return _mark_cache[size]
+
+
+def paste_mark(img: Image.Image, x: int, y: int, size: int, alpha: float = 1.0) -> None:
+    m = mark(size)
+    if alpha < 1.0:
+        m = m.copy()
+        m.putalpha(m.getchannel("A").point(lambda v: int(v * clamp01(alpha))))
+    img.alpha_composite(m, (x, y)) if img.mode == "RGBA" else img.paste(m, (x, y), m)
+
+
+
+
 # De Timeline zoals hij er echt uitziet: tekst, bron, hoe lang geleden.
 #
 # Nooit een volledig adres met huisnummer. Wat er in een demo staat wordt door
@@ -84,13 +116,7 @@ def draw_window(d, typed: str, rows, highlight=-1, dim=0.0, chip=0):
     ink = blend(PAPER, INK, 1 - dim * 0.75)
     grey = blend(PAPER, GREY, 1 - dim * 0.6)
 
-    d.rounded_rectangle([x0, 120, x0 + 46, 166], radius=12, fill=ink)
-    for i, (bx, h) in enumerate([(10, 14), (19, 22), (28, 14)]):
-        d.rounded_rectangle(
-            [x0 + bx, 143 - h // 2, x0 + bx + 8, 143 + h // 2],
-            radius=4,
-            fill=TEAL if i == 1 else PAPER,
-        )
+    paste_mark(d._image, x0, 120, 46, 1 - dim * 0.6)
     d.text((x0 + 60, 126), "VoxClip", font=ImageFont.truetype(BOLD, 34), fill=ink)
 
     y = 200

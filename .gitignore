@@ -57,3 +57,9 @@ artifacts/screenshots/
 
 # the deployed prototype, kept as reference for the port
 !legacy/index.html
+
+# Gerenderde video's. Ze staan in je map en je kunt ze afspelen, maar ze horen
+# niet in de repo: ze zijn met scripts/render-demo.py in een minuut opnieuw te
+# maken, en binaire bestanden die elke render veranderen maken je geschiedenis
+# zwaar zonder dat je ooit een diff kunt lezen.
+/voxclip-*.mp4
