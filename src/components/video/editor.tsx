@@ -35,6 +35,7 @@ import {
   starterMeta,
   type StarterSource,
 } from "@/lib/video/starters";
+import { fileName, pickFormat } from "@/lib/video/export-format";
 import { StarterBrowser } from "./starter-browser";
 
 const FPS = 30;
@@ -223,17 +224,20 @@ export function VideoEditor({
       setStatus("This browser cannot record a canvas. Chrome and Edge can.");
       return;
     }
-    const mimeType = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"].find(
-      (t) => MediaRecorder.isTypeSupported(t),
-    );
-    if (!mimeType) {
-      setStatus("This browser cannot record webm. Try Chrome.");
+    // mp4 eerst. Dit stond vast op webm, en dat is het verkeerde bestand voor
+    // waar deze video's heen gaan: TikTok, mail, je site. Zie export-format.ts.
+    const format = pickFormat((type) => MediaRecorder.isTypeSupported(type));
+    if (!format) {
+      setStatus("Deze browser kan geen video opnemen. Chrome of Safari wel.");
       return;
     }
+    const { mimeType } = format;
 
     setRecording(true);
     setPlaying(false);
-    setStatus("Recording in real time. Keep this tab in front until it finishes.");
+    setStatus(
+      `Opnemen in echte tijd, als ${format.extension}. Houd dit tabblad voorop tot het klaar is.`,
+    );
 
     const stream = canvas.captureStream(FPS);
     const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 12_000_000 });
@@ -266,13 +270,13 @@ export function VideoEditor({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `voxclip-${project.ratio.replace(":", "x")}-${Math.round(totalMs / 1000)}s.webm`;
+    a.download = fileName(project.ratio, totalMs / 1000, format.extension);
     a.click();
     URL.revokeObjectURL(url);
 
     setRecording(false);
     setMs(0);
-    setStatus("Downloaded as webm. Every platform in the list accepts it.");
+    setStatus(format.note);
   }
 
   async function save() {
